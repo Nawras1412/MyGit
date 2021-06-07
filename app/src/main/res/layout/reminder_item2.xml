@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context=".alarm_view"
+    app:cardCornerRadius="4dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="93dp"
+        android:layout_margin="4dp">
+
+
+        <TextView
+            android:id="@+id/hours"
+            android:layout_width="301dp"
+            android:layout_height="41dp"
+            android:layout_alignWithParentIfMissing="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="22dp"
+            android:autoText="false"
+            android:clickable="false"
+            android:cursorVisible="false"
+            android:elegantTextHeight="true"
+            android:fadeScrollbars="false"
+            android:focusableInTouchMode="false"
+            android:isScrollContainer="false"
+            android:linksClickable="true"
+            android:textSize="30dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.134" />
+
+        <TextView
+            android:id="@+id/title2"
+            android:layout_width="304dp"
+            android:layout_height="37dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="78dp"
+            android:layout_marginBottom="4dp"
+            android:ems="10"
+            android:enabled="true"
+            android:inputType="date"
+            android:linksClickable="true"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:visibility="visible"
+            tools:ignore="MissingConstraints"
+            tools:layout_editor_absoluteX="32dp"
+            tools:layout_editor_absoluteY="38dp" />
+
+        <ImageButton
+            android:id="@+id/DeleteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            app:srcCompat="@drawable/ic_baseline_auto_delete_24" />
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>
+
+
+
+
+
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--xmlns:tools="http://schemas.android.com/tools"-->
+<!--android:layout_width="match_parent"-->
+<!--android:layout_height="wrap_content"-->
+<!--tools:context=".alarm_view"-->
+<!--app:cardCornerRadius="4dp">-->
+
+<!--<RelativeLayout-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="93dp"-->
+<!--    android:layout_margin="4dp">-->
+
+
+<!--    <TextView-->
+<!--        android:id="@+id/hours"-->
+<!--        android:layout_width="301dp"-->
+<!--        android:layout_height="41dp"-->
+<!--        android:layout_alignWithParentIfMissing="true"-->
+<!--        android:layout_alignParentStart="true"-->
+<!--        android:layout_marginStart="22dp"-->
+<!--        android:autoText="false"-->
+<!--        android:clickable="false"-->
+<!--        android:cursorVisible="false"-->
+<!--        android:elegantTextHeight="true"-->
+<!--        android:fadeScrollbars="false"-->
+<!--        android:focusableInTouchMode="false"-->
+<!--        android:isScrollContainer="false"-->
+<!--        android:linksClickable="true"-->
+<!--        android:textSize="30dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:layout_constraintVertical_bias="0.134" />-->
+
+<!--    <TextView-->
+<!--        android:id="@+id/title2"-->
+<!--        android:layout_width="304dp"-->
+<!--        android:layout_height="37dp"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_alignParentBottom="true"-->
+<!--        android:layout_marginEnd="78dp"-->
+<!--        android:layout_marginBottom="4dp"-->
+<!--        android:ems="10"-->
+<!--        android:enabled="true"-->
+<!--        android:inputType="date"-->
+<!--        android:linksClickable="true"-->
+<!--        android:textColor="#000000"-->
+<!--        android:textSize="14sp"-->
+<!--        android:visibility="visible"-->
+<!--        tools:ignore="MissingConstraints"-->
+<!--        tools:layout_editor_absoluteX="32dp"-->
+<!--        tools:layout_editor_absoluteY="38dp" />-->
+
+<!--    <ImageButton-->
+<!--        android:id="@+id/DeleteButton"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_alignParentRight="true"-->
+<!--        app:srcCompat="@drawable/ic_baseline_auto_delete_24" />-->
+<!--</RelativeLayout>-->
+
+<!--</androidx.cardview.widget.CardView>-->

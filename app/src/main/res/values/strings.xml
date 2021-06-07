@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">SmartRemindersApp2</string>
+    <string name="title_activity_maps">SmartReminders</string>
+    <string name="map_key"> AIzaSyCnCRbt1HMI_v7XdAHexxIO3razthKlYiI</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyCfsrOq62GRNdUvZeMBhimX4RFX9cpm4uU</string>
+    <string name="no_reminders_set_nclick_to_add_the_reminders">No Reminders Set\nClick + to add the reminders</string>
+    <string-array name="days">
+        <item>Sunday</item>
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+    </string-array>
+
+</resources>

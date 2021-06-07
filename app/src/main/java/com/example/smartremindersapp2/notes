@@ -1,0 +1,82 @@
+* public static class alarmViewHolder extends RecyclerView.ViewHolder
+this class in ExampleAdapter, and i change it to be not static
+
+
+Classes:
+1) User ->
+    variables:
+        Name
+        UserName
+        Email
+        Password
+        Status
+        Alarms
+    functions:
+        setters
+        getters
+        constructors
+
+2) registration ->
+    functions:
+        OnCreate
+        registration_button       // the button of the registration
+        Exeptions                 // plot the error on the illegal text view
+        checkRegistrationData     // check if all the text view contain a legal input
+
+
+3) retrieve_password ->
+    functions:
+        onCreate
+        retrievePasswordFunc     // button, if the data id legal then update the
+                                    database and go to login page, else show error message
+        CheckIfLegal             // check if the data is legal
+
+4) SaveInDatabase ->
+    functions:
+        saveUser      // get user object and save in the fire database
+
+
+4) AuxiliaryFunctions ->
+    functions:
+        openNewPage            // move to another page
+        openDialogD            // open a success window and move to another page
+        SetErrorOnTextView     // set error message on the text view
+        MakeToast              // show a message on the buttom of the application
+
+
+5) login ->
+    functions:
+
+
+** the function onpause we can use it, that it will be called when we move to another page
+** in the alarm clock page:
+    1) must add the text view of adding a name to the alarm
+   2) add cancel button and save button
+   3) add the textview of show the date of the alarm
+   4) add a Toast that the alarm set to the cheesed date and clock
+        ** calendar: Alarm set for 06:00 on Tuesday, June 1.
+        ** Alarm set for 17 hours and 3 minutes from now.
+        ** alarm set for 06:00 on Tuesday, June 1.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
