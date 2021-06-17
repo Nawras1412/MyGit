@@ -116,12 +116,20 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         alarmTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
             public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
+                System.out.println("///////////////////////////////");
+                System.out.println("before");
+                System.out.println("the hour is: "+date.getHours());
+                System.out.println("the minutes is: "+date.getMinutes());
+                System.out.println("the month is: "+date.getMonth());
+                System.out.println("the day is: "+date.getDay());
+                System.out.println("///////////////////////////////");
                 String text;
                 //update the new chooses hour and minutes
                 hour=alarmTimePicker.getHour();
                 minutes=alarmTimePicker.getMinute();
                 updateHourAndMinutesInCalendar();
-
+                date.setHours(hour);
+                date.setMinutes(minutes);
                 //get the date of today and save in text
                 text="Today-"+getDateAsString(NotificationDate.getTime());
 
@@ -145,6 +153,13 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                     AlarmDate.setText(text);
                     date= NotificationDate.getTime();
                 }
+                System.out.println("///////////////////////////////");
+                System.out.println("after");
+                System.out.println("the hour is: "+date.getHours());
+                System.out.println("the minutes is: "+date.getMinutes());
+                System.out.println("the month is: "+date.getMonth());
+                System.out.println("the day is: "+date.getDay());
+                System.out.println("///////////////////////////////");
                 //set notification for today -> when we call to recreate the alarm_clock page then must be
                 //Today-today date
 //                else{
@@ -201,7 +216,6 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                         UnCheckTheCheckBoxes();
                         //get the date and set in the alarm date text view
                         AlarmDate.setText(getDateAsString(NotificationDate.getTime()));
-
                     }
                 }, newCalender.get(Calendar.YEAR), newCalender.get(Calendar.MONTH), newCalender.get(Calendar.DAY_OF_MONTH));
                 dialog.getDatePicker().setMinDate(System.currentTimeMillis());
@@ -234,9 +248,9 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             alarm_view old_alarm=snapshot.getValue(alarm_view.class);
                             if((boolean)(snapshot.child("checked").getValue())==true){
-                                System.out.println("im in (boolean)(dataSnapshot.getValue())==true");
-                                editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)-1);
-                                editor.commit();
+//                                System.out.println("im in (boolean)(dataSnapshot.getValue())==true");
+//                                editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)-1);
+//                                editor.commit();
                                 all_alarms AC=new all_alarms();
                                 AC.cancelAlarm(old_alarm,getApplicationContext());
                             }

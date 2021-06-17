@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.database.DataSnapshot;
@@ -20,6 +22,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -162,19 +167,32 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
     }
 
     public String getDateAsString(alarm_view alarm){
-        System.out.println("the alarm is "+alarm);
         List<String> days=alarm.getDays_date();
         if (days == null) {
             days = new ArrayList<>();
         }
+        Date date;
         String text = "";
-        if(days.isEmpty()) {
-            String formattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(alarm.getDate());
+        if(days.isEmpty()){
+            Calendar cal=Calendar.getInstance();
+            cal.setTime(alarm.getDate());
+            if (cal.before(Calendar.getInstance())){
+                cal.add(Calendar.DATE,1);
+                date=cal.getTime();
+                String key= alarm.getKey();
+                DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(username)
+                        .child("Alarms").child(key);
+                HashMap map=new HashMap();
+                map.put("date",date);
+                ref.updateChildren(map);
+            }
+            else
+                date=alarm.getDate();
+            String formattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(date);
             String[] splitDate = formattedDate.split(",");
             String NextDate=splitDate[0]+","+splitDate[1];
             text=NextDate;
         } else {
-
             if (days.contains("0")) text =  text +   "<u>"+"<b> " + "S" + "</b>"+"</u>"+"  ";
             else text = text + " S  ";
             if (days.contains("1")) text = text + "<u>"+"<b>" + "M" + "</b>"+"</u>"+"  ";
