@@ -29,11 +29,14 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.IBinder;
+
+import androidx.core.app.NotificationCompat;
 
 public class AlertReceiver extends BroadcastReceiver {
     private static Ringtone ringtone;
@@ -55,23 +58,34 @@ public class AlertReceiver extends BroadcastReceiver {
     }
     @Override
     public void onReceive(Context context, Intent intent){
+        SharedPreferences sharedPreferences=context
+                .getSharedPreferences("U",Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor=sharedPreferences.edit();
+        String key=intent.getStringExtra("key");
+        System.out.println("the key in the AlertReceiver is: "+key);
+        editor.putString("Current Ring Key",key);
+        editor.commit();
         System.out.println("im in OnReceive");
-//        context.startService(new Intent(context, NotifierAlarm.class));
         stopring=true;
+
         NotificationHelper notificationHelper = new NotificationHelper(context);
-        Notification nb = notificationHelper.getChannelNotification(intent.getStringExtra("Key"));
+        Notification nb = notificationHelper.getChannelNotification(intent.getStringExtra("key"));
         notificationHelper.getManager().notify(0, nb);
         ringtone = RingtoneManager.getRingtone(context, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE));
-        new CountDownTimer(30*1000, 1000) {
+        new CountDownTimer(30*1000, 1000){
             @Override
             public void onTick(long millisUntilFinished){
-                if(stopring==true) {
+                System.out.println("the current key is: "+intent.getStringExtra("key"));
+                System.out.println("the ring key is in AlertReciever:");
+                System.out.println(sharedPreferences.getBoolean("ring "+intent.getStringExtra("key"),false));
+                if(sharedPreferences.getBoolean("ring "+key,true))
                     ringtone.play();
-                    System.out.println("play ringtone");
-                }
+//                if(stopring==true) {
+//
+//                    System.out.println("play ringtone");
+//                }
                 else{
                     ringtone.stop();
-//                    System.out.println("stop ringtone");
                     cancel();
                 }
             }

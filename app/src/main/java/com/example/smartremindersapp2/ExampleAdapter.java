@@ -2,6 +2,7 @@ package com.example.smartremindersapp2;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -19,15 +20,27 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 
 public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmViewHolder> {
-    private ArrayList<alarm_view> mAlram_view_list;
+    private static ArrayList<alarm_view> mAlram_view_list;
     private String username;
     private Context mcontext;
     private OnItemClickListener mlistener;
+
+
+    public static void setmAlram_view_list(ArrayList<alarm_view> mAlram_view_list) {
+        mAlram_view_list = mAlram_view_list;
+    }
+
+    public static ArrayList<alarm_view> getmAlram_view_list() {
+        return mAlram_view_list;
+    }
+
+    public static void updateAlarmsList(int position,alarm_view alarm){
+        mAlram_view_list.set(position,alarm);
+    }
 
     public interface OnItemClickListener {
         void onItemClick(int position);
@@ -59,15 +72,20 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
                 public void onClick(View v) {
                     if (listener != null) {
                         int position = getAdapterPosition();
-                        if (position != RecyclerView.NO_POSITION) {
+                        if (position != RecyclerView.NO_POSITION){
                             listener.onItemClick(position);
 
                             //get the position of the edited alarm
                             alarm_view currentAlarm=mAlram_view_list.get(position);
+                           //must update the key of the alarm in the list
                             Intent intent=new Intent(mcontext,alarm_clock.class);
                             intent.putExtra("Key",currentAlarm.getKey());
+                            intent.putExtra("position",position);
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             mcontext.startActivity(intent);
+//                            mAlram_view_list.remove(position);
+//                            notifyDataSetChanged();
+
 //                            DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("Alarms").child(currentAlarm.getKey());
 //                            ref.removeValue();
 //                            mAlram_view_list.remove(position);
@@ -144,6 +162,7 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
     }
 
     public String getDateAsString(alarm_view alarm){
+        System.out.println("the alarm is "+alarm);
         List<String> days=alarm.getDays_date();
         if (days == null) {
             days = new ArrayList<>();
@@ -197,37 +216,47 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
             holder.mSwitch.setChecked(false);
         }
         DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("Alarms").child(currentAlarm.getKey());
+        DatabaseReference ref1=FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("Alarms").child(currentAlarm.getKey()).child("checked");
         holder.DeleteB.setOnClickListener(new View.OnClickListener() {
            @Override
-           public void onClick(View v) {
+           public void onClick(View v){
+               ref1.addListenerForSingleValueEvent(new ValueEventListener(){
+                   @RequiresApi(api = Build.VERSION_CODES.M)
+                   @Override
+                   public void onDataChange(DataSnapshot dataSnapshot){
+                       if ((boolean)(dataSnapshot.getValue())==true){
+                           all_alarms AC = new all_alarms();
+                           AC.cancelAlarm(currentAlarm,mcontext);
+                       }
+                       ref.removeValue();
+                       mAlram_view_list.remove(position);
+                       notifyDataSetChanged();
+                   }
+                   @Override
+                   public void onCancelled(DatabaseError databaseError) {}
+               });
 //               alarm_clock.cancelAlarm(currentAlarm.getKey());
-               ref.removeValue();
-               mAlram_view_list.remove(position);
-               notifyDataSetChanged();
-               all_alarms AC = new all_alarms();
-//               AC.cancelAlarm(currentAlarm.getKey(),mcontext);
            }});
-        DatabaseReference ref1=FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("Alarms").child(currentAlarm.getKey()).child("checked");
         holder.mSwitch.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
+                SharedPreferences sharedPreferences=mcontext.getSharedPreferences("U",mcontext.MODE_PRIVATE);
+                SharedPreferences.Editor editor=sharedPreferences.edit();
+
                 ref1.addListenerForSingleValueEvent(new ValueEventListener(){
                     @RequiresApi(api = Build.VERSION_CODES.M)
                     @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
+                    public void onDataChange(DataSnapshot dataSnapshot){
                         if ((boolean)(dataSnapshot.getValue())==true){
                             currentAlarm.setSwitch(false);
                             ref1.setValue(false);
                             all_alarms AC = new all_alarms();
-                            AC.cancelAlarm(currentAlarm.getKey(),mcontext);
+                            AC.cancelAlarm(currentAlarm,mcontext);
                         }
                         else{
-                            Calendar c = Calendar.getInstance();
-                            c.set(Calendar.HOUR_OF_DAY, currentAlarm.getHour());
-                            c.set(Calendar.MINUTE, currentAlarm.getMinutes());
-                            c.set(Calendar.SECOND, 0);
+                            System.out.println("im in holder.mSwitch with false value ");
                             all_alarms AC=new all_alarms();
-//                            AC.startAlarm(c,currentAlarm.getKey(),mcontext);
+                            AC.startAlarm(currentAlarm,mcontext);
                             currentAlarm.setSwitch(true);
                             ref1.setValue(true);
                         }

@@ -52,6 +52,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -82,15 +83,15 @@ public class NotificationHelper extends ContextWrapper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel();
         }
-//        else restartService(base);
+        else restartService(base);
     }
 
-//    private void restartService(Context context)
-//    {
-//        Intent restartServiceIntent = new Intent(context, AlertReceiver.class);
-//        context.startService(restartServiceIntent);
-//
-//    }
+    private void restartService(Context context)
+    {
+        Intent restartServiceIntent = new Intent(context, AlertReceiver.class);
+        context.startService(restartServiceIntent);
+
+    }
 
 
     @TargetApi(Build.VERSION_CODES.O)
@@ -111,15 +112,23 @@ public class NotificationHelper extends ContextWrapper {
     public Notification getChannelNotification(String key) {
         Intent notificationIntent = new Intent(this, all_alarms.class);
         setKey(key);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(this, key.hashCode(), notificationIntent,0);
+        TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(getApplicationContext());
+        taskStackBuilder.addNextIntentWithParentStack(notificationIntent);
+        PendingIntent pendingIntent = taskStackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = new NotificationCompat.Builder(this, channelID)
                 .setContentTitle("Alarm!")
                 .setContentText("Your AlarmManager is working.")
                 .setPriority(Notification.PRIORITY_HIGH) // addition
                 .setSmallIcon(R.drawable.ic_alarm).setContentIntent(pendingIntent)
+//                .setFullScreenIntent(pendingIntent,true)
                 .setOngoing(true).setCategory(Notification.CATEGORY_SERVICE).build();
 
         notification.flags = Notification.FLAG_AUTO_CANCEL;
+//        notification.flags = Notification.FLAG_FOREGROUND_SERVICE;
+//        notification.flags = Notification.FLAG_NO_CLEAR;
+//        notification.flags = Notification.FLAG_ONGOING_EVENT;
+//        notification.flags = Notification.CATEGORY_SERVICE;
         return notification;
     }
 }

@@ -1,5 +1,6 @@
 package com.example.smartremindersapp2;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import  androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -9,6 +10,9 @@ import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -29,8 +33,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 public class alarm_clock extends AppCompatActivity implements TimePickerDialog.OnTimeSetListener {
@@ -89,10 +95,13 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         updateHourAndMinutesInCalendar();
         date=NotificationDate.getTime();
 
+        System.out.println("before this line");
         //check if this is an alarm to edit, if yes must initial the alarm_clock page
         if(getIntent().getStringExtra("Key")!=null){
             StartAlarmClockActivity(getIntent().getStringExtra("Key"));
         }
+
+        System.out.println("after this line");
 
         //back to all_alarms page
         CancelButton.setOnClickListener(new View.OnClickListener(){
@@ -126,6 +135,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                 if (cal.before(Calendar.getInstance())){
                     cal.add(Calendar.DATE,1);
                     text="Tomorrow-"+getDateAsString(cal.getTime());
+                    NotificationDate.set(Calendar.DATE,cal.getTime().getDate());
                 }
 
                 //set text if relevant
@@ -135,6 +145,13 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                     AlarmDate.setText(text);
                     date= NotificationDate.getTime();
                 }
+                //set notification for today -> when we call to recreate the alarm_clock page then must be
+                //Today-today date
+//                else{
+//                    NotificationDate.set(Calendar.HOUR_OF_DAY,hour);
+//                    NotificationDate.set(Calendar.MINUTE,minutes);
+//                    date=NotificationDate.getTime();
+//                }
             }
         });
 
@@ -168,9 +185,9 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         });
 
 
-        CalendarButton.setOnClickListener(new View.OnClickListener() {
+        CalendarButton.setOnClickListener(new View.OnClickListener(){
             @Override
-            public void onClick(View v) {
+            public void onClick(View v){
                 Calendar newCalender = Calendar.getInstance();
                 DatePickerDialog dialog = new DatePickerDialog(alarm_clock.this, new DatePickerDialog.OnDateSetListener() {
                     @Override
@@ -196,40 +213,73 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View v){
+                SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
+                SharedPreferences.Editor editor=sharedPreferences.edit();
                 //if true thats mean that we edit an alarm and save the new version
                 if(getIntent().getStringExtra("Key")!=null){
-                    String key=getIntent().getStringExtra("Key");
-                    ref= FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(key);
-                    ref.removeValue();
-                    all_alarms AC=new all_alarms();
-                    AC.cancelAlarm(key,getApplicationContext());
+                    //remove the old alarm
+                    String old_key=getIntent().getStringExtra("Key");
+
+                    //push the new alarm
+                    DatabaseReference ref1= FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms");
+                    DatabaseReference keyRef =ref1.push();
+                    String new_key=keyRef.getKey();
+                    System.out.println("vvvvvvvvvvvvvvvv+"+new_key);
+                    List<String> checkedBoxes=alarm_clock_control.check_boxes(SundayBox,MondayBox,TuesdayBox,WednesdayBox,ThursdayBox,FridayBox,SaturdayBox);
+                    alarm_view new_alarm=new alarm_view(new_key,AlarmName.getText().toString(),hour
+                            ,minutes,checkedBoxes,true,date);
+                    ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(old_key);
+                    ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            alarm_view old_alarm=snapshot.getValue(alarm_view.class);
+                            if((boolean)(snapshot.child("checked").getValue())==true){
+                                System.out.println("im in (boolean)(dataSnapshot.getValue())==true");
+                                editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)-1);
+                                editor.commit();
+                                all_alarms AC=new all_alarms();
+                                AC.cancelAlarm(old_alarm,getApplicationContext());
+                            }
+                            DatabaseReference ref1= FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(old_key);
+                            ref1.removeValue();
+                            keyRef.setValue(new_alarm);
+                            boolean status;
+                            if(AlarmDate.getText().toString().split(" ")[0].equals("Every"))status=false;
+                            else status=true;
+                            startAlarm(new_key,status);
+                            System.out.println("im before open new all_alarms page");
+                            mAuxiliaryFunctions.openNewPage(getApplicationContext(),all_alarms.class);
+//                            ExampleAdapter.updateAlarmsList(getIntent().getIntExtra("position",0),new_alarm);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
                 }
-                List<String> checkedBoxes=alarm_clock_control.check_boxes(SundayBox,MondayBox,TuesdayBox,WednesdayBox,ThursdayBox,FridayBox,SaturdayBox);
-                ref= FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms");
-                DatabaseReference keyRef =ref.push();
-                String key=keyRef.getKey();
-                alarm_view alarm=new alarm_view(key,AlarmName.getText().toString(),hour
-                        ,minutes,checkedBoxes,true,date);
-                keyRef.setValue(alarm);
-                mAuxiliaryFunctions.openNewPage(getApplicationContext(),all_alarms.class);
-                boolean status;
-                if(AlarmDate.getText().toString().split(" ")[0].equals("Every"))status=false;
-                else status=true;
-//                ServiceCaller(intent,hour,minutes,checkedBoxes,userName);
-                startAlarm(key,status);
+                else{
+                    List<String> checkedBoxes=alarm_clock_control.check_boxes(SundayBox,MondayBox,TuesdayBox,WednesdayBox,ThursdayBox,FridayBox,SaturdayBox);
+                    ref= FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms");
+                    DatabaseReference keyRef =ref.push();
+                    String key=keyRef.getKey();
+                    alarm_view alarm=new alarm_view(key,AlarmName.getText().toString(),hour
+                            ,minutes,checkedBoxes,true,date);
+                    keyRef.setValue(alarm);
+                    mAuxiliaryFunctions.openNewPage(getApplicationContext(),all_alarms.class);
+                    boolean status;
+                    if(AlarmDate.getText().toString().split(" ")[0].equals("Every"))status=false;
+                    else status=true;
+                    startAlarm(key,status);
+                }
+
             }
         });
     }
 
-    private void ServiceCaller(Intent intent,int H,int M,List<String> checkedBoxes,String userName){
-        stopService(intent);
-        intent.putExtra("hour",H);
-        intent.putExtra("minutes",M);
-        intent.putExtra("User Name",userName);
-        startService(intent);
-    }
 
-    private void UnCheckTheCheckBoxes() {
+
+    private void UnCheckTheCheckBoxes(){
         SundayBox.setChecked(false);
         MondayBox.setChecked(false);
         TuesdayBox.setChecked(false);
@@ -248,12 +298,17 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
     }
 
     public void StartAlarmClockActivity(String key){
+        System.out.println("the key of the edited alarm is "+key);
         DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(key);
         ref.addListenerForSingleValueEvent(new ValueEventListener(){
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onDataChange(DataSnapshot snapshot) {
+                System.out.println("gggggggggggggggg+ "+key);
                 alarm_view currentAlarm = snapshot.getValue(alarm_view.class);
+                System.out.println("gggggggggggggggg+ "+key);
+                HashMap map=new HashMap();
+                map.put("status","1");
                 AlarmName.setText(currentAlarm.getTitle());
                 alarmTimePicker.setHour(currentAlarm.getHour());
                 alarmTimePicker.setMinute(currentAlarm.getMinutes());
@@ -293,15 +348,17 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                     }
                     AlarmDate.setText(DaysList);
                 }
+                System.out.println("nnnnnnnn");
+                ref.updateChildren(map);
             }
             @Override
             public void onCancelled(DatabaseError error) {}
         });
-
+        System.out.println("at the end of startActivity");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private void UpdateTextViewDays() {
+    private void UpdateTextViewDays(){
         date=null;
         daysList="Every ";
         if(SundayBox.isChecked()) daysList=daysList+"Sun, ";
@@ -339,39 +396,69 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
     }
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void startAlarm(String key,boolean status) {
+//        int i = 0;
+//        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+//        Intent intent = new Intent(this, AlertReceiver.class);
+//        intent.putExtra("Key", key);
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext()
+//                , key.hashCode(), intent,0);
+//        if (status){
+//            alarmManager.setExact(AlarmManager.RTC_WAKEUP, NotificationDate.getTimeInMillis(), pendingIntent);
+//        } else {
+//            if (daysList.contains("Sun"))  setRepeatedAlarm(i++,Calendar.SUNDAY,key,alarmManager,intent);
+//            if (daysList.contains("Mon"))  setRepeatedAlarm(i++,Calendar.MONDAY,key,alarmManager,intent);
+//            if (daysList.contains("Tue"))  setRepeatedAlarm(i++,Calendar.TUESDAY,key,alarmManager,intent);
+//            if (daysList.contains("Wed"))  setRepeatedAlarm(i++,Calendar.WEDNESDAY,key,alarmManager,intent);
+//            if (daysList.contains("Thur"))  setRepeatedAlarm(i++,Calendar.THURSDAY,key,alarmManager,intent);
+//            if (daysList.contains("Fri"))  setRepeatedAlarm(i++,Calendar.FRIDAY,key,alarmManager,intent);
+//            if (daysList.contains("Sat"))  setRepeatedAlarm(i++,Calendar.SATURDAY,key,alarmManager,intent);
+//        }
         int i = 0;
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-
-        Intent intent = new Intent(this, AlertReceiver.class);
-//        Intent intent=new Intent(this,NotifierAlarm.class);
-        intent.putExtra("Key", key);
-//        intent.putExtra("hour", hour);
-//        intent.putExtra("minutes", minutes);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext()
-                , key.hashCode(), intent,0);
+        Intent ServiceIntent=new Intent(this,NotifierAlarm.class);
         if (status){
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, NotificationDate.getTimeInMillis(), pendingIntent);
-        } else {
-            if (daysList.contains("Sun"))  setRepeatedAlarm(i++,Calendar.SUNDAY,key,alarmManager,intent);
-            if (daysList.contains("Mon"))  setRepeatedAlarm(i++,Calendar.MONDAY,key,alarmManager,intent);
-            if (daysList.contains("Tue"))  setRepeatedAlarm(i++,Calendar.TUESDAY,key,alarmManager,intent);
-            if (daysList.contains("Wed"))  setRepeatedAlarm(i++,Calendar.WEDNESDAY,key,alarmManager,intent);
-            if (daysList.contains("Thur"))  setRepeatedAlarm(i++,Calendar.THURSDAY,key,alarmManager,intent);
-            if (daysList.contains("Fri"))  setRepeatedAlarm(i++,Calendar.FRIDAY,key,alarmManager,intent);
-            if (daysList.contains("Sat"))  setRepeatedAlarm(i++,Calendar.SATURDAY,key,alarmManager,intent);
+            stopService(ServiceIntent);
+            ServiceIntent.putExtra("date",date.getTime());
+            ServiceIntent.putExtra("Pending_key",key.hashCode());
+            ServiceIntent.putExtra("key",key);
+            ServiceIntent.putExtra("Repeating",false);
+            startService(ServiceIntent);
+        }else {
+            System.out.println("im in status = false");
+            if (daysList.contains("Sun"))  setRepeatedAlarm(i++,Calendar.SUNDAY,key);
+            if (daysList.contains("Mon"))  setRepeatedAlarm(i++,Calendar.MONDAY,key);
+            if (daysList.contains("Tue"))  setRepeatedAlarm(i++,Calendar.TUESDAY,key);
+            if (daysList.contains("Wed"))  setRepeatedAlarm(i++,Calendar.WEDNESDAY,key);
+            if (daysList.contains("Thur")) setRepeatedAlarm(i++,Calendar.THURSDAY,key);
+            if (daysList.contains("Fri"))  setRepeatedAlarm(i++,Calendar.FRIDAY,key);
+            if (daysList.contains("Sat"))  setRepeatedAlarm(i++,Calendar.SATURDAY,key);
         }
-
-//        startService(intent);
     }
 
-
-    public void setRepeatedAlarm(int i,int day,String key,AlarmManager alarmManager,Intent intent){
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), key.hashCode() + i, intent, 0);
+    public void setRepeatedAlarm(int i,int day,String key) {
+        Intent intent=new Intent(this,NotifierAlarm.class);
+        stopService(intent);
         updateHourAndMinutesInCalendar();
         NotificationDate.set(Calendar.DAY_OF_WEEK, day);
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, NotificationDate.getTimeInMillis(), pendingIntent);
-//        startService(intent);
+        NotificationDate.set(Calendar.WEEK_OF_MONTH,0);
+        NotificationDate.set(Calendar.WEEK_OF_MONTH,1);
+        NotificationDate.set(Calendar.WEEK_OF_MONTH,2);
+        NotificationDate.set(Calendar.WEEK_OF_MONTH,3);
+        date=NotificationDate.getTime();
+        intent.putExtra("Pending_key",key.hashCode() + i);
+        intent.putExtra("date",date.getTime());
+        intent.putExtra("key",key);
+        intent.putExtra("Repeating",true);
+        System.out.println("the key of the new alarm is: "+key);
+        System.out.println("the key.hashcode of the new alarm is: "+key.hashCode() + i);
+        startService(intent);
     }
+//    public void setRepeatedAlarm(int i,int day,String key,AlarmManager alarmManager,Intent intent){
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(this.getApplicationContext(), key.hashCode() + i, intent, 0);
+//        updateHourAndMinutesInCalendar();
+//        NotificationDate.set(Calendar.DAY_OF_WEEK, day);
+//        alarmManager.setExact(AlarmManager.RTC_WAKEUP, NotificationDate.getTimeInMillis(), pendingIntent);
+////        startService(intent);
+//    }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override

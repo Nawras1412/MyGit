@@ -1,6 +1,8 @@
 package com.example.smartremindersapp2;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -57,6 +59,11 @@ public class registration extends AppCompatActivity {
                         AuxiliaryFunctions opendialog=AuxiliaryFunctions.getInstance();
                         opendialog.openDialogD(getSupportFragmentManager());
 
+
+                        SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
+                        SharedPreferences.Editor editor=sharedPreferences.edit();;
+                        editor.putInt("AlarmsNum",0);
+                        editor.commit();
                     }
                 }
                 @Override

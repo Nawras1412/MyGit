@@ -1,5 +1,6 @@
 package com.example.smartremindersapp2;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -9,8 +10,11 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.icu.number.Scale;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.ImageView;
 import com.google.firebase.database.DataSnapshot;
@@ -33,8 +37,13 @@ public class all_alarms extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private String userName;
     private AuxiliaryFunctions myAuxiliaryFunctions;
+    private SharedPreferences msharedPreferences;
+    private SharedPreferences.Editor editor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        System.out.println("im in all_alarms onCreate");
+        msharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
+        editor=msharedPreferences.edit();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_all_alarms);
         drawerLayout=findViewById(R.id.drawer_layout);
@@ -52,15 +61,43 @@ public class all_alarms extends AppCompatActivity {
         mLayoutManager = new LinearLayoutManager(this);
         myAuxiliaryFunctions=AuxiliaryFunctions.getInstance();
         if(AlertReceiver.getRingtone()!=null) {
-            DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(NotificationHelper.getKey());
-            HashMap map=new HashMap();
-            map.put("checked",false); // must be checked
-            ref.updateChildren(map);
-            if (AlertReceiver.getRingtone().isPlaying()) {
-                AlertReceiver.stopRingtone();
+            System.out.println("AlertReceiver.getRingtone()!=null");
+            if (AlertReceiver.getRingtone().isPlaying()){
+                System.out.println("AlertReceiver.getRingtone().isPlaying()");
+                DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(msharedPreferences.getString("Current Ring Key",null));
+                NotifierAlarm.setKillTimer();
+                ref.child("days_date").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if(snapshot.getValue()==null) {
+                            //
+                            System.out.println("im in snapshot.getValue()==null");
+                            HashMap map = new HashMap();
+                            map.put("checked", false); // must be checked
+                            ref.updateChildren(map);
+                            editor.putInt("AlarmsNum",msharedPreferences.getInt("AlarmsNum",0)-1);
+//                            editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
+                            editor.commit();
+                            System.out.println("the ring key is in all alarms:");
+                            System.out.println(msharedPreferences.getBoolean("ring "+getIntent().getStringExtra("key"),false));
+
+
+                        }
+                        editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
+                        editor.commit();
+                        alarms_list = get_all_the_alarms_from_firebase(userName);
+                    }
+
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
             }
         }
-        alarms_list = get_all_the_alarms_from_firebase(userName);
+        else {
+            System.out.println("im in get_all_the_alarms_from_firebase");
+            alarms_list = get_all_the_alarms_from_firebase(userName);
+        }
 
         // we must update the switch in the fire database and in the application
         //            String key=NotificationHelper.getKey();
@@ -87,7 +124,11 @@ public class all_alarms extends AppCompatActivity {
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     alarm_view alarm = ds.getValue(alarm_view.class);
-                    alarm.setSwitch((Boolean) snapshot.child(alarm.getKey()).child("checked").getValue());
+                    System.out.println(alarm.getHour());
+                    System.out.println(alarm.getMinutes());
+                    System.out.println(alarm.getKey());
+//                    System.out.println(snapshot.child(alarm.getKey()).child("checked").getValue());
+                    alarm.setSwitch((Boolean) ds.child("checked").getValue());
                     alarms.add(alarm);
                 }
                 c(alarms, userName);
@@ -102,7 +143,7 @@ public class all_alarms extends AppCompatActivity {
 
 
 
-    public  void c(ArrayList<alarm_view> alarms, String userName) {
+    public void c(ArrayList<alarm_view> alarms, String userName) {
         mAdapter = new ExampleAdapter(this, alarms, userName);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
@@ -124,26 +165,116 @@ public class all_alarms extends AppCompatActivity {
     }
 
 
-    void cancelAlarm(String key,Context context) {
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
-        Intent intent = new Intent(context, AlertReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, key.hashCode(), intent, 0);
-        alarmManager.cancel(pendingIntent);
+    void cancelAlarm(alarm_view alarm,Context context) {
+        //subtract one from the number of running processes
+        SharedPreferences sharedPreferences=context.getSharedPreferences("U",context.MODE_PRIVATE);
+        SharedPreferences.Editor editor=sharedPreferences.edit();
+
+        //one alarm to delete from AlarmManager
+        if(alarm.getDate()!=null){
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
+            Intent intent = new Intent(context, AlertReceiver.class);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, alarm.getKey().hashCode(), intent, 0);
+            alarmManager.cancel(pendingIntent);
+            editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)-1);
+            editor.commit();
+        }
+        else{
+            List<String> days=alarm.getDays_date();
+            int i=0;
+            String key=alarm.getKey();
+            for (String day:days){
+                System.out.println("dayyy " +i);
+                AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
+                Intent intent = new Intent(context, AlertReceiver.class);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(context, alarm.getKey().hashCode()+i, intent, 0);
+                alarmManager.cancel(pendingIntent);
+                editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)-1);
+                editor.commit();
+                i++;
+            }
+
+        }
+
+//        AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
+//        Intent intent = new Intent(context, AlertReceiver.class);
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, key.hashCode(), intent, 0);
+//        alarmManager.cancel(pendingIntent);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-     void startAlarm(Calendar c, String key,Context context) {
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
-        Intent intent = new Intent(context, AlertReceiver.class);
-        intent.putExtra("Key",key);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, key.hashCode(), intent,0);
-        if (c.before(Calendar.getInstance())){
-            c.add(Calendar.DATE, 1);
+     void startAlarm(alarm_view alarm,Context context){
+        System.out.println("im in start alarm ");
+        //add one for the number of running processes
+        SharedPreferences sharedPreferences=context.getSharedPreferences("U",context.MODE_PRIVATE);
+        SharedPreferences.Editor editor=sharedPreferences.edit();
+
+        //add one alarm to the AlarmManager
+        if(alarm.getDate()!=null) {
+            System.out.println("im in alarm.getDate()!=null ");
+//            editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)+1);
+//            editor.commit();
+            Intent ServiceIntent=new Intent(context,NotifierAlarm.class);
+            ServiceIntent.putExtra("date",alarm.getDate().getTime());
+            ServiceIntent.putExtra("Pending_key",alarm.getKey().hashCode());
+            ServiceIntent.putExtra("key",alarm.getKey());
+            ServiceIntent.putExtra("Repeating",false);
+            context.startService(ServiceIntent);
         }
-        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
-//        startService(intent);
+        else{
+            int i=0;
+            String key=alarm.getKey();
+            List<String> daysList=alarm.getDays_date();
+            if (daysList.contains("0"))  setRepeatedAlarm(i++,Calendar.SUNDAY,key,alarm,context);
+            if (daysList.contains("1"))  setRepeatedAlarm(i++,Calendar.MONDAY,key,alarm,context);
+            if (daysList.contains("2"))  setRepeatedAlarm(i++,Calendar.TUESDAY,key,alarm,context);
+            if (daysList.contains("3"))  setRepeatedAlarm(i++,Calendar.WEDNESDAY,key,alarm,context);
+            if (daysList.contains("4")) setRepeatedAlarm(i++,Calendar.THURSDAY,key,alarm,context);
+            if (daysList.contains("5"))  setRepeatedAlarm(i++,Calendar.FRIDAY,key,alarm,context);
+            if (daysList.contains("6"))  setRepeatedAlarm(i++,Calendar.SATURDAY,key,alarm,context);
+        }
+    }
+
+    public void setRepeatedAlarm(int i,int day,String key,alarm_view alarm,Context context){
+//        SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
+//        SharedPreferences.Editor editor=sharedPreferences.edit();
+//        editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)+1);
+//        editor.commit();
+        Intent intent=new Intent(context,NotifierAlarm.class);
+        context.stopService(intent);
+        Calendar NotificationDate=Calendar.getInstance();
+        NotificationDate.set(Calendar.HOUR_OF_DAY, alarm.getHour());
+        NotificationDate.set(Calendar.MINUTE, alarm.getMinutes());
+        NotificationDate.set(Calendar.SECOND, 0);
+        NotificationDate.set(Calendar.MILLISECOND, 0);
+        NotificationDate.set(Calendar.DAY_OF_WEEK, day);
+        Date date=NotificationDate.getTime();
+        intent.putExtra("Pending_key",key.hashCode() + i);
+        intent.putExtra("date",date.getTime());
+        intent.putExtra("key",key);
+        intent.putExtra("Repeating",true);
+        context.startService(intent);
     }
 }
+
+
+
+
+        // add one to the number of running processes per day
+        // add to the alarm manager
+        // if the alarms with nultiple days so must add alarm per day
+//        AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
+//        Intent intent = new Intent(context, AlertReceiver.class);
+//        intent.putExtra("Key",key);
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, key.hashCode(), intent,0);
+//        if (c.before(Calendar.getInstance())){
+//            c.add(Calendar.DATE, 1);
+//        }
+//        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
+//        startService(intent);
+
+
+
 
 
 

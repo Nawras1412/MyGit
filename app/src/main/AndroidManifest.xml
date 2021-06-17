@@ -37,6 +37,8 @@
 <!--            android:exported="true"-->
 <!--            >-->
 <!--            <intent-filter>-->
+<!--&lt;!&ndash;                <action android:name="all_alarms" />&ndash;&gt;-->
+<!--&lt;!&ndash;                <category android:name="android.intent.category.DEFAULT" />&ndash;&gt;-->
 <!--                <action android:name="android.intent.action.BOOT_COMPLETED" />-->
 <!--            </intent-filter>-->
 <!--        </receiver>-->
