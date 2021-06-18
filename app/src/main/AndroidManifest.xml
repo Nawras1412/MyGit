@@ -26,6 +26,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartRemindersApp2">
+<!--        <receiver-->
+<!--        android:exported="false"-->
+<!--        android:name=".AlertReceiver" />-->
         <receiver android:name=".AlertReceiver" />
 
 

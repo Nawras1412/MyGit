@@ -4,8 +4,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -22,6 +25,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -39,6 +44,12 @@ public class all_alarms extends AppCompatActivity {
     private AuxiliaryFunctions myAuxiliaryFunctions;
     private SharedPreferences msharedPreferences;
     private SharedPreferences.Editor editor;
+    private int hour;
+    private int minutes;
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         System.out.println("im in all_alarms onCreate");
@@ -66,29 +77,37 @@ public class all_alarms extends AppCompatActivity {
                 System.out.println("AlertReceiver.getRingtone().isPlaying()");
                 DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(msharedPreferences.getString("Current Ring Key",null));
                 NotifierAlarm.setKillTimer();
+                System.out.println("the current is:"+msharedPreferences.getString("Current Ring Key",null));
+                editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
+                editor.putInt("AlarmsNum",msharedPreferences.getInt("AlarmsNum",0)-1);
+                editor.commit();
                 ref.child("days_date").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if(snapshot.getValue()==null) {
-                            //
                             System.out.println("im in snapshot.getValue()==null");
                             HashMap map = new HashMap();
                             map.put("checked", false); // must be checked
                             ref.updateChildren(map);
-                            editor.putInt("AlarmsNum",msharedPreferences.getInt("AlarmsNum",0)-1);
-//                            editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
-                            editor.commit();
-                            System.out.println("the ring key is in all alarms:");
-                            System.out.println(msharedPreferences.getBoolean("ring "+getIntent().getStringExtra("key"),false));
-
-
                         }
-                        editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
-                        editor.commit();
+                        else{
+                            DatabaseReference ref3=FirebaseDatabase.getInstance().getReference().child("Users")
+                                    .child(userName).child("Alarms").
+                                            child(msharedPreferences.getString("Current Ring Key",null));
+                            ref3.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    alarm_view alarm=snapshot.getValue(alarm_view.class);
+                                    hour=alarm.getHour();
+                                    minutes=alarm.getMinutes();
+                                    setRepeatedAlarm(alarm.getDays_date().size()+1,msharedPreferences.getString("Current Ring Key",null),true);
+                                }
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {}
+                            });
+                        }
                         alarms_list = get_all_the_alarms_from_firebase(userName);
                     }
-
-
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {}
                 });
@@ -103,6 +122,40 @@ public class all_alarms extends AppCompatActivity {
         //            String key=NotificationHelper.getKey();
         // we can get the ket of the alarm by the line above
     }
+
+
+
+    public void setRepeatedAlarm(int i,String key,boolean repeated) {
+        System.out.println(" the i is : "+i);
+        System.out.println(" the key is : "+key);
+        Intent intent=new Intent(this,NotifierAlarm.class);
+        stopService(intent);
+        Calendar c = Calendar.getInstance();
+        int today=c.get(Calendar.DAY_OF_WEEK);
+        System.out.println("the current day is: "+today);
+        Date NextDate;
+        System.out.println("im in else");
+        int offset = Calendar.SATURDAY;
+        c.add(Calendar.DATE, offset);
+//        NextDate = c.getTime();
+
+
+        c.set(Calendar.HOUR_OF_DAY,hour);
+        c.set(Calendar.MINUTE,minutes);
+        c.set(Calendar.SECOND,0);
+        c.set(Calendar.MILLISECOND,0);
+        System.out.println("the date is: " + c.getTime());
+        System.out.println("the hour is:"+hour);
+        System.out.println("the minutes is:"+minutes);
+        Date date=c.getTime();
+        intent.putExtra("Pending_key",key.hashCode() + i);
+        intent.putExtra("date",date.getTime());
+        intent.putExtra("key",key);
+        intent.putExtra("userName",userName);
+        startService(intent);
+    }
+
+
 
 
     public void ClickMenu(View view){ myAuxiliaryFunctions.openDrawer(drawerLayout);}
@@ -184,7 +237,6 @@ public class all_alarms extends AppCompatActivity {
             int i=0;
             String key=alarm.getKey();
             for (String day:days){
-                System.out.println("dayyy " +i);
                 AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
                 Intent intent = new Intent(context, AlertReceiver.class);
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(context, alarm.getKey().hashCode()+i, intent, 0);

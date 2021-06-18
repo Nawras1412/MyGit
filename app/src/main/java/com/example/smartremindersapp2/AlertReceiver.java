@@ -36,7 +36,17 @@ import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.Calendar;
+import java.util.Date;
 
 public class AlertReceiver extends BroadcastReceiver {
     private static Ringtone ringtone;
@@ -67,7 +77,7 @@ public class AlertReceiver extends BroadcastReceiver {
         editor.commit();
         System.out.println("im in OnReceive");
         stopring=true;
-
+//        SetNewAlarmsIfRepeating(key,usr_name);
         NotificationHelper notificationHelper = new NotificationHelper(context);
         Notification nb = notificationHelper.getChannelNotification(intent.getStringExtra("key"));
         notificationHelper.getManager().notify(0, nb);
@@ -78,12 +88,8 @@ public class AlertReceiver extends BroadcastReceiver {
                 System.out.println("the current key is: "+intent.getStringExtra("key"));
                 System.out.println("the ring key is in AlertReciever:");
                 System.out.println(sharedPreferences.getBoolean("ring "+intent.getStringExtra("key"),false));
-                if(sharedPreferences.getBoolean("ring "+key,true))
+                if(sharedPreferences.getBoolean("ring "+key,false))
                     ringtone.play();
-//                if(stopring==true) {
-//
-//                    System.out.println("play ringtone");
-//                }
                 else{
                     ringtone.stop();
                     cancel();

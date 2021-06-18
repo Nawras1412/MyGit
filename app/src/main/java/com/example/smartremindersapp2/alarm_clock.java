@@ -33,6 +33,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.text.DateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -116,20 +117,15 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         alarmTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
             public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
-                System.out.println("///////////////////////////////");
-                System.out.println("before");
-                System.out.println("the hour is: "+date.getHours());
-                System.out.println("the minutes is: "+date.getMinutes());
-                System.out.println("the month is: "+date.getMonth());
-                System.out.println("the day is: "+date.getDay());
-                System.out.println("///////////////////////////////");
                 String text;
                 //update the new chooses hour and minutes
                 hour=alarmTimePicker.getHour();
                 minutes=alarmTimePicker.getMinute();
                 updateHourAndMinutesInCalendar();
-                date.setHours(hour);
-                date.setMinutes(minutes);
+                if(date!=null) {
+                    date.setHours(hour);
+                    date.setMinutes(minutes);
+                }
                 //get the date of today and save in text
                 text="Today-"+getDateAsString(NotificationDate.getTime());
 
@@ -143,9 +139,9 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                 if (cal.before(Calendar.getInstance())){
                     cal.add(Calendar.DATE,1);
                     text="Tomorrow-"+getDateAsString(cal.getTime());
-                    NotificationDate.set(Calendar.DATE,cal.getTime().getDate());
+//                    NotificationDate.set(Calendar.DATE,cal.getTime().getDate());
+                    NotificationDate=(Calendar) cal.clone();
                 }
-
                 //set text if relevant
                 if ((AlarmDate.getText().toString().isEmpty()) || (AlarmDate.getText().toString()
                         .split("-")[0].equals("Tomorrow")) || (AlarmDate.getText().toString()
@@ -153,13 +149,6 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                     AlarmDate.setText(text);
                     date= NotificationDate.getTime();
                 }
-                System.out.println("///////////////////////////////");
-                System.out.println("after");
-                System.out.println("the hour is: "+date.getHours());
-                System.out.println("the minutes is: "+date.getMinutes());
-                System.out.println("the month is: "+date.getMonth());
-                System.out.println("the day is: "+date.getDay());
-                System.out.println("///////////////////////////////");
                 //set notification for today -> when we call to recreate the alarm_clock page then must be
                 //Today-today date
 //                else{
@@ -227,18 +216,12 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View v){
-                SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
-                SharedPreferences.Editor editor=sharedPreferences.edit();
-                //if true thats mean that we edit an alarm and save the new version
                 if(getIntent().getStringExtra("Key")!=null){
-                    //remove the old alarm
                     String old_key=getIntent().getStringExtra("Key");
-
                     //push the new alarm
                     DatabaseReference ref1= FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms");
                     DatabaseReference keyRef =ref1.push();
                     String new_key=keyRef.getKey();
-                    System.out.println("vvvvvvvvvvvvvvvv+"+new_key);
                     List<String> checkedBoxes=alarm_clock_control.check_boxes(SundayBox,MondayBox,TuesdayBox,WednesdayBox,ThursdayBox,FridayBox,SaturdayBox);
                     alarm_view new_alarm=new alarm_view(new_key,AlarmName.getText().toString(),hour
                             ,minutes,checkedBoxes,true,date);
@@ -434,7 +417,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
             ServiceIntent.putExtra("date",date.getTime());
             ServiceIntent.putExtra("Pending_key",key.hashCode());
             ServiceIntent.putExtra("key",key);
-            ServiceIntent.putExtra("Repeating",false);
+            ServiceIntent.putExtra("userName",userName);
             startService(ServiceIntent);
         }else {
             System.out.println("im in status = false");
@@ -451,19 +434,41 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
     public void setRepeatedAlarm(int i,int day,String key) {
         Intent intent=new Intent(this,NotifierAlarm.class);
         stopService(intent);
-        updateHourAndMinutesInCalendar();
-        NotificationDate.set(Calendar.DAY_OF_WEEK, day);
-        NotificationDate.set(Calendar.WEEK_OF_MONTH,0);
-        NotificationDate.set(Calendar.WEEK_OF_MONTH,1);
-        NotificationDate.set(Calendar.WEEK_OF_MONTH,2);
-        NotificationDate.set(Calendar.WEEK_OF_MONTH,3);
-        date=NotificationDate.getTime();
+//        updateHourAndMinutesInCalendar();
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY,hour);
+        c.set(Calendar.MINUTE,minutes);
+        c.set(Calendar.SECOND,0);
+        c.set(Calendar.MILLISECOND,0);
+        int today=c.get(Calendar.DAY_OF_WEEK);
+        System.out.println("the current day is: "+today);
+        Date NextDate;
+        if(day==today){
+            if (c.before(Calendar.getInstance())){
+                int offset = Calendar.SATURDAY;
+                c.add(Calendar.DATE, offset);
+                NextDate = c.getTime();
+            }
+            else{
+                c.set(Calendar.DAY_OF_WEEK, day);
+                NextDate = c.getTime();
+            }
+        }
+        else if (day > today) {
+            c.set(Calendar.DAY_OF_WEEK, day);
+            NextDate = c.getTime();
+            System.out.println("the date is: " + NextDate);
+        } else {
+            int offset = Calendar.SATURDAY - today + day;
+            c.add(Calendar.DATE, offset);
+            NextDate = c.getTime();
+            System.out.println("the date is: " + NextDate);
+        }
+        date=c.getTime();
         intent.putExtra("Pending_key",key.hashCode() + i);
         intent.putExtra("date",date.getTime());
         intent.putExtra("key",key);
-        intent.putExtra("Repeating",true);
-        System.out.println("the key of the new alarm is: "+key);
-        System.out.println("the key.hashcode of the new alarm is: "+key.hashCode() + i);
+        intent.putExtra("userName",userName);
         startService(intent);
     }
 //    public void setRepeatedAlarm(int i,int day,String key,AlarmManager alarmManager,Intent intent){

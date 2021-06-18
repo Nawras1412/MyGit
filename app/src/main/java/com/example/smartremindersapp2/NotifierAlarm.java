@@ -397,20 +397,18 @@ public class NotifierAlarm extends Service {
                 }
                 System.out.println("im run");
                 k++;
-                if(k==2){
+                if(k==2) {
                     System.out.println("the keyyyyyyyyyy issssssssssssssssss:  \n");
-                    System.out.println(intent.getIntExtra("Pending_key",0));
+                    System.out.println(intent.getIntExtra("Pending_key", 0));
                     intent2.putExtra("key", key);
-                    PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext()
-                            , pendingKey, intent2, 0);
+                    intent2.putExtra("userName",intent.getStringExtra("userName"));
 
                     AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                    System.out.println("the date is: "+date.getTime());
-                    if(intent.getBooleanExtra("Repeating",false))
-//                        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(), 24 * 60 * 60 * 1000 , pendingIntent2);
-                        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, date.getTime(),24 * 60 * 60 * 1000, pendingIntent2);
-                    else
-                        alarmManager.setExact(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent2);
+                    System.out.println("the date is: " + date.getTime());
+                    PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext()
+                            , pendingKey, intent2, 0);
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent2);
+
                 }
 //                if(stopring==false) ringtone.stop();
 //                if(killTimer) {
