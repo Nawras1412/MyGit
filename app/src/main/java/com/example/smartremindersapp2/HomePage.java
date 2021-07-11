@@ -146,7 +146,8 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     }
 
     public String getSessionId() {
-        return userName;
+        return getSharedPreferences("U",MODE_PRIVATE).
+                getString("username",null);
     }
 
     @Override
@@ -157,7 +158,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
-        // EventBus.getDefault().register(this);
     }
 
     @Override
@@ -546,7 +546,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                                 @Override
                                 public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
                                     hour=hourOfDay;
-
                                     minutes=minute;
                                     newDate.set(year, month, dayOfMonth, hourOfDay, minute, 0);
                                     Calendar tem = Calendar.getInstance();
@@ -636,20 +635,20 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
 //                List<Reminders> l = roomDAO.getAll();
 //                reminders = l.get(l.size()-1);
                 Log.e("ID chahiye", reminder.getId() + "");
-                if(Objects.equals(type,"Date"))
+                if(Objects.equals(type,"Location"))
                 {
-                    Intent intent=new Intent(HomePage.this,NotifierRemind.class);
-                    stopService(intent);
-                    System.out.println("TIMEEEEEE");
-
-                    System.out.println(hour);
-                    System.out.println(minutes);
-
-                    intent.putExtra("hour",hour);
-                    intent.putExtra("minutes",minutes);
-                    //intent.putExtra("date")
-                    //intent.putExtra("date",time_date.getText().toString().trim());
-                    startService(intent);
+                    //Intent intent=new Intent(HomePage.this,NotifierRemind.class);
+//                    Intent intent=new Intent(HomePage.this,NotifierRemind.class);
+//                    stopService(intent);
+//
+//                    intent.putExtra("lat",wantedLocation.getLatLng().latitude);
+//                    intent.putExtra("lng",wantedLocation.getLatLng().longitude);
+//                    intent.putExtra("state",reminder.isState());
+//                    intent.putExtra("name",reminder.getMessage());
+//                    intent.putExtra("key",reminder.getKey());
+//                    //intent.putExtra("date")
+//                    //intent.putExtra("date",time_date.getText().toString().trim());
+//                    startService(intent);
                 }
 
 
@@ -708,7 +707,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, getPendingIntent());
+        //fusedLocationProviderClient.requestLocationUpdates(locationRequest, getPendingIntent());
     }
 
     private void buildLocationRequest() {
@@ -719,22 +718,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         locationRequest.setSmallestDisplacement(10f);
     }
 
-//    public void updateTextView(String value) {
-//        HomePage.this.runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                txt_location.setText(value);
-//            }
-//        });
-//
-//    }
-
-    private PendingIntent getPendingIntent() {
-        Intent intent = new Intent(this, MyLocationService.class);
-        intent.setAction(MyLocationService.ACTION_PROCESS_UPDATE);
-        return PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-    }
 
     private void askLocationPermission() {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_REQUEST_CODE);
@@ -771,16 +754,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         });
     }
 
-//    public void setItemsInRecyclerView() {
-//        // RoomDAO dao = appDatabase.getRoomDAO();
-//        //temp = dao.orderThetable();
-//        //if(temp.size()>0) {
-//        empty.setVisibility(View.INVISIBLE);
-//        recyclerView.setVisibility(View.VISIBLE);
-//        //}
-//        adapter = new AdapterReminders(temp);
-//        recyclerView.setAdapter(adapter);
-//    }
 
 
     public ArrayList<remindres_view> get_all_the_reminders_from_firebase(String userName) {
@@ -868,41 +841,35 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                 }
 
                 for (Reminder remind : reminders_locationList) {
-                    System.out.println("njxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
                     double lat= remind.getLAT();
                     double lng= remind.getLNG();
+
                     float[] distance = new float[1];
                     double lat1 = 32.7614296;
                     double lng1 = 35.0195184;
-
                     Location.distanceBetween(lat, lng, lat1, lng1, distance);
+
                     // distance[0] is now the distance between these lat/lons in meters
-                    System.out.println("Distanceee");
-                    System.out.println(distance[0]);
+                    Intent intent=new Intent(HomePage.this,NotifierRemind.class);
+                   if ((distance[0] < 3000)&& (remind.isState() == true)) {
 
-                    if ((distance[0] < 100.1881594)&& (remind.isState() == true)) {
-                        // your code...
+                       stopService(intent);
 
-                        Toast.makeText(HomePage.getInstance(), "You ARRIVED", Toast.LENGTH_SHORT).show();
-                        System.out.println("You ARRIVED OMGGGGGGGGGGGGGGGGGGGG");
-                        Intent intent = new Intent(HomePage.getInstance(), NotifierRemindLocation.class);
-                        intent.putExtra("title",remind.getMessage());
-                        stopService(intent);
+                       intent.putExtra("lat",remind.getLAT());
+                       intent.putExtra("lng",remind.getLNG());
+                       intent.putExtra("state",remind.isState());
+                       intent.putExtra("name",remind.getMessage());
+                       intent.putExtra("key",remind.getKey());
+                       startService(intent);
+                       DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(remind.getKey());
 
-                        startService(intent);
-                        remind.setState(false);
-
-                        DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(remind.getKey());
-                        HashMap hashmap = new HashMap();
-                        hashmap.put("state", false);
-                        ref.updateChildren(hashmap);
-                    }
+                       HashMap hashmap = new HashMap();
+                       hashmap.put("state", false);
+                       ref.updateChildren(hashmap);
+                   }
                 }
 
-
-                System.out.println("nnnnnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqnnnnnnn");
                 c[0] =true;
-                System.out.println("lasttttttttttttttttttttttt");
                 System.out.println(reminders_locationList.isEmpty());
                 System.out.println(reminders_locationList.size());
                 System.out.println("lasttttttttttttttttttttttt");

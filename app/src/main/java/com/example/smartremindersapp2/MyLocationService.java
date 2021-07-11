@@ -34,12 +34,12 @@ public class MyLocationService extends BroadcastReceiver {
 
                     String location_string = "" + location.getLatitude() + "/" + location.getLongitude();
 
-//                    try {
-//                        HomePage.getInstance().updateTextView(location_string);
-//                    }catch (Exception ex)
-//                    {
-//                        Toast.makeText(context,location_string,Toast.LENGTH_SHORT).show();
-//                    }
+                    try {
+
+                    }catch (Exception ex)
+                    {
+                        Toast.makeText(context,location_string,Toast.LENGTH_SHORT).show();
+                    }
 
                 }
             }
