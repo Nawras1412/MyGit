@@ -63,9 +63,6 @@ public class AlertReceiver extends BroadcastReceiver {
     }
 
 
-    public static void stopRingtone() {
-        stopring=false;
-    }
     @Override
     public void onReceive(Context context, Intent intent){
         SharedPreferences sharedPreferences=context
@@ -79,7 +76,8 @@ public class AlertReceiver extends BroadcastReceiver {
         stopring=true;
 //        SetNewAlarmsIfRepeating(key,usr_name);
         NotificationHelper notificationHelper = new NotificationHelper(context);
-        Notification nb = notificationHelper.getChannelNotification(intent.getStringExtra("key"));
+        Notification nb = notificationHelper.getChannelNotification(intent.getStringExtra("key")
+                ,all_alarms.class,"Alarm!","Your AlarmManager is working.");
         notificationHelper.getManager().notify(0, nb);
         ringtone = RingtoneManager.getRingtone(context, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE));
         new CountDownTimer(30*1000, 1000){

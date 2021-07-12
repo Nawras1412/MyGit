@@ -128,8 +128,6 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                 }
                 //get the date of today and save in text
                 text="Today-"+getDateAsString(NotificationDate.getTime());
-
-
                 //if the chooses time is before the current time then get the date of tomorrow
                 Calendar cal=Calendar.getInstance();
                 cal.set(Calendar.HOUR_OF_DAY, hour);

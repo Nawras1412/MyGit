@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -31,9 +32,11 @@ import java.util.HashMap;
 import java.util.List;
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -816,6 +819,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         ArrayList<Reminder> reminders_locationList = new ArrayList<>();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list");
         String b ;
+        Intent intent=new Intent(this,NotifierRemind.class);
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
@@ -848,19 +852,19 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                     double lat1 = 32.7614296;
                     double lng1 = 35.0195184;
                     Location.distanceBetween(lat, lng, lat1, lng1, distance);
-
                     // distance[0] is now the distance between these lat/lons in meters
-                    Intent intent=new Intent(HomePage.this,NotifierRemind.class);
-                   if ((distance[0] < 3000)&& (remind.isState() == true)) {
+                    if ((distance[0] < 3000)&& (remind.isState() == true)) {
 
                        stopService(intent);
-
                        intent.putExtra("lat",remind.getLAT());
                        intent.putExtra("lng",remind.getLNG());
                        intent.putExtra("state",remind.isState());
                        intent.putExtra("name",remind.getMessage());
                        intent.putExtra("key",remind.getKey());
+                       intent.putExtra("Pending_key",remind.getKey().hashCode());
+                       intent.putExtra("userName",userName);
                        startService(intent);
+
                        DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(remind.getKey());
 
                        HashMap hashmap = new HashMap();

@@ -30,6 +30,7 @@
 <!--        android:exported="false"-->
 <!--        android:name=".AlertReceiver" />-->
         <receiver android:name=".AlertReceiver" />
+        <receiver android:name=".ReminderReceiver" />
 
 
 
@@ -47,7 +48,7 @@
 <!--        </receiver>-->
 
 
-        <receiver android:name=".MyLocationService" />
+<!--        <receiver android:name=".MyLocationService" />-->
         <activity android:name=".all_alarms" />
         <activity
             android:name=".openDialog"
@@ -90,16 +91,27 @@
                 <action android:name="com.google.firebase.MESSAGE_EVENT" />
             </intent-filter>
         </service>
-        <service android:name=".NotifierRemind">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGE_EVENT" />
-            </intent-filter>
-        </service>
-        <service android:name=".NotifierRemindLocation">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGE_EVENT" />
-            </intent-filter>
-        </service>
+
+        <service
+            android:name=".NotifierRemind"
+            android:enabled="true"
+            android:exported="true"
+            android:foregroundServiceType="location" />
+
+
+<!--        <service android:name=".NotifierRemind">-->
+<!--            android:enabled="true"-->
+<!--            android:exported="true"-->
+<!--            android:foregroundServiceType="location"-->
+<!--            <intent-filter>-->
+<!--                <action android:name="com.google.firebase.MESSAGE_EVENT" />-->
+<!--            </intent-filter>-->
+<!--        </service>-->
+<!--        <service android:name=".NotifierRemindLocation">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="com.google.firebase.MESSAGE_EVENT" />-->
+<!--            </intent-filter>-->
+<!--        </service>-->
 
     </application>
 

@@ -354,17 +354,6 @@ public class NotifierAlarm extends Service {
         key=intent.getStringExtra("key");
         date = new Date(intent.getExtras().getLong("date", -1));
         Integer pendingKey=intent.getIntExtra("Pending_key",0);
-        System.out.println("the key in the NotifierAlarm is: "+key);
-        System.out.println("the key.hashcode in the NotifierAlarm is: "+pendingKey);
-
-        System.out.println("***************************");
-        System.out.println("the hour of the day is: "+date.getHours());
-        System.out.println("the minutes of the day is: "+date.getMinutes());
-        System.out.println("the day is: "+date.getDate());
-        System.out.println("the month is: "+date.getMonth());
-        System.out.println("the year is: "+date.getYear());
-        System.out.println("***************************");
-
         Intent notificationIntent = new Intent(this, all_alarms.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, pendingKey , notificationIntent, 0);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
@@ -377,7 +366,6 @@ public class NotifierAlarm extends Service {
         notification.flags = Notification.FLAG_AUTO_CANCEL;
         startForeground(1,notification);
 
-
         SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
         SharedPreferences.Editor editor=sharedPreferences.edit();
         editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)+1);
@@ -388,60 +376,22 @@ public class NotifierAlarm extends Service {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void run(){
-                System.out.println("vvvvvvvv");
-                System.out.println(sharedPreferences.getInt("AlarmsNum",0));
-                System.out.println("vvvvvvvv");
                 if(sharedPreferences.getInt("AlarmsNum",0)==0){
-                    System.out.println("nnnnnn");
                     cancel();
                 }
                 System.out.println("im run");
                 k++;
                 if(k==2) {
-                    System.out.println("the keyyyyyyyyyy issssssssssssssssss:  \n");
-                    System.out.println(intent.getIntExtra("Pending_key", 0));
                     intent2.putExtra("key", key);
                     intent2.putExtra("userName",intent.getStringExtra("userName"));
-
                     AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                    System.out.println("the date is: " + date.getTime());
                     PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext()
                             , pendingKey, intent2, 0);
                     alarmManager.setExact(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent2);
 
                 }
-//                if(stopring==false) ringtone.stop();
-//                if(killTimer) {
-//                    AlertReceiver.stopRingtone();
-////                    ringtone.stop();
-//
-//                }
-//                Calendar cal=Calendar.getInstance();
-//                Date dateNow=cal.getTime();
-//                System.out.println("run");
-//                if(dateNow.getHours()==date.getHours() && dateNow.getMinutes()==date.getMinutes() &&
-//                        dateNow.getDay()==date.getDay() && dateNow.getMonth()==date.getMonth() &&
-//                        dateNow.getYear()==date.getYear() && dateNow.getSeconds()==0){
-//                    notificationHelper.getManager().notify(0, nb);
-//                }
-//                if(dateNow.getHours()==date.getHours() && dateNow.getMinutes()==date.getMinutes() &&
-//                        dateNow.getDay()==date.getDay() && dateNow.getMonth()==date.getMonth() &&
-//                        dateNow.getYear()==date.getYear() && stopring==true) {
-//                    ringtone.play();
-//                }
-//                else{
-//                    ringtone.stop();
-//                }
             }
         }, 0, 500);
         return super.onStartCommand(intent, flags, startId);
     }
 }
-
-
-
-//חוששבת להוסיף את השורות במחלקה של הרישום ואז לבדוק את זה בתהליך
-
-
-
-

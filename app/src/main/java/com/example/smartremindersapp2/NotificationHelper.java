@@ -93,11 +93,13 @@ public class NotificationHelper extends ContextWrapper {
 
     }
 
-
+//  @RequiresApi(Build.VERSION_CODES.O)
     @TargetApi(Build.VERSION_CODES.O)
     private void createChannel() {
-        NotificationChannel channel = new NotificationChannel(channelID, channelName, NotificationManager.IMPORTANCE_HIGH);
-        getManager().createNotificationChannel(channel);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelID, channelName, NotificationManager.IMPORTANCE_HIGH);
+            getManager().createNotificationChannel(channel);
+        }
     }
     public NotificationManager getManager() {
         if (mManager == null) {
@@ -109,26 +111,21 @@ public class NotificationHelper extends ContextWrapper {
 
 
 
-    public Notification getChannelNotification(String key) {
-        Intent notificationIntent = new Intent(this, all_alarms.class);
+    public Notification getChannelNotification(String key,Class returnedPage,String Title,String Content) {
+        Intent notificationIntent = new Intent(this, returnedPage);
         setKey(key);
 //        PendingIntent pendingIntent = PendingIntent.getActivity(this, key.hashCode(), notificationIntent,0);
         TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(getApplicationContext());
         taskStackBuilder.addNextIntentWithParentStack(notificationIntent);
         PendingIntent pendingIntent = taskStackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = new NotificationCompat.Builder(this, channelID)
-                .setContentTitle("Alarm!")
-                .setContentText("Your AlarmManager is working.")
+                .setContentTitle(Title)
+                .setContentText(Content)
                 .setPriority(Notification.PRIORITY_HIGH) // addition
                 .setSmallIcon(R.drawable.ic_alarm).setContentIntent(pendingIntent)
-//                .setFullScreenIntent(pendingIntent,true)
                 .setOngoing(true).setCategory(Notification.CATEGORY_SERVICE).build();
 
         notification.flags = Notification.FLAG_AUTO_CANCEL;
-//        notification.flags = Notification.FLAG_FOREGROUND_SERVICE;
-//        notification.flags = Notification.FLAG_NO_CLEAR;
-//        notification.flags = Notification.FLAG_ONGOING_EVENT;
-//        notification.flags = Notification.CATEGORY_SERVICE;
         return notification;
     }
 }
