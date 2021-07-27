@@ -47,6 +47,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.869" />
 
+
         <ImageButton
             android:id="@+id/location"
             android:layout_width="wrap_content"
@@ -61,24 +62,24 @@
             app:srcCompat="@drawable/ic_location" />
 
         <ImageButton
-            android:id="@+id/select"
+            android:id="@+id/selectDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/location"
-            app:layout_constraintTop_toTopOf="parent"
-
             android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.869"
-            app:srcCompat="@drawable/ic_calender" />
+            app:srcCompat="@drawable/ic_calender"
+            tools:layout_editor_absoluteX="101dp"
+            tools:ignore="MissingConstraints" />
 
         <ImageButton
             android:id="@+id/addDiscription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/select"
+            app:layout_constraintEnd_toStartOf="@+id/selectDate"
             app:layout_constraintHorizontal_bias="0.52"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -108,7 +109,7 @@
             android:gravity="center"
             android:hint="Enter address"
             android:visibility="invisible"
-            app:layout_constraintBottom_toTopOf="@+id/select"
+            app:layout_constraintBottom_toTopOf="@+id/selectDate"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.085"
             app:layout_constraintStart_toStartOf="parent"
@@ -126,7 +127,7 @@
             app:srcCompat="@drawable/ic_cancel" />
 
         <EditText
-            android:id="@+id/discription"
+            android:id="@+id/description"
             android:layout_width="123dp"
             android:layout_height="178dp"
             android:ems="10"

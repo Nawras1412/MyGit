@@ -17,7 +17,7 @@ import androidx.core.app.NotificationCompat;
 import java.util.Calendar;
 import java.util.Date;
 
-public class NotifierRemind extends Service {
+public class NotifierLocationRemind extends Service {
     private static final String CHANNEL_ID = "MyNotificationChannelID";
 
     @Nullable
@@ -31,14 +31,26 @@ public class NotifierRemind extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Calendar calendar=Calendar.getInstance();
         Date date = calendar.getTime();
+        String ContentTitle;
+        String ContentText;
+        if(intent.getBooleanExtra("DateRemind",false)==true){
+            date = new Date(intent.getExtras().getLong("date", -1));
+            ContentTitle="My Date Reminder";
+            ContentText="Show your reminder";
+        }
+        else{
+            ContentTitle="My Location Reminder";
+            ContentText="You are a distance of less than 3000 from the destination";
+        }
         String key=intent.getStringExtra("key");
         Integer pendingKey=intent.getIntExtra("Pending_key",0);
         Intent notificationIntent = new Intent(this, HomePage.class);
+        System.out.println("the pending key is: "+pendingKey);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, pendingKey , notificationIntent, 0);
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .addAction(R.drawable.ic_cancel,"remove",pendingIntent)
-                .setContentTitle("My Location Reminder")
-                .setContentText("You are a distance of less than 3000 from the destination")
+                .setContentTitle(ContentTitle)
+                .setContentText(ContentText)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentIntent(pendingIntent)
                 .build();
@@ -47,6 +59,8 @@ public class NotifierRemind extends Service {
 
         Intent intent2 = new Intent(this, ReminderReceiver.class);
         intent2.putExtra("key",key);
+        intent2.putExtra("ContentTitle",ContentTitle);
+        intent2.putExtra("ContentText",ContentText);
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext()
                 , pendingKey, intent2, 0);

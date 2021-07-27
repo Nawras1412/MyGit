@@ -22,7 +22,7 @@ public class ReminderReceiver extends BroadcastReceiver {
         System.out.println("im in OnReceive");
         NotificationHelper notificationHelper = new NotificationHelper(context);
         Notification nb = notificationHelper.getChannelNotification(intent.getStringExtra("key")
-                ,HomePage.class,"Reminder","You are a distance of less than 3000 from the destination");
+                ,HomePage.class,intent.getStringExtra("ContentTitle"), intent.getStringExtra("ContentText"));
         notificationHelper.getManager().notify(0, nb);
     }
 }

@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Binder;
@@ -56,6 +57,8 @@ public class MyBackgroundService extends Service {
     private Handler mServiceHandler;
     private Location mLocation;
     private HomePage homePage1;
+//    private SharedPreferences mSharedPreferences;
+//    private SharedPreferences.Editor editor;
 
 
 
@@ -123,7 +126,6 @@ public class MyBackgroundService extends Service {
         {
             NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID,getString(R.string.app_name),NotificationManager.IMPORTANCE_DEFAULT);
             mNotificationManager.createNotificationChannel(mChannel);
-
         }
 
 
@@ -137,15 +139,12 @@ public class MyBackgroundService extends Service {
                     if (task.isSuccessful() && task.getResult() != null)
                     { mLocation = task.getResult();
                     }
-
                     else
                         Log.e("SmartReminders2", "Failed to get location");
                 }
             });
-        } catch (SecurityException ex)
-        {
+        } catch (SecurityException ex){
             Log.e("SmartReminders2", "Lost location permission"+ex);
-
         }
         System.out.println("last line os get last location");
     }
@@ -162,10 +161,8 @@ public class MyBackgroundService extends Service {
         System.out.println(mLocation);
         float[] distance = new float[1];
         double lat ,lng;
-
-        System.out.println(HomePage.instance.getSessionId());
-//        ArrayList<Reminder>  reminder_list =new ArrayList();
-       /* reminder_list=*/HomePage.getInstance().get_all_the_reminders_from_firebase2(HomePage.instance.getSessionId(),mLocation);
+        String userName=getSharedPreferences("U",MODE_PRIVATE).getString("username",null);
+       /* reminder_list=*/HomePage.getInstance().get_all_the_reminders_from_firebase2(userName,mLocation);
 //        System.out.println("SIZE OF LIST ");
 //        System.out.println(reminder_list.isEmpty());
 //        for (Reminder remind : reminder_list)

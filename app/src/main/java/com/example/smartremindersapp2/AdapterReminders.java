@@ -1,7 +1,5 @@
 package com.example.smartremindersapp2;
 
-//import android.support.annotation.NonNull;
-//import androidx.support.v7.widget.RecyclerView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -24,7 +22,6 @@ public class AdapterReminders extends RecyclerView.Adapter<AdapterReminders.MyVi
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.reminder_item,viewGroup,false);
         return new MyViewHolder(view);
     }
@@ -46,7 +43,6 @@ public class AdapterReminders extends RecyclerView.Adapter<AdapterReminders.MyVi
         return allReminders.size();
     }
         public class MyViewHolder extends RecyclerView.ViewHolder{
-
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             message = itemView.findViewById(R.id.textView1);

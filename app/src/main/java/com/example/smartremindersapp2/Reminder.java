@@ -5,6 +5,7 @@ package com.example.smartremindersapp2;
 //import android.arch.persistence.room.PrimaryKey;
 //import android.support.annotation.NonNull;
 
+import android.app.Dialog;
 import android.location.Location;
 
 import androidx.annotation.NonNull;
@@ -14,7 +15,6 @@ import com.google.firebase.database.DatabaseReference;
 import java.util.Date;
 
 public class Reminder {
-    @NonNull
     public int id;
     private String Message;
     private Date  RemindDate;
@@ -23,6 +23,15 @@ public class Reminder {
     private Double LAT;
     private Double LNG;
     private boolean state;
+    private String LocationAsString;
+
+
+
+
+
+    public String getLocationAsString(){return LocationAsString;}
+
+    public void setLocationAsString(String Location){this.LocationAsString=Location;}
 
     public Double getLAT() {
         return LAT;
@@ -69,6 +78,7 @@ public class Reminder {
         Message =message ;
         RemindDate = remindDate;
         setState(true);
+        Description="";
     }
 
     public boolean isState() {
@@ -79,8 +89,7 @@ public class Reminder {
         this.state = state;
     }
 
-    public Reminder() {
-    }
+    public Reminder() {}
 
     public String getMessage() {
         return Message;

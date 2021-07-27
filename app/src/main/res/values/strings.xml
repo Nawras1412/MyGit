@@ -14,4 +14,11 @@
         <item>Saturday</item>
     </string-array>
 
+    <string-array name="kinds">
+        <item>all</item>
+        <item>Location</item>
+        <item>Date</item>
+        <item>Todo List</item>
+    </string-array>
+
 </resources>

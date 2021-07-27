@@ -1,86 +1,20 @@
-* public static class alarmViewHolder extends RecyclerView.ViewHolder
-this class in ExampleAdapter, and i change it to be not static
+* בהתחברות ראשונה צריכים לבדוק אופציה של אפשרות
+ לקבל מיקום של המשתמש אוטומטית בלי שהוא יעשה את זה ידנית
 
 
-Classes:
-1) User ->
-    variables:
-        Name
-        UserName
-        Email
-        Password
-        Status
-        Alarms
-    functions:
-        setters
-        getters
-        constructors
+Todo List:
+1) לשנות את התצוגה של התזכורת בדך הראשי
+אם מחקנו את התזכורת מהדף הראשי והייתה עם תאריך אז גם צריך למחוק אותה
 
-2) registration ->
-    functions:
-        OnCreate
-        registration_button       // the button of the registration
-        Exeptions                 // plot the error on the illegal text view
-        checkRegistrationData     // check if all the text view contain a legal input
+4) להוסיף אופציה של תזכורת DAILY ודברים כאלה
+וגם אופציה של מיפוי התזכורות לקטיגוריות
 
 
-3) retrieve_password ->
-    functions:
-        onCreate
-        retrievePasswordFunc     // button, if the data id legal then update the
-                                    database and go to login page, else show error message
-        CheckIfLegal             // check if the data is legal
+3) חלון התזכורת יגדל כתלות בגודל ה- DESCRIPTION
 
-4) SaveInDatabase ->
-    functions:
-        saveUser      // get user object and save in the fire database
+5) למיין את התזכורות בדף הראשי לפי זמן
 
-
-4) AuxiliaryFunctions ->
-    functions:
-        openNewPage            // move to another page
-        openDialogD            // open a success window and move to another page
-        SetErrorOnTextView     // set error message on the text view
-        MakeToast              // show a message on the buttom of the application
-
-
-5) login ->
-    functions:
-
-
-** the function onpause we can use it, that it will be called when we move to another page
-** in the alarm clock page:
-    1) must add the text view of adding a name to the alarm
-   2) add cancel button and save button
-   3) add the textview of show the date of the alarm
-   4) add a Toast that the alarm set to the cheesed date and clock
-        ** calendar: Alarm set for 06:00 on Tuesday, June 1.
-        ** Alarm set for 17 hours and 3 minutes from now.
-        ** alarm set for 06:00 on Tuesday, June 1.
-
-
-
-
-
-במחיקה של התראה שהיא עבור כמה ימים צריך לעבור על כל ההתראות של כל הימים ולמחוק,
-והתראה עבור יום אחד/מהקלאינדיר/ היום/מחר נמחק רגיל
-
-
-אם משחרים בסויתש אז אם היה תרו והפך לפולס אז צריך למחוק לפי הנל ואם
-ההפך אז צריכים להחזיר את ההתראות בחזרה כמו שעשינו ב- scheduleButton
-
-צריך לבדוק את כל סוגי ההתראות אם
-עובדים נכוןת כולל שתי התראות עוקבות עם הריגת תהליך ובלי הריגת תהליך
-
-בלחיצה על כפתור המחיקה אז צריך למחוק את ההתראה מה- alarmmanager וגם להוריד את מספר התהליכים הרצים
-
-בלחיצה על edit אז צריך לדאוג למחוק את ההתראה הישנה ולשמור את החדשה תוך כדי
-עדכון ה- alarmmanager
-
-
-
-
-
+בבחירה של המיקום צריך להוסיף את ה- LAT שמג LAG ל-REMINDER בתוך המחלקה ADDREMINDER
 
 
 

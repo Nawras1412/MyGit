@@ -350,7 +350,6 @@ public class NotifierAlarm extends Service {
         k=0;
         stopring=true;
         killTimer=false;
-        Calendar cal=Calendar.getInstance();
         key=intent.getStringExtra("key");
         date = new Date(intent.getExtras().getLong("date", -1));
         Integer pendingKey=intent.getIntExtra("Pending_key",0);

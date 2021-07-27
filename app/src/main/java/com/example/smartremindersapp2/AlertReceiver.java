@@ -72,7 +72,7 @@ public class AlertReceiver extends BroadcastReceiver {
         System.out.println("the key in the AlertReceiver is: "+key);
         editor.putString("Current Ring Key",key);
         editor.commit();
-        System.out.println("im in OnReceive");
+//        System.out.println("im in OnReceive");
         stopring=true;
 //        SetNewAlarmsIfRepeating(key,usr_name);
         NotificationHelper notificationHelper = new NotificationHelper(context);

@@ -225,7 +225,8 @@ public class all_alarms extends AppCompatActivity {
 
         //one alarm to delete from AlarmManager
         if(alarm.getDate()!=null){
-            AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
+            AlarmManager alarmManager
+                    = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
             Intent intent = new Intent(context, AlertReceiver.class);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, alarm.getKey().hashCode(), intent, 0);
             alarmManager.cancel(pendingIntent);

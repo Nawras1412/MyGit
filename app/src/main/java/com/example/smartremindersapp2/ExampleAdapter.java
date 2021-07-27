@@ -1,7 +1,6 @@
 package com.example.smartremindersapp2;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.text.Html;
@@ -12,7 +11,6 @@ import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.database.DataSnapshot;
@@ -66,7 +64,7 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
         public ImageView DeleteB;
         public alarmViewHolder( View itemView,final OnItemClickListener listener) {
             super(itemView);
-            mhour=itemView.findViewById(R.id.hours);
+            mhour=itemView.findViewById(R.id.ReminderTitle);
             mminutes=itemView.findViewById(R.id.minutes);
             mdays_date=itemView.findViewById(R.id.date_days);
             mSwitch=itemView.findViewById(R.id.Switch);
@@ -80,59 +78,12 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
                         if (position != RecyclerView.NO_POSITION){
                             listener.onItemClick(position);
 
-                            //get the position of the edited alarm
-                            alarm_view currentAlarm=mAlram_view_list.get(position);
-                           //must update the key of the alarm in the list
-                            Intent intent=new Intent(mcontext,alarm_clock.class);
-                            intent.putExtra("Key",currentAlarm.getKey());
-                            intent.putExtra("position",position);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            mcontext.startActivity(intent);
-//                            mAlram_view_list.remove(position);
-//                            notifyDataSetChanged();
-
-//                            DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("Alarms").child(currentAlarm.getKey());
-//                            ref.removeValue();
-//                            mAlram_view_list.remove(position);
-//                            notifyDataSetChanged();
-//                            all_alarms AC = new all_alarms();
-//                            AC.cancelAlarm(currentAlarm.getKey(),mcontext);
-//                            Intent intent=new Intent(mcontext,alarm_clock.class);
-//                            intent.setClass("alarm_view",currentAlarm);
-
-//                            ref = FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("Alarms");
-//                            if (mSwitch.isChecked()) {
-//                                ref.addValueEventListener(new ValueEventListener() {
-//                                    @Override
-//                                    public void onDataChange(DataSnapshot snapshot) {
-//                                        for (DataSnapshot ds : snapshot.getChildren()) {
-//                                            clock_alarm_entity alarm = ds.getValue(clock_alarm_entity.class);
-//                                            // get the key pf the alarm
-////                                            if ((alarm.getHour() == mhour.getText().toString()) &&
-////                                                    (alarm.getMinuter() == mminutes.getText().toString())) {
-////                                                if((mdays_date.getText().toString().isEmpty()) &&
-////                                                        (alarm.getDays().isEmpty())){
-////                                                    AC.cancelAlarm(alarm.getKey(), mcontext);
-////                                                }
-////                                                else{
-////                                                    String[] days= mdays_date.getText().toString().split(",");
-////                                                    for(String day:alarm.getDays()){
-////
-////                                                    }
-////                                                    for(String day:days){
-////                                                        if (day.equals("Sun") )
-////                                                    }
-////                                                }
-////                                            }
-//                                        }
-//                                    }
-//                                    @Override
-//                                    public void onCancelled(DatabaseError error) {}
-//                                });
-//                                //                            setOnItemClickListener();
-////                                AC.cancelAlarm(, mcontext);
-//                                //**********************
-//                            }
+//                            alarm_view currentAlarm=mAlram_view_list.get(position);
+//                            Intent intent=new Intent(mcontext,HomePage.class);
+//                            intent.putExtra("Key",currentAlarm.getKey());
+//                            intent.putExtra("position",position);
+//                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                            mcontext.startActivity(intent);
                         }
                     }
                 }

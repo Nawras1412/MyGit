@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="415dp"
+    android:layout_height="216dp"
+    android:layout_gravity="center"
+    android:background="#CCCCFF"
+    android:orientation="vertical"
+    android:padding="3dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="415dp"
+        android:layout_height="220dp"
+        android:background="#2E2D2D">
+
+
+        <Button
+            android:id="@+id/cancel_desc_dialog"
+            android:layout_width="93dp"
+            android:layout_height="39dp"
+            android:backgroundTint="#FFA000"
+            android:text="Cancel"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.627"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.911" />
+
+        <Button
+            android:id="@+id/save_description"
+            android:layout_width="94dp"
+            android:layout_height="38dp"
+            android:backgroundTint="#FFA000"
+            android:enabled="false"
+            android:text="Save"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.95"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.912" />
+
+        <EditText
+            android:id="@+id/AddDescriptionEditText"
+            android:layout_width="349dp"
+            android:layout_height="116dp"
+            android:backgroundTint="#777171"
+            android:ems="10"
+            android:hint="Description"
+            android:inputType="textMultiLine"
+            android:textColor="#B69797"
+            android:textColorHint="#B69797"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.25" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</LinearLayout>
+
+
