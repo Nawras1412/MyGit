@@ -50,5 +50,7 @@ dependencies {
     implementation 'com.karumi:dexter:6.0.0'
     implementation 'org.greenrobot:eventbus:3.1.1'
     implementation 'com.google.android.libraries.places:places:2.4.0'
+
+    implementation "cz.msebera.android:httpclient:4.4.1.2"
 }
 

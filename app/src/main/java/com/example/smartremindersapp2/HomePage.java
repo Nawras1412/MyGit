@@ -85,9 +85,9 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     MyBackgroundService mService;
     private static String userName;
     DrawerLayout drawerLayout;
-    private TextView Date1;
+    private TextView Date1,LocationTextView;
     private static TextView instruction;
-    private Place wantedLocation;
+    public Place wantedLocation;
     FloatingActionButton add_button, pen_button, locate_button;
     Boolean clicked = false;
     Integer hour,minutes;
@@ -107,12 +107,15 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     private static RecyclerView.LayoutManager mLayoutManager;
     private static HomePage instance;
     private Calendar NotificationDate;
+    public static addReminder addRdialog;
+
     private ConstraintLayout background_layout;
     private ImageView menu_btn,setting_btn;
     public Spinner getRemindersKindSpinner() {
         return RemindersKindSpinner;
     }
-
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
     public static RecyclerView getmRecyclerView() {
         return mRecyclerView;
     }
@@ -124,6 +127,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         instance = this;
         setContentView(R.layout.home_page);
         drawerLayout = findViewById(R.id.drawer_layout);
+        LocationTextView = findViewById(R.id.LocationTextView);
         add_button = findViewById(R.id.btn_add);
         pen_button = findViewById(R.id.btn_pen);
         locate_button = findViewById(R.id.btn_locateReminder);
@@ -138,7 +142,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         menu_btn=findViewById(R.id.MenuButton);
         setting_btn=findViewById(R.id.setting_btn);
         userName = getSharedPreferences("U", MODE_PRIVATE).getString("username", null);
-
 
         String time = "Hello ";
         int items_color =R.color.white;
@@ -214,6 +217,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {}
         });
+
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(this);
         Date currentDate = Calendar.getInstance().getTime();
@@ -234,6 +238,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             public void onClick(View v) {
                 addTodoList a=new addTodoList(userName);
                 a.openDialog(false,null,0);
+
             }
         });
         locate_button.setOnClickListener(new View.OnClickListener() {
@@ -241,6 +246,8 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             public void onClick(View v){
                 addReminder a=new addReminder(userName);
                 a.openDialog(false,null,0);
+                addRdialog=a;
+
             }
         });
     }
@@ -810,21 +817,21 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     @Override
     public void onNothingSelected(AdapterView<?> parent) {}
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if ((requestCode==100)&&(resultCode==RESULT_OK))
-        {
-            Place place = Autocomplete.getPlaceFromIntent(data);
-//            location.setText(place.getAddress());
-            wantedLocation=place;
-        }
-        else if (resultCode== AutocompleteActivity.RESULT_ERROR)
-        {
-            Status status =Autocomplete.getStatusFromIntent(data);
-            Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
-        }
-    }
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if ((requestCode==100)&&(resultCode==RESULT_OK))
+//        {
+//            Place place = Autocomplete.getPlaceFromIntent(data);
+////            location.setText(place.getAddress());
+//            wantedLocation=place;
+//        }
+//        else if (resultCode== AutocompleteActivity.RESULT_ERROR)
+//        {
+//            Status status =Autocomplete.getStatusFromIntent(data);
+//            Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
+//        }
+//    }
 
 
 
@@ -889,7 +896,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         });
     }
 
-
     public void get_all_the_reminders_from_firebase2(String userName,Location mLocation ) {
         final boolean[] c = {false};
         ArrayList<Reminder> reminders_locationList = new ArrayList<>();
@@ -937,12 +943,49 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             @Override
             public void onCancelled(DatabaseError error) {}
 
+
         });
+
+
     }
 
 
 
+    //private Button searchLocation=findViewById(R.id.searchButton);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
+        LocationTextView = findViewById(R.id.LocationTextView);
+        super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("INNNNNNNNNNNNNn started 000");
+        if ((requestCode==100)&&(resultCode==RESULT_OK))
+        {
+
+//            AutocompleteFilter filter =
+//                    new AutocompleteFilter.Builder().setCountry("IL").build();
+
+            System.out.println("INNNNNNNNNNNNNn started");
+            Place place = Autocomplete.getPlaceFromIntent(data);
+            sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
+            editor=sharedPreferences.edit();
+            editor.putFloat("lat", (float) place.getLatLng().latitude);
+            editor.putFloat("lng", (float) place.getLatLng().longitude);
+            editor.putString("location",  place.getName());
+            editor.commit();
+
+            System.out.println("PLACE !!!!1"+place.getName());
+//            LocationTextView.setVisibility(View.VISIBLE);
+//            LocationTextView.setText(place.getAddress());
+//            wantedLocation=place;
+
+            //  location.setText(String.format("Locality Name : %s",place.getName()));
+        }
+        else if (resultCode== AutocompleteActivity.RESULT_ERROR)
+        {
+            Status status =Autocomplete.getStatusFromIntent(data);
+            Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
+        }
+    }
 
 
 }

@@ -1,6 +1,7 @@
 package com.example.smartremindersapp2;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -35,12 +36,22 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
-
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+
+import com.google.android.gms.common.api.Status;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteActivity;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -54,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.List;
 import java.util.Objects;
 
 public class addReminder extends AppCompatActivity {
@@ -62,16 +74,15 @@ public class addReminder extends AppCompatActivity {
     private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn;
     private ImageButton selectDateImage, addDescriptionImage, locationImage;
     private ImageButton removeDate,removeLocation,removeDescription;
-    private TextView title,DescriptionTextView,TimeTextView,LocationTextView;
+    private TextView title,DescriptionTextView,TimeTextView,LocationTextView,searchLocationbar;
     private EditText AddDescriptionEditText;
-    private Button save_description,cancel_desc_dialog;
+    private Button save_description,cancel_desc_dialog,searchLocation;
     private Reminder reminder;
     private ConstraintLayout dialog_layout;
     private RelativeLayout background_layout;
     private Calendar NotificationDate;
     private RadioGroup LocationMenu;
     private RadioButton radioButtonOption;
-    private Button searchLocation;
     private String Category;
     private String UserName;
     private int numberOfAdditions;
@@ -80,6 +91,11 @@ public class addReminder extends AppCompatActivity {
     private List<TextView> Additions_TextView;
     private List<ImageButton> remove_icons;
     private Date oldDate=new Date();
+    private Date date=new Date();
+    private Place wantedLocation;
+    private static addReminder instance;
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
     public addReminder(String userName) { UserName=userName; }
 
     public addReminder() {}
@@ -266,9 +282,18 @@ public class addReminder extends AppCompatActivity {
         Intent ServiceIntent=new Intent(context,NotifierLocationRemind.class);
         context.stopService(ServiceIntent);
         ServiceIntent.putExtra("date",reminder.getRemindDate().getTime());
-        ServiceIntent.putExtra("DateRemind",true);
+        if(Additions.contains("Location"))
+        if(Additions.contains("Location"))
+        {
+            ServiceIntent.putExtra("type","LocationRemind");
+            ServiceIntent.putExtra("locationType",reminder.getLocationAsString());
+        }
+        else {
+            ServiceIntent.putExtra("type","DateRemind");
+        }
         ServiceIntent.putExtra("key",reminder.getKey());
-        ServiceIntent.putExtra("name",reminder.getMessage());
+        ServiceIntent.putExtra("title",reminder.getMessage());
+        ServiceIntent.putExtra("title",reminder.getMessage());
         ServiceIntent.putExtra("Pending_key",reminder.getKey().hashCode());
         ServiceIntent.putExtra("userName",UserName);
         context.startService(ServiceIntent);
@@ -281,6 +306,7 @@ public class addReminder extends AppCompatActivity {
         DescriptionTextView=add_reminder_dialog.findViewById(R.id.DescriptionTextView);
         TimeTextView=add_reminder_dialog.findViewById(R.id.TimeTextView);
         LocationTextView=add_reminder_dialog.findViewById(R.id.LocationTextView);
+        searchLocationbar=add_reminder_dialog.findViewById(R.id.searchLocation);
         background_layout=add_reminder_dialog.findViewById(R.id.background_layout);
         dialog_layout=add_reminder_dialog.findViewById(R.id.dialog_layout);
         selectDate_btn = add_reminder_dialog.findViewById(R.id.selectDate);
@@ -302,7 +328,7 @@ public class addReminder extends AppCompatActivity {
         if (oldReminder.getDescription() != null)
             ExpandDialogAndSetData2(removeDescription,addDescriptionImage,DescriptionTextView, oldReminder.getDescription().trim(), "Description");
 
-        if (oldReminder.getType().equals("Date") || oldReminder.getType().equals("Location_Date")) {
+        if (oldReminder.getType().equals("Date")) {
             String hour,minutes;
             Date date = oldReminder.getDate();
             if (Integer.toString(date.getHours()).length() == 1)
@@ -319,7 +345,7 @@ public class addReminder extends AppCompatActivity {
             ExpandDialogAndSetData2(removeDate,selectDateImage,TimeTextView, formattedDate, "Time");
         }
 
-        if (oldReminder.getType().equals("Location") || oldReminder.getType().equals("Location_Date"))
+        if (oldReminder.getType().equals("Location") )
             ExpandDialogAndSetData2(removeLocation,locationImage, LocationTextView
                     , oldReminder.getLocationAsString(), "Location");
     }
@@ -394,8 +420,16 @@ public class addReminder extends AppCompatActivity {
                     keyRef=ref.child(reminder.getKey());
                     keyRef.setValue(reminder);
                 }
-                if(reminder.getRemindDate()!=null)
-                    sendToAlarmManager(reminder);
+                if(reminder.getRemindDate()==null)
+                {
+                    date = new Date();
+                    reminder.setRemindDate((date));
+
+
+                }
+                sendToAlarmManager(reminder);
+
+
 
 //                if(edit) {
 //
@@ -426,9 +460,23 @@ public class addReminder extends AppCompatActivity {
                 LocationMenu = add_location_dialog.findViewById(R.id.LocationMenu);
                 searchLocation=add_location_dialog.findViewById(R.id.searchButton);
                 List<String> Menu=new ArrayList<>();
-                Menu.add("Super Market");
-                Menu.add("Restaurant");
+
                 Menu.add("Other");
+                Menu.add("Supermarket");
+                Menu.add("Library");
+                Menu.add("book_store");
+                Menu.add("Atm");
+                Menu.add("Bank");
+                Menu.add("Restaurant");
+                Menu.add("Cafe");
+                Menu.add("Bakery");
+                Menu.add("gas_station");
+                Menu.add("car_wash");
+                Menu.add("car_repair");
+                Menu.add("post_office");
+
+                Menu.add("laundry");
+                Menu.add("pharmacy");
                 RadioButton optionButton;
                 for(String option:Menu){
                     optionButton = new RadioButton(add_location_dialog.getContext());
@@ -473,13 +521,56 @@ public class addReminder extends AppCompatActivity {
                     public void onClick(View v) {
                         //save the chosen category in the reminder and start search the location
                         add_location_dialog.cancel();
+
+
+
+                        if (Category.equals("Other")){
+                            System.out.println("CATEGORYYYY "+Category);
+                            searchLocationbar.setVisibility(View.VISIBLE);
+                            LocationTextView.setVisibility(View.INVISIBLE);
+                            locationImage.setVisibility(View.INVISIBLE);
+                            removeLocation.setVisibility(View.INVISIBLE);
+
+
+                            searchLocationbar.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+
+                                    //Places.initialize(HomePage.getInstance(), "AIzaSyDMU9eVBmHymFvymjsCO3pUCBwwGMTqV5w");
+                                    List<Place.Field> fieldList= Arrays.asList(Place.Field.ADDRESS,Place.Field.LAT_LNG,Place.Field.NAME,Place.Field.TYPES);
+                                    Intent intentL= new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.addRdialog);
+                                    //Intent intentL= new AutocompletePrediction().IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.this).addCategory("university");
+//setInitialQuery().
+                                    HomePage.addRdialog.startActivityForResult(intentL,100);
+                                   // wantedLocation = getSharedPreferences("U", MODE_PRIVATE)
+//                                    sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
+//
+//                                    System.out.println(sharedPreferences.getString("location",null));
+
+
+                                }
+
+                            });
+
+                        }
                         reminder.setLocationAsString(Category);
-                        if(Additions.contains("Location")){
+
+                        if(Category=="Other"){
+                            searchLocation.setVisibility(View.INVISIBLE);
+                            wantedLocation=HomePage.getInstance().wantedLocation;
+                            System.out.println("PLACE****************8 "+wantedLocation);
+                        }
+                        if(Additions.contains("Location") && Category!="Other"){
+
                             LocationTextView.setText(Category);
                         }
                         else{
                             numberOfAdditions+=1;
                             ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
+                            if (Category.equals("Other")){
+                            LocationTextView.setVisibility(View.INVISIBLE);
+                            locationImage.setVisibility(View.INVISIBLE);
+                            removeLocation.setVisibility(View.INVISIBLE);}
                         }
                     }
                 });
@@ -619,13 +710,41 @@ public class addReminder extends AppCompatActivity {
         add_reminder_dialog.show();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("INNNNNNNNNNNNNn started 000");
+        if ((requestCode==100)&&(resultCode==RESULT_OK))
+        {
+
+//            AutocompleteFilter filter =
+//                    new AutocompleteFilter.Builder().setCountry("IL").build();
+
+            System.out.println("INNNNNNNNNNNNNn started");
+            Place place = Autocomplete.getPlaceFromIntent(data);
+
+            searchLocation.setVisibility(View.INVISIBLE);
+            LocationTextView.setVisibility(View.VISIBLE);
+            LocationTextView.setText(place.getAddress());
+            wantedLocation=place;
+            System.out.println("PLACE !!!!1"+place.getName());
+
+            //  location.setText(String.format("Locality Name : %s",place.getName()));
+        }
+        else if (resultCode== AutocompleteActivity.RESULT_ERROR)
+        {
+            Status status =Autocomplete.getStatusFromIntent(data);
+            Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
+        }
+    }
+
 
 
     private String checkType() {
         boolean Location=false,Date=false;
         if (Additions.contains("Location")) Location=true;
-        if (Additions.contains("Time")) Date=true;
-        if(Location && Date) return "Location_Date";
+        else{ Date=true;}
+        //if(Location && Date) return "Location_Date";
         if(Location) return "Location";
         if(Date) return "Date";
         return "Todo List";

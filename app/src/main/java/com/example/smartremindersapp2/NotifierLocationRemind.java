@@ -33,7 +33,7 @@ public class NotifierLocationRemind extends Service {
         Date date = calendar.getTime();
         String ContentTitle;
         String ContentText;
-        if(intent.getBooleanExtra("DateRemind",false)==true){
+        if(intent.getStringExtra("type").equals("DateRemind")){
             date = new Date(intent.getExtras().getLong("date", -1));
             ContentTitle="My Date Reminder";
             ContentText="Show your reminder";
@@ -47,18 +47,27 @@ public class NotifierLocationRemind extends Service {
         Intent notificationIntent = new Intent(this, HomePage.class);
         System.out.println("the pending key is: "+pendingKey);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, pendingKey , notificationIntent, 0);
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .addAction(R.drawable.ic_cancel,"remove",pendingIntent)
-                .setContentTitle(ContentTitle)
-                .setContentText(ContentText)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentIntent(pendingIntent)
-                .build();
-        notification.flags = Notification.FLAG_AUTO_CANCEL;
-        startForeground(1,notification);
+
+        if(intent.getStringExtra("type").equals("DateRemind")) {
+            Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .addAction(R.drawable.ic_cancel, "remove", pendingIntent)
+                    .setContentTitle(ContentTitle)
+                    .setContentText(ContentText)
+                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setContentIntent(pendingIntent)
+                    .build();
+            notification.flags = Notification.FLAG_AUTO_CANCEL;
+            startForeground(1, notification);
+        }
 
         Intent intent2 = new Intent(this, ReminderReceiver.class);
         intent2.putExtra("key",key);
+        intent2.putExtra("userName",intent.getStringExtra("userName"));
+        intent2.putExtra("title",intent.getStringExtra("title"));
+        if(intent.getStringExtra("type").equals("LocationRemind")){
+            intent2.putExtra("locationType",intent.getStringExtra("locationType"));
+        }
+
         intent2.putExtra("ContentTitle",ContentTitle);
         intent2.putExtra("ContentText",ContentText);
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);

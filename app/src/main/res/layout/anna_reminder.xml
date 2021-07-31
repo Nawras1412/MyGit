@@ -241,6 +241,23 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.414" />
 
+        <TextView
+            android:id="@+id/searchLocation"
+            android:layout_width="279dp"
+            android:layout_height="42dp"
+            android:editable="false"
+            android:textColor="#8F8B82"
+            android:textSize="16dp"
+            android:visibility="invisible"
+            android:drawableLeft="@drawable/ic_search"
+            android:drawableTint="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.411"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.435" />
+
         <ImageButton
             android:id="@+id/RemoveDate"
             android:layout_width="49dp"
@@ -254,7 +271,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.445"
-            app:srcCompat="@drawable/ic_baseline_remove_24"
             app:tint="#FD0303" />
 
         <ImageButton
