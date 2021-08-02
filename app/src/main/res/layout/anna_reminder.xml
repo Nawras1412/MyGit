@@ -46,8 +46,9 @@
             android:layout_width="70dp"
             android:layout_height="43dp"
             android:layout_gravity="center"
-            android:backgroundTint="#FBC02D"
+            android:backgroundTint="#FDC53A"
             android:text="Add"
+            android:textColor="#000000"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.918"
@@ -92,8 +93,8 @@
 
         <ImageButton
             android:id="@+id/selectDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="46dp"
+            android:layout_height="47dp"
             android:backgroundTint="#2E2D2D"
             android:tint="#E4DCC6"
 
@@ -198,8 +199,8 @@
 
         <TextView
             android:id="@+id/DescriptionTextView"
-            android:layout_width="279dp"
-            android:layout_height="42dp"
+            android:layout_width="273dp"
+            android:layout_height="41dp"
             android:editable="false"
             android:textColor="#8F8B82"
             android:textSize="16dp"
@@ -213,8 +214,8 @@
 
         <TextView
             android:id="@+id/LocationTextView"
-            android:layout_width="279dp"
-            android:layout_height="42dp"
+            android:layout_width="278dp"
+            android:layout_height="43dp"
             android:editable="false"
             android:textColor="#8F8B82"
             android:textSize="16dp"
@@ -271,6 +272,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.445"
+            app:srcCompat="@drawable/ic_baseline_remove_24"
             app:tint="#FD0303" />
 
         <ImageButton
