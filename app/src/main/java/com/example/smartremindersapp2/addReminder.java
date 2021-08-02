@@ -6,7 +6,10 @@ import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
+import android.content.ClipData;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,7 +18,9 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -24,11 +29,14 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.webkit.MimeTypeMap;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -36,6 +44,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -47,6 +59,9 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
@@ -58,6 +73,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.lang.reflect.Array;
 import java.text.DateFormat;
@@ -71,10 +89,13 @@ import java.util.Objects;
 public class addReminder extends AppCompatActivity {
     private Dialog add_reminder_dialog, add_description_dialog,add_location_dialog;
     private Button add_btn;
+    private HorizontalScrollView images_scroll;
+    private ImageView image_view;
     public TextView LocationTextView;
     private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn;
     private ImageButton selectDateImage, addDescriptionImage, locationImage;
     private ImageButton removeDate,removeLocation,removeDescription;
+    private ImageButton recordingAudio,UploadImage;
     private TextView title,DescriptionTextView,TimeTextView,searchLocationbar;
     private EditText AddDescriptionEditText;
     private Button save_description,cancel_desc_dialog,searchLocation;
@@ -97,6 +118,10 @@ public class addReminder extends AppCompatActivity {
     private static addReminder instance;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
+    private Uri imageUri;
+    private Uri oneClipImage=null;
+    private ClipData clipimages=null;
+    private static final int IMAGE_REQUEST=2;
     public addReminder(String userName) { UserName=userName; }
 
     public addReminder() {}
@@ -655,15 +680,25 @@ public class addReminder extends AppCompatActivity {
                 //Initialization of add description dialog
                 add_description_dialog = new Dialog(add_reminder_dialog.getContext());
                 add_description_dialog.setContentView(R.layout.add_description);
-                save_description= add_description_dialog.findViewById(R.id.save_description);
-                cancel_desc_dialog=add_description_dialog.findViewById(R.id.cancel_desc_dialog);
-                AddDescriptionEditText=add_description_dialog.findViewById(R.id.AddDescriptionEditText);
+                images_scroll = add_description_dialog.findViewById(R.id.images_scroll);
+                save_description = add_description_dialog.findViewById(R.id.save_description);
+                cancel_desc_dialog = add_description_dialog.findViewById(R.id.cancel_desc_dialog);
+                recordingAudio = add_description_dialog.findViewById(R.id.audio);
+                UploadImage = add_description_dialog.findViewById(R.id.upload_image);
+                AddDescriptionEditText = add_description_dialog.findViewById(R.id.AddDescriptionEditText);
                 AddDescriptionEditText.setFocusedByDefault(true);
-
-                if(reminder.getDescription()!=null) {
+                image_view = add_description_dialog.findViewById(R.id.image_view);
+                if (reminder.getDescription() != null) {
                     AddDescriptionEditText.setText(reminder.getDescription());
                     save_description.setEnabled(true);
                 }
+
+                UploadImage.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openImage();
+                    }
+                });
 
                 AddDescriptionEditText.addTextChangedListener(new TextWatcher() {
                     @Override
@@ -709,6 +744,93 @@ public class addReminder extends AppCompatActivity {
         });
         add_reminder_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         add_reminder_dialog.show();
+    }
+
+    private String getFileExtension(Uri uri){
+        ContentResolver contentResolver=HomePage.getInstance().getContentResolver();
+        MimeTypeMap mimeTypeMap=MimeTypeMap.getSingleton();
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
+    }
+
+    public void setImageUri(Uri oneClipImage){
+        this.oneClipImage=oneClipImage;
+    }
+
+    public void setClipImageUri(ClipData imageUri1){
+//    public void setImageUri(Uri imageUri1) {
+//        this.imageUri = imageUri1;
+        this.clipimages=imageUri1;
+    }
+
+
+    public void openImage(){
+        System.out.println();
+        Intent intent=new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        HomePage.getInstance().startActivityForResult(intent,IMAGE_REQUEST);
+    }
+
+    void uploadImage(String userName) throws IOException {
+
+        final ProgressDialog pd = new ProgressDialog(HomePage.getInstance());
+        pd.setMessage("Uploading");
+        pd.show();
+        if (oneClipImage != null) {
+            ImageView imageView2 = new ImageView(image_view.getContext());
+            InputStream is = (InputStream) new URL(oneClipImage.toString()).getContent();
+            Drawable d = Drawable.createFromStream(is, "src name");
+            imageView2.setImageDrawable(d);
+            images_scroll.addView(imageView2);
+
+            final StorageReference fileRef = FirebaseStorage.getInstance().getReference().child("Users")
+                    .child(userName).child("Images").child(System.currentTimeMillis() + "."
+                            + getFileExtension(oneClipImage));
+            fileRef.putFile(oneClipImage).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onComplete(Task<UploadTask.TaskSnapshot> task) {
+                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            String url = uri.toString();
+                            Log.d("DownloadUrl", url);
+                            pd.dismiss();
+                            Toast.makeText(HomePage.getInstance(), "Image upload successfull", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            });
+        } else {
+            for (int i = 0; i < clipimages.getItemCount(); i++) {
+                System.out.println("im in for loop");
+                ClipData.Item item = clipimages.getItemAt(i);
+                imageUri = item.getUri();
+//                ImageView imageView2=new ImageView(image_view.getContext());
+//                InputStream is = (InputStream) new URL(imageUri.toString()).getContent();
+//                Drawable d = Drawable.createFromStream(is, "src name");
+//                imageView2.setImageDrawable(d);
+//                images_scroll.addView(imageView2);
+//                .with(this).load(imageUri).into(images_scroll);
+                final StorageReference fileRef = FirebaseStorage.getInstance().getReference().child("Users")
+                        .child(userName).child("Images").child(System.currentTimeMillis() + "."
+                                + getFileExtension(imageUri));
+                fileRef.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onComplete(Task<UploadTask.TaskSnapshot> task) {
+                        fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                String url = uri.toString();
+                                Log.d("DownloadUrl", url);
+                                pd.dismiss();
+                                Toast.makeText(HomePage.getInstance(), "Image upload successfull", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                });
+            }
+        }
     }
 
     @Override
