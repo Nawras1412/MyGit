@@ -82,6 +82,7 @@ import java.util.Objects;
 
 public class HomePage extends AppCompatActivity implements AdapterView.OnItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
     boolean mBound = false;
+    addReminder a;
     MyBackgroundService mService;
     private static String userName;
     DrawerLayout drawerLayout;
@@ -244,7 +245,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         locate_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
-                addReminder a=new addReminder(userName);
+                a=new addReminder(userName);
                 a.openDialog(false,null,0);
                 addRdialog=a;
 
@@ -974,8 +975,9 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             editor.commit();
 
             System.out.println("PLACE !!!!1"+place.getName());
-//            LocationTextView.setVisibility(View.VISIBLE);
-//            LocationTextView.setText(place.getAddress());
+//
+            a.LocationTextView.setVisibility(View.VISIBLE);
+            a.LocationTextView.setText(place.getAddress());
 //            wantedLocation=place;
 
             //  location.setText(String.format("Locality Name : %s",place.getName()));

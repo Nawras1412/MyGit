@@ -71,10 +71,11 @@ import java.util.Objects;
 public class addReminder extends AppCompatActivity {
     private Dialog add_reminder_dialog, add_description_dialog,add_location_dialog;
     private Button add_btn;
+    public TextView LocationTextView;
     private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn;
     private ImageButton selectDateImage, addDescriptionImage, locationImage;
     private ImageButton removeDate,removeLocation,removeDescription;
-    private TextView title,DescriptionTextView,TimeTextView,LocationTextView,searchLocationbar;
+    private TextView title,DescriptionTextView,TimeTextView,searchLocationbar;
     private EditText AddDescriptionEditText;
     private Button save_description,cancel_desc_dialog,searchLocation;
     private Reminder reminder;

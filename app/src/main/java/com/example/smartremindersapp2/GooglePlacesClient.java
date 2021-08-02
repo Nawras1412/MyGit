@@ -99,7 +99,7 @@ public class GooglePlacesClient
 //                System.out.println("end  "+cadHTTP.substring(end_indx_place+10));
                     float[] distance = new float[1];
                     Location.distanceBetween(Double.parseDouble(lat), Double.parseDouble(lng), Double.parseDouble(lat1), Double.parseDouble(lang1), distance);
-                    if (distance[1] < 3000) {
+                    if (distance[0] < 3000) {
                         /// hey nawras please create notification here
 
                         // use reminderTitle for the title of the notification
