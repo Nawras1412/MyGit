@@ -20,6 +20,8 @@ import android.os.Bundle;
 import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -46,6 +48,7 @@ public class all_alarms extends AppCompatActivity {
     private SharedPreferences.Editor editor;
     private int hour;
     private int minutes;
+    private static TextView instruction;
 
 
 
@@ -58,6 +61,7 @@ public class all_alarms extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_all_alarms);
         drawerLayout=findViewById(R.id.drawer_layout);
+        instruction = findViewById(R.id.instructions_A);
         userName=getSharedPreferences("U",MODE_PRIVATE).
                 getString("username",null);
         addAlarmImage = findViewById(R.id.imageView);
@@ -125,6 +129,14 @@ public class all_alarms extends AppCompatActivity {
 
 
 
+    public static void setInstruction(int v) {
+        if(v==0)
+            instruction.setVisibility(View.VISIBLE);
+        else
+            instruction.setVisibility(View.INVISIBLE);
+    }
+
+
     public void setRepeatedAlarm(int i,String key,boolean repeated) {
         System.out.println(" the i is : "+i);
         System.out.println(" the key is : "+key);
@@ -185,6 +197,7 @@ public class all_alarms extends AppCompatActivity {
                     alarms.add(alarm);
                 }
                 c(alarms, userName);
+                setInstruction(alarms.size());
             }
 
             @Override

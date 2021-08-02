@@ -1,7 +1,10 @@
 package com.example.smartremindersapp2;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Build;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -12,6 +15,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -24,6 +28,29 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+
+//int[][] states = new int[][] {
+//        new int[] {-android.R.attr.state_checked},
+//        new int[] {android.R.attr.state_checked},
+//        };
+//
+//        int[] thumbColors = new int[] {
+//        Color.BLACK,
+//        Color.RED,
+//        };
+//
+//        int[] trackColors = new int[] {
+//        Color.GREEN,
+//        Color.BLUE,
+//        };
+//
+//        SwitchCompat switchCompat = (SwitchCompat) findViewById(R.id.switchControl);
+//        AppCompatCheckBox checkBox = (AppCompatCheckBox) findViewById(R.id.checkbox);
+//        checkBox.setSupportButtonTintList(new ColorStateList(states, thumbColors));
+//        DrawableCompat.setTintList(DrawableCompat.wrap(switchCompat.getThumbDrawable()), new ColorStateList(states, thumbColors));
+//        DrawableCompat.setTintList(DrawableCompat.wrap(switchCompat.getTrackDrawable()), new ColorStateList(states, trackColors));
+//
+
 
 
 public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmViewHolder> {
@@ -165,6 +192,20 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
 
     @Override
     public void onBindViewHolder( alarmViewHolder holder, int position) {
+        int[][] states = new int[][] {
+                new int[] {-android.R.attr.state_checked},
+                new int[] {android.R.attr.state_checked},
+        };
+
+        int[] thumbColors = new int[] {
+                Color.LTGRAY,
+                Color.GREEN,
+        };
+        @SuppressLint("ResourceAsColor")
+        int[] trackColors = new int[] {
+                Color.LTGRAY,
+                Color.GREEN,
+        };
         alarm_view currentAlarm=mAlram_view_list.get(position);
         holder.mdays_date.setText(Html.fromHtml(getDateAsString(currentAlarm)));
         holder.alarmName.setText(currentAlarm.getTitle());
@@ -180,9 +221,13 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
 
         if (currentAlarm.isChecked()==true) {
             holder.mSwitch.setChecked(true);
+//            holder.mSwitch.setThumbResource(R.color.morning_color);
+//            holder.mSwitch.setTrackResource(R.color.morning_color);
         }
         else{
             holder.mSwitch.setChecked(false);
+//            holder.mSwitch.setThumbResource(R.color.white);
+//            holder.mSwitch.setTrackResource(R.color.white);
         }
         DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("Alarms").child(currentAlarm.getKey());
         DatabaseReference ref1=FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("Alarms").child(currentAlarm.getKey()).child("checked");
@@ -199,6 +244,8 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
                        }
                        ref.removeValue();
                        mAlram_view_list.remove(position);
+                       if(mAlram_view_list.isEmpty())
+                           all_alarms.setInstruction(0);
                        notifyDataSetChanged();
                    }
                    @Override
@@ -220,6 +267,8 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
                             currentAlarm.setSwitch(false);
                             ref1.setValue(false);
                             all_alarms AC = new all_alarms();
+                            DrawableCompat.setTintList(DrawableCompat.wrap(holder.mSwitch.getThumbDrawable()), new ColorStateList(states, thumbColors));
+                            DrawableCompat.setTintList(DrawableCompat.wrap(holder.mSwitch.getTrackDrawable()), new ColorStateList(states, trackColors));
                             AC.cancelAlarm(currentAlarm,mcontext);
                         }
                         else{

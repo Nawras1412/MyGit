@@ -4,13 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    tools:context=".alarm_view"
-    app:cardCornerRadius="4dp">
+    app:cardBackgroundColor="#B1ABAB"
+    tools:context=".alarm_view">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="93dp"
-        android:layout_margin="4dp">
+        android:layout_marginLeft="1dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginRight="1dp"
+        android:layout_marginBottom="1dp"
+        android:background="#2E2D2D">
 
 
         <TextView
@@ -22,6 +26,7 @@
             android:layout_marginStart="58dp"
             android:enabled="true"
             android:text=":"
+            android:textColor="#E1DDDD"
             android:textSize="30sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -47,6 +52,7 @@
             android:focusableInTouchMode="false"
             android:isScrollContainer="false"
             android:linksClickable="true"
+            android:textColor="#E1DDDD"
             android:textSize="30dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -68,6 +74,7 @@
             android:focusableInTouchMode="false"
             android:isScrollContainer="false"
             android:linksClickable="true"
+            android:textColor="#E1DDDD"
             android:textSize="30dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -76,25 +83,38 @@
 
         <Switch
             android:id="@+id/Switch"
-            android:layout_width="wrap_content"
-            android:layout_height="62dp"
+            android:layout_width="116dp"
+            android:layout_height="88dp"
             android:layout_alignWithParentIfMissing="true"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentBottom="true"
-            android:layout_marginStart="349dp"
-            android:layout_marginTop="36dp"
+            android:layout_marginStart="285dp"
+            android:layout_marginTop="22dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
-            android:layout_marginBottom="-5dp"
+            android:layout_marginBottom="-17dp"
             android:checked="false"
+            android:imeOptions="actionNone|actionGo"
+            android:scrollbarAlwaysDrawVerticalTrack="false"
+            android:shadowColor="#FBC02D"
+            android:splitTrack="false"
+            android:textColorHighlight="#FBC02D"
+            android:textColorHint="#FBC02D"
+            android:textColorLink="#FBC02D"
+            android:textCursorDrawable="@color/morning_color"
+            android:textIsSelectable="false"
+            android:textSize="36sp"
+            android:thumb="@drawable/ic_alarm"
+            android:thumbTint="#FBC02D"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.954"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:checked="true" />
 
         <TextView
             android:id="@+id/date_days"
@@ -112,7 +132,7 @@
             android:enabled="true"
             android:inputType="date"
             android:linksClickable="true"
-            android:textColor="#000000"
+            android:textColor="#E1DDDD"
             android:textSize="14sp"
             android:visibility="visible"
             tools:ignore="MissingConstraints"
@@ -133,7 +153,9 @@
             android:layout_marginEnd="7dp"
             android:layout_marginRight="7dp"
             android:layout_marginBottom="48dp"
-            app:srcCompat="@drawable/ic_baseline_auto_delete_24" />
+            android:backgroundTint="#2E2D2D"
+            android:tint="#E1DDDD"
+            app:srcCompat="@drawable/ic_cancel" />
 
         <TextView
             android:id="@+id/alarm_title"
@@ -146,10 +168,10 @@
             android:layout_marginStart="21dp"
             android:layout_marginTop="50dp"
             android:layout_marginEnd="207dp"
-            android:layout_marginBottom="9dp" />
+            android:layout_marginBottom="9dp"
+            android:textColor="#E1DDDD"
+            android:textSize="20sp" />
     </RelativeLayout>
-
-
 
 
 </androidx.cardview.widget.CardView>
