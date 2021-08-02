@@ -31,8 +31,6 @@ public class ReminderReceiver extends BroadcastReceiver {
             notificationHelper.getManager().notify(0, nb);
 
         } else {
-           // DatabaseReference ref= FirebaseDatabase.getInstance().getReference().child("Users").child(intent.getStringExtra("userName")).child("reminder_list").child(intent.getStringExtra("key"));
-            //System.out.print(ref);
             String url = "";
             ///  location request & notification intent
             String type= intent.getStringExtra("locationType").toLowerCase();

@@ -1,4 +1,3 @@
-
 package com.example.smartremindersapp2;
 
 import android.app.AlarmManager;

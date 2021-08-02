@@ -85,11 +85,11 @@ public class GooglePlacesClient
                 String address;
                 int end_indx_place;
                 do {
-                     Name = getparameters(cadHTTP, "\"name\" : \"", "\"");
-                     lat = getparameters(cadHTTP, "lat\" : ", ",");
-                     lng = getparameters(cadHTTP, "lng\" : ", "\n");
-                     address = getparameters(cadHTTP, " \"vicinity\" : \"", "\"");
-                     end_indx_place = cadHTTP.indexOf(" \"vicinity\" : \"") + 15;
+                    Name = getparameters(cadHTTP, "\"name\" : \"", "\"");
+                    lat = getparameters(cadHTTP, "lat\" : ", ",");
+                    lng = getparameters(cadHTTP, "lng\" : ", "\n");
+                    address = getparameters(cadHTTP, " \"vicinity\" : \"", "\"");
+                    end_indx_place = cadHTTP.indexOf(" \"vicinity\" : \"") + 15;
                     cadHTTP = cadHTTP.substring(end_indx_place);
 //
 //                System.out.println("NAme: "+Name);

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="142dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/background_layout"
@@ -21,7 +21,7 @@
             android:id="@+id/textView"
             android:layout_width="332dp"
             android:layout_height="wrap_content"
-            android:textColor="#636363"
+            android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -60,8 +60,7 @@
             android:id="@+id/Hello"
             android:layout_width="380dp"
             android:layout_height="46dp"
-            android:text="cccccccccc"
-            android:textColor="#FFB600"
+            android:textColor="#FFFFFF"
             android:textSize="30sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
