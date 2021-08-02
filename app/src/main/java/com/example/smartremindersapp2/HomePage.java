@@ -98,7 +98,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     private static DatabaseReference ref;
     private Dialog dialog;
 //    TextView location;
-    private TextView empty;
+    private TextView empty,locate_wanted;
     LocationRequest locationRequest;
     int LOCATION_REQUEST_CODE = 1998;
     List<Reminder> reminders = new ArrayList<Reminder>();
@@ -986,7 +986,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             editor.putFloat("lng", (float) place.getLatLng().longitude);
             editor.putString("location",  place.getName());
             editor.commit();
-
+            addReminder.wantedLocation=place;
             System.out.println("PLACE !!!!1"+place.getName());
 //
             a.LocationTextView.setVisibility(View.VISIBLE);
