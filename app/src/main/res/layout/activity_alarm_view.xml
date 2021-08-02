@@ -97,8 +97,6 @@
             android:layout_marginRight="8dp"
             android:layout_marginBottom="-17dp"
             android:checked="false"
-<<<<<<< Updated upstream
-=======
             android:imeOptions="actionNone|actionGo"
             android:scrollbarAlwaysDrawVerticalTrack="false"
             android:shadowColor="#FBC02D"
@@ -111,7 +109,6 @@
             android:textSize="36sp"
             android:thumb="@drawable/ic_alarm"
             android:thumbTint="#FBC02D"
->>>>>>> Stashed changes
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.954"
