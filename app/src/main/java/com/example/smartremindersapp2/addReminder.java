@@ -92,7 +92,7 @@ public class addReminder extends AppCompatActivity {
     private HorizontalScrollView images_scroll;
     private ImageView image_view;
     public TextView LocationTextView;
-    private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn;
+    private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn,searchIcon;
     private ImageButton selectDateImage, addDescriptionImage, locationImage;
     private ImageButton removeDate,removeLocation,removeDescription;
     private ImageButton recordingAudio,UploadImage;
@@ -114,7 +114,7 @@ public class addReminder extends AppCompatActivity {
     private List<ImageButton> remove_icons;
     private Date oldDate=new Date();
     private Date date=new Date();
-    private Place wantedLocation;
+    public static Place wantedLocation;
     private static addReminder instance;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
@@ -330,6 +330,7 @@ public class addReminder extends AppCompatActivity {
     public void SetFindViewById(){
         add_reminder_dialog.setContentView(R.layout.anna_reminder);
         DescriptionTextView=add_reminder_dialog.findViewById(R.id.DescriptionTextView);
+        searchIcon=add_reminder_dialog.findViewById(R.id.searchIcon);
         TimeTextView=add_reminder_dialog.findViewById(R.id.TimeTextView);
         LocationTextView=add_reminder_dialog.findViewById(R.id.LocationTextView);
         searchLocationbar=add_reminder_dialog.findViewById(R.id.searchLocation);
@@ -555,6 +556,7 @@ public class addReminder extends AppCompatActivity {
                             searchLocationbar.setVisibility(View.VISIBLE);
                             LocationTextView.setVisibility(View.INVISIBLE);
                             locationImage.setVisibility(View.INVISIBLE);
+                            searchIcon.setVisibility(View.VISIBLE);
                             removeLocation.setVisibility(View.INVISIBLE);
 
 
@@ -564,10 +566,10 @@ public class addReminder extends AppCompatActivity {
 
                                     //Places.initialize(HomePage.getInstance(), "AIzaSyDMU9eVBmHymFvymjsCO3pUCBwwGMTqV5w");
                                     List<Place.Field> fieldList= Arrays.asList(Place.Field.ADDRESS,Place.Field.LAT_LNG,Place.Field.NAME,Place.Field.TYPES);
-                                    Intent intentL= new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.addRdialog);
+                                    Intent intentL= new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.getInstance());
                                     //Intent intentL= new AutocompletePrediction().IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.this).addCategory("university");
 //setInitialQuery().
-                                    HomePage.addRdialog.startActivityForResult(intentL,100);
+                                    HomePage.getInstance().startActivityForResult(intentL,100);
                                    // wantedLocation = getSharedPreferences("U", MODE_PRIVATE)
 //                                    sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
 //
