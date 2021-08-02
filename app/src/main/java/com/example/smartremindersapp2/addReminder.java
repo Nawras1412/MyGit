@@ -1,80 +1,89 @@
 package com.example.smartremindersapp2;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
+import android.content.ClipData;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
-import android.content.res.Resources;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
-import android.location.Location;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
+import android.os.storage.StorageManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.webkit.MimeTypeMap;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.common.api.Status;
-import com.google.android.libraries.places.api.Places;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
-import java.lang.reflect.Array;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.DateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.List;
-import java.util.Objects;
 
 public class addReminder extends AppCompatActivity {
+    public  TextView LocationTextView;
     private Dialog add_reminder_dialog, add_description_dialog,add_location_dialog;
     private Button add_btn;
-    private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn;
+    private HorizontalScrollView images_scroll;
+    private ImageView image_view;
+    private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn,searchIcon;
     private ImageButton selectDateImage, addDescriptionImage, locationImage;
     private ImageButton removeDate,removeLocation,removeDescription;
-    private TextView title,DescriptionTextView,TimeTextView,LocationTextView,searchLocationbar;
+    private ImageButton recordingAudio,UploadImage;
+    private TextView title,DescriptionTextView,TimeTextView,searchLocationbar;
     private EditText AddDescriptionEditText;
     private Button save_description,cancel_desc_dialog,searchLocation;
     private Reminder reminder;
@@ -92,10 +101,16 @@ public class addReminder extends AppCompatActivity {
     private List<ImageButton> remove_icons;
     private Date oldDate=new Date();
     private Date date=new Date();
-    private Place wantedLocation;
+    public static Place wantedLocation;
+    private Uri imageUri;
+    private Uri oneClipImage=null;
+    private ClipData clipimages=null;
+    private static final int IMAGE_REQUEST=2;
     private static addReminder instance;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
+
+
     public addReminder(String userName) { UserName=userName; }
 
     public addReminder() {}
@@ -283,14 +298,14 @@ public class addReminder extends AppCompatActivity {
         context.stopService(ServiceIntent);
         ServiceIntent.putExtra("date",reminder.getRemindDate().getTime());
         if(Additions.contains("Location"))
-        if(Additions.contains("Location"))
-        {
-            ServiceIntent.putExtra("type","LocationRemind");
-            ServiceIntent.putExtra("locationType",reminder.getLocationAsString());
-        }
-        else {
-            ServiceIntent.putExtra("type","DateRemind");
-        }
+            if(Additions.contains("Location"))
+            {
+                ServiceIntent.putExtra("type","LocationRemind");
+                ServiceIntent.putExtra("locationType",reminder.getLocationAsString());
+            }
+            else {
+                ServiceIntent.putExtra("type","DateRemind");
+            }
         ServiceIntent.putExtra("key",reminder.getKey());
         ServiceIntent.putExtra("title",reminder.getMessage());
         ServiceIntent.putExtra("title",reminder.getMessage());
@@ -304,6 +319,7 @@ public class addReminder extends AppCompatActivity {
     public void SetFindViewById(){
         add_reminder_dialog.setContentView(R.layout.anna_reminder);
         DescriptionTextView=add_reminder_dialog.findViewById(R.id.DescriptionTextView);
+        searchIcon=add_reminder_dialog.findViewById(R.id.searchIcon);
         TimeTextView=add_reminder_dialog.findViewById(R.id.TimeTextView);
         LocationTextView=add_reminder_dialog.findViewById(R.id.LocationTextView);
         searchLocationbar=add_reminder_dialog.findViewById(R.id.searchLocation);
@@ -345,7 +361,7 @@ public class addReminder extends AppCompatActivity {
             ExpandDialogAndSetData2(removeDate,selectDateImage,TimeTextView, formattedDate, "Time");
         }
 
-        if (oldReminder.getType().equals("Location") )
+        if (oldReminder.getType().equals("Location"))
             ExpandDialogAndSetData2(removeLocation,locationImage, LocationTextView
                     , oldReminder.getLocationAsString(), "Location");
     }
@@ -420,16 +436,11 @@ public class addReminder extends AppCompatActivity {
                     keyRef=ref.child(reminder.getKey());
                     keyRef.setValue(reminder);
                 }
-                if(reminder.getRemindDate()==null)
-                {
+                if(reminder.getRemindDate()==null){
                     date = new Date();
                     reminder.setRemindDate((date));
-
-
                 }
                 sendToAlarmManager(reminder);
-
-
 
 //                if(edit) {
 //
@@ -460,7 +471,6 @@ public class addReminder extends AppCompatActivity {
                 LocationMenu = add_location_dialog.findViewById(R.id.LocationMenu);
                 searchLocation=add_location_dialog.findViewById(R.id.searchButton);
                 List<String> Menu=new ArrayList<>();
-
                 Menu.add("Other");
                 Menu.add("Supermarket");
                 Menu.add("Library");
@@ -538,11 +548,11 @@ public class addReminder extends AppCompatActivity {
 
                                     //Places.initialize(HomePage.getInstance(), "AIzaSyDMU9eVBmHymFvymjsCO3pUCBwwGMTqV5w");
                                     List<Place.Field> fieldList= Arrays.asList(Place.Field.ADDRESS,Place.Field.LAT_LNG,Place.Field.NAME,Place.Field.TYPES);
-                                    Intent intentL= new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.addRdialog);
+                                    Intent intentL= new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.getInstance());
                                     //Intent intentL= new AutocompletePrediction().IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.this).addCategory("university");
 //setInitialQuery().
-                                    HomePage.addRdialog.startActivityForResult(intentL,100);
-                                   // wantedLocation = getSharedPreferences("U", MODE_PRIVATE)
+                                    HomePage.getInstance().startActivityForResult(intentL,100);
+                                    // wantedLocation = getSharedPreferences("U", MODE_PRIVATE)
 //                                    sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
 //
 //                                    System.out.println(sharedPreferences.getString("location",null));
@@ -568,14 +578,16 @@ public class addReminder extends AppCompatActivity {
                             numberOfAdditions+=1;
                             ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
                             if (Category.equals("Other")){
-                            LocationTextView.setVisibility(View.INVISIBLE);
-                            locationImage.setVisibility(View.INVISIBLE);
-                            removeLocation.setVisibility(View.INVISIBLE);}
+                                LocationTextView.setVisibility(View.INVISIBLE);
+                                locationImage.setVisibility(View.INVISIBLE);
+                                searchIcon.setVisibility(View.VISIBLE);
+                                removeLocation.setVisibility(View.INVISIBLE);}
                         }
                     }
                 });
                 add_location_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 add_location_dialog.show();
+                System.out.println("PLACE***???/ "+wantedLocation);
             }
         });
 
@@ -654,15 +666,27 @@ public class addReminder extends AppCompatActivity {
                 //Initialization of add description dialog
                 add_description_dialog = new Dialog(add_reminder_dialog.getContext());
                 add_description_dialog.setContentView(R.layout.add_description);
+                images_scroll=add_description_dialog.findViewById(R.id.images_scroll);
                 save_description= add_description_dialog.findViewById(R.id.save_description);
                 cancel_desc_dialog=add_description_dialog.findViewById(R.id.cancel_desc_dialog);
+                recordingAudio=add_description_dialog.findViewById(R.id.audio);
+                UploadImage=add_description_dialog.findViewById(R.id.upload_image);
                 AddDescriptionEditText=add_description_dialog.findViewById(R.id.AddDescriptionEditText);
                 AddDescriptionEditText.setFocusedByDefault(true);
+                image_view=add_description_dialog.findViewById(R.id.image_view);
 
                 if(reminder.getDescription()!=null) {
                     AddDescriptionEditText.setText(reminder.getDescription());
                     save_description.setEnabled(true);
                 }
+
+
+                UploadImage.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openImage();
+                    }
+                });
 
                 AddDescriptionEditText.addTextChangedListener(new TextWatcher() {
                     @Override
@@ -710,34 +734,166 @@ public class addReminder extends AppCompatActivity {
         add_reminder_dialog.show();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        System.out.println("INNNNNNNNNNNNNn started 000");
-        if ((requestCode==100)&&(resultCode==RESULT_OK))
-        {
 
-//            AutocompleteFilter filter =
-//                    new AutocompleteFilter.Builder().setCountry("IL").build();
+    private String getFileExtension(Uri uri){
+        ContentResolver contentResolver=HomePage.getInstance().getContentResolver();
+        MimeTypeMap mimeTypeMap=MimeTypeMap.getSingleton();
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
+    }
 
-            System.out.println("INNNNNNNNNNNNNn started");
-            Place place = Autocomplete.getPlaceFromIntent(data);
 
-            searchLocation.setVisibility(View.INVISIBLE);
-            LocationTextView.setVisibility(View.VISIBLE);
-            LocationTextView.setText(place.getAddress());
-            wantedLocation=place;
-            System.out.println("PLACE !!!!1"+place.getName());
+    public void setImageUri(Uri oneClipImage){
+        this.oneClipImage=oneClipImage;
+    }
 
-            //  location.setText(String.format("Locality Name : %s",place.getName()));
+    public void setClipImageUri(ClipData imageUri1){
+//    public void setImageUri(Uri imageUri1) {
+//        this.imageUri = imageUri1;
+        this.clipimages=imageUri1;
+    }
+
+
+    public void openImage(){
+        System.out.println();
+        Intent intent=new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+//        startActivityForResult(Intent.createChooser(intent,"Select file to upload "), req_code);
+        HomePage.getInstance().startActivityForResult(intent,IMAGE_REQUEST);
+    }
+
+    void uploadImage(String userName) throws IOException {
+
+        final ProgressDialog pd=new ProgressDialog(HomePage.getInstance());
+        pd.setMessage("Uploading");
+        pd.show();
+        if(oneClipImage!=null){
+            ImageView imageView2=new ImageView(image_view.getContext());
+            InputStream is = (InputStream) new URL(oneClipImage.toString()).getContent();
+            Drawable d = Drawable.createFromStream(is, "src name");
+            imageView2.setImageDrawable(d);
+            images_scroll.addView(imageView2);
+
+            final StorageReference fileRef = FirebaseStorage.getInstance().getReference().child("Users")
+                    .child(userName).child("Images").child(System.currentTimeMillis() + "."
+                            + getFileExtension(oneClipImage));
+            fileRef.putFile(oneClipImage).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onComplete(Task<UploadTask.TaskSnapshot> task) {
+                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            String url = uri.toString();
+                            Log.d("DownloadUrl", url);
+                            pd.dismiss();
+                            Toast.makeText(HomePage.getInstance(), "Image upload successfull", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+            });
         }
-        else if (resultCode== AutocompleteActivity.RESULT_ERROR)
-        {
-            Status status =Autocomplete.getStatusFromIntent(data);
-            Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
+        else{
+            for (int i = 0; i < clipimages.getItemCount(); i++) {
+                System.out.println("im in for loop");
+                ClipData.Item item = clipimages.getItemAt(i);
+                imageUri = item.getUri();
+//                ImageView imageView2=new ImageView(image_view.getContext());
+//                InputStream is = (InputStream) new URL(imageUri.toString()).getContent();
+//                Drawable d = Drawable.createFromStream(is, "src name");
+//                imageView2.setImageDrawable(d);
+//                images_scroll.addView(imageView2);
+//                .with(this).load(imageUri).into(images_scroll);
+                final StorageReference fileRef = FirebaseStorage.getInstance().getReference().child("Users")
+                        .child(userName).child("Images").child(System.currentTimeMillis() + "."
+                                + getFileExtension(imageUri));
+                fileRef.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onComplete(Task<UploadTask.TaskSnapshot> task) {
+                        fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                String url = uri.toString();
+                                Log.d("DownloadUrl", url);
+                                pd.dismiss();
+                                Toast.makeText(HomePage.getInstance(), "Image upload successfull", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                });
+            }
         }
     }
 
+
+
+
+
+
+//        System.out.println("vvvvvvvvvvvvvvvvvvvvvv");
+////        ImageView imageView=new Image
+//        if(clipimages.getItemCount()>0) {
+//            System.out.println("im in if ");
+////            images_scroll.setVisibility(View.VISIBLE);
+//            for (int i = 0; i < clipimages.getItemCount(); i++) {
+//                System.out.println("im in for loop");
+//                ClipData.Item item = clipimages.getItemAt(i);
+//                imageUri = item.getUri();
+////                ImageView imageView2=new ImageView(image_view.getContext());
+////                InputStream is = (InputStream) new URL(imageUri.toString()).getContent();
+////                Drawable d = Drawable.createFromStream(is, "src name");
+////                imageView2.setImageDrawable(d);
+////                images_scroll.addView(imageView2);
+////                .with(this).load(imageUri).into(images_scroll);
+//                final StorageReference fileRef = FirebaseStorage.getInstance().getReference().child("Users")
+//                        .child(userName).child("Images").child(System.currentTimeMillis() + "."
+//                                + getFileExtension(imageUri));
+//                fileRef.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+//                    @Override
+//                    public void onComplete(Task<UploadTask.TaskSnapshot> task) {
+//                        fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+//                            @Override
+//                            public void onSuccess(Uri uri) {
+//                                String url = uri.toString();
+//                                Log.d("DownloadUrl", url);
+//                                pd.dismiss();
+//                                Toast.makeText(HomePage.getInstance(), "Image upload successfull", Toast.LENGTH_LONG).show();
+//                            }
+//                        });
+//                    }
+//                });
+//            }
+//        }
+
+
+    //    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        System.out.println("INNNNNNNNNNNNNn started 000");
+//        if ((requestCode==100)&&(resultCode==RESULT_OK))
+//        {
+//
+////            AutocompleteFilter filter =
+////                    new AutocompleteFilter.Builder().setCountry("IL").build();
+//
+//            System.out.println("INNNNNNNNNNNNNn started");
+//            Place place = Autocomplete.getPlaceFromIntent(data);
+//
+//            searchLocation.setVisibility(View.INVISIBLE);
+//            LocationTextView.setVisibility(View.VISIBLE);
+//            LocationTextView.setText(place.getAddress());
+//            wantedLocation=place;
+//
+//            System.out.println("PLACE !!!!1"+place.getName());
+//
+//            //  location.setText(String.format("Locality Name : %s",place.getName()));
+//        }
+//        else if (resultCode== AutocompleteActivity.RESULT_ERROR)
+//        {
+//            Status status =Autocomplete.getStatusFromIntent(data);
+//            Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
+//        }
+//    }
 
 
     private String checkType() {
