@@ -25,6 +25,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -94,8 +96,9 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     private boolean location_flag = false, notify_flag = false;
     private static DatabaseReference ref;
     private Dialog dialog;
+
 //    TextView location;
-    private TextView empty;
+    private TextView empty,locate_wanted;
     LocationRequest locationRequest;
     int LOCATION_REQUEST_CODE = 1998;
     List<Reminder> reminders = new ArrayList<Reminder>();
@@ -108,7 +111,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     private static HomePage instance;
     private Calendar NotificationDate;
     public static addReminder addRdialog;
-
     private ConstraintLayout background_layout;
     private ImageView menu_btn,setting_btn;
     public Spinner getRemindersKindSpinner() {
@@ -119,6 +121,11 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     public static RecyclerView getmRecyclerView() {
         return mRecyclerView;
     }
+
+
+
+
+
 
     @SuppressLint("ResourceAsColor")
     @Override
@@ -143,8 +150,9 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         setting_btn=findViewById(R.id.setting_btn);
         userName = getSharedPreferences("U", MODE_PRIVATE).getString("username", null);
 
+
         String time = "Hello ";
-        int items_color =R.color.white;
+        int btn_color =R.color.white,texts_color=R.color.white;
         int backgroungImage=0;
         Calendar calendar=Calendar.getInstance();
         calendar.set(Calendar.HOUR_OF_DAY,23);
@@ -156,24 +164,27 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         }
         if(calendar.getTime().getHours()>=12 &&
                 calendar.getTime().getHours()<17) {
-            items_color=R.color.black;
-            backgroungImage= R.drawable.afternoon_image;
+            btn_color=R.color.black;
+            texts_color=R.color.black;
+            backgroungImage= R.drawable.image3;
             time = "Good Afternoon, ";
         }
         if(calendar.getTime().getHours()>=17 &&
                 calendar.getTime().getHours()<20) {
-            backgroungImage= R.drawable.evening_image;
+            btn_color=R.color.black;
+            texts_color=R.color.white;
+            backgroungImage= R.drawable.image4;
             time = "Good Evening, ";
         }
         if(calendar.getTime().getHours()>=20 ||
                 calendar.getTime().getHours()<6) {
-            backgroungImage= R.drawable.night_image;
+            backgroungImage= R.drawable.image5;
             time = "Good Night, ";
         }
-        Date1.setTextColor(ContextCompat.getColor(getInstance(), items_color));
-        setting_btn.setColorFilter(ContextCompat.getColor(getInstance(), items_color), android.graphics.PorterDuff.Mode.MULTIPLY);
-        menu_btn.setColorFilter(ContextCompat.getColor(getInstance(), items_color), android.graphics.PorterDuff.Mode.MULTIPLY);
-        hello_txt.setTextColor(ContextCompat.getColor(getInstance(), items_color));
+        Date1.setTextColor(ContextCompat.getColor(getInstance(), texts_color));
+        setting_btn.setColorFilter(ContextCompat.getColor(getInstance(), btn_color), android.graphics.PorterDuff.Mode.MULTIPLY);
+        menu_btn.setColorFilter(ContextCompat.getColor(getInstance(), btn_color), android.graphics.PorterDuff.Mode.MULTIPLY);
+        hello_txt.setTextColor(ContextCompat.getColor(getInstance(), texts_color));
         background_layout.setBackground(ContextCompat.getDrawable(getInstance(), backgroungImage));
         hello_txt.setText(time+ userName+"!");
 
@@ -198,12 +209,19 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                 else clicked = false;
             }
         });
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.days, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(this, R.array.kinds, android.R.layout.simple_spinner_item);
-        KindsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        ArrayAdapter KindsAdapter=ArrayAdapter.createFromResource(
+                this,R.array.kinds,R.layout.color_spinner_layout
+        );
+        KindsAdapter.setDropDownViewResource(R.layout.spinner_dropdown_layout);
         RemindersKindSpinner.setAdapter(KindsAdapter);
-        RemindersKindSpinner.getBackground().setColorFilter(R.color.black, PorterDuff.Mode.DARKEN);
+        RemindersKindSpinner.setOnItemSelectedListener(this);
+
+//        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.days, android.R.layout.simple_spinner_item);
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(this, R.array.kinds, android.R.layout.simple_spinner_item);
+//        KindsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        RemindersKindSpinner.setAdapter(KindsAdapter);
 
 
         RemindersKindSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -217,17 +235,16 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {}
         });
-
-        spinner.setAdapter(adapter);
+//        spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(this);
         Date currentDate = Calendar.getInstance().getTime();
         String formattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(currentDate);
         String[] splitDate = formattedDate.split(",");
         int index = formattedDate.indexOf(",");
         String day = splitDate[0];
-        int spinnerPosition = adapter.getPosition(day);
-        spinner.setSelection(spinnerPosition);
-        spinnerPosition = KindsAdapter.getPosition("all");
+//        int spinnerPosition = adapter.getPosition(day);
+//        spinner.setSelection(spinnerPosition);
+        int spinnerPosition = KindsAdapter.getPosition("all");
         RemindersKindSpinner.setSelection(spinnerPosition);
         Date1.setText(formattedDate.substring(index + 1));
 
@@ -238,7 +255,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             public void onClick(View v) {
                 addTodoList a=new addTodoList(userName);
                 a.openDialog(false,null,0);
-
             }
         });
         locate_button.setOnClickListener(new View.OnClickListener() {
@@ -247,7 +263,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                 addReminder a=new addReminder(userName);
                 a.openDialog(false,null,0);
                 addRdialog=a;
-
             }
         });
     }
@@ -831,6 +846,25 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
 //            Status status =Autocomplete.getStatusFromIntent(data);
 //            Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
 //        }
+//        else if(requestCode==2 && resultCode==RESULT_OK){
+//            System.out.println("yessss");
+//            addReminder a=new addReminder();
+////            try {
+////                a.setImageUri(data.getClipData());
+////            }catch(){
+////                a.setImageUri(data.getClipData());
+////            }
+//            if(data.getClipData()==null)
+//                a.setImageUri(data.getData());
+//            else
+//                a.setClipImageUri(data.getClipData());
+//            try {
+//                a.uploadImage(userName);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+
 //    }
 
 
@@ -896,6 +930,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         });
     }
 
+
     public void get_all_the_reminders_from_firebase2(String userName,Location mLocation ) {
         final boolean[] c = {false};
         ArrayList<Reminder> reminders_locationList = new ArrayList<>();
@@ -943,12 +978,8 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             @Override
             public void onCancelled(DatabaseError error) {}
 
-
         });
-
-
     }
-
 
 
     //private Button searchLocation=findViewById(R.id.searchButton);
@@ -972,10 +1003,10 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             editor.putFloat("lng", (float) place.getLatLng().longitude);
             editor.putString("location",  place.getName());
             editor.commit();
-
+            addReminder.wantedLocation=place;
             System.out.println("PLACE !!!!1"+place.getName());
-//            LocationTextView.setVisibility(View.VISIBLE);
-//            LocationTextView.setText(place.getAddress());
+            LocationTextView.setVisibility(View.VISIBLE);
+            LocationTextView.setText(place.getAddress());
 //            wantedLocation=place;
 
             //  location.setText(String.format("Locality Name : %s",place.getName()));
@@ -985,7 +1016,26 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             Status status =Autocomplete.getStatusFromIntent(data);
             Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
         }
+        else if(requestCode==2 && resultCode==RESULT_OK){
+            System.out.println("yessss");
+            addReminder a=new addReminder();
+//            try {
+//                a.setImageUri(data.getClipData());
+//            }catch(){
+//                a.setImageUri(data.getClipData());
+//            }
+            if(data.getClipData()==null)
+                a.setImageUri(data.getData());
+            else
+                a.setClipImageUri(data.getClipData());
+            try {
+                a.uploadImage(userName);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
+
 
 
 }
