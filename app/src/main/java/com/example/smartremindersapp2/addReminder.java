@@ -754,7 +754,6 @@ public class addReminder extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         closeAll(4);
-
                         ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
                         buttons.add(btn_shop_supermarket);
                         buttons.add(btn_shop_mall);
@@ -767,7 +766,7 @@ public class addReminder extends AppCompatActivity {
                                 afterchoosing();
                             }
                         });
-                        btn_shop.setOnClickListener(new View.OnClickListener() {
+                        btn_shop_mall.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
 
