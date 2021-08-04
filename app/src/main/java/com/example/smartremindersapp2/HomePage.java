@@ -37,6 +37,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.TimePickerDialog;
@@ -127,6 +128,31 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        System.out.println("im in homepage");
+        System.out.println(this.getIntent().getStringExtra("type"));
+        try{
+            if(this.getIntent().getStringExtra("type").equals("Dismiss")) {
+                System.out.println("its dismiss");
+                NotificationManager manager=(NotificationManager) getApplicationContext()
+                        .getSystemService(NOTIFICATION_SERVICE);
+                manager.cancelAll();
+            }
+            else if(this.getIntent().getStringExtra("type").equals("Another")) {
+                System.out.println("its Another");
+                String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" + "location=" + "32.7614296" + "," + "35.0195184" + "&" +
+                       "rankby=distance" + "&" + "type="+"some type" +"&"+ "key=" + "AIzaSyDMU9eVBmHymFvymjsCO3pUCBwwGMTqV5w";
+                String title=this.getIntent().getStringExtra("title");
+                String content=this.getIntent().getStringExtra("content");
+                GooglePlacesClient.do1(this.getIntent().getStringExtra("cadHTTP")
+                        ,"32.7614296","35.0195184",
+                        title,content
+                        ,this.getIntent().getStringExtra("key"),getInstance());
+            }
+
+
+        }catch (Exception i){
+            System.out.println("im in catch");
+        }
         instance = this;
         setContentView(R.layout.home_page);
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -851,20 +877,23 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
 
 
 
-    private void sendToAlarmManager(Reminder reminder) {
-//        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+5:30"));
-//        calendar.setTime(remind);
-//        calendar.set(Calendar.SECOND, 0);
-        Intent ServiceIntent=new Intent(this,NotifierLocationRemind.class);
-        stopService(ServiceIntent);
-        ServiceIntent.putExtra("date",reminder.getRemindDate().getTime());
-        ServiceIntent.putExtra("DateRemind",true);
-        ServiceIntent.putExtra("key",reminder.getKey());
-        ServiceIntent.putExtra("name",reminder.getMessage());
-        ServiceIntent.putExtra("Pending_key",reminder.getKey().hashCode());
-        ServiceIntent.putExtra("userName",userName);
-        startService(ServiceIntent);
-    }
+//    private void sendToAlarmManager(Reminder reminder) {
+////        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+5:30"));
+////        calendar.setTime(remind);
+////        calendar.set(Calendar.SECOND, 0);
+//        Intent ServiceIntent=new Intent(this,NotifierLocationRemind.class);
+//        stopService(ServiceIntent);
+//        ServiceIntent.putExtra("date",reminder.getRemindDate().getTime());
+//        ServiceIntent.putExtra("DateRemind",true);
+//        ServiceIntent.putExtra("key",reminder.getKey());
+//        ServiceIntent.putExtra("name",reminder.getMessage());
+//        ServiceIntent.putExtra("Pending_key",reminder.getKey().hashCode());
+//        ServiceIntent.putExtra("userName",userName);
+//        ServiceIntent.putExtra("address",userName);
+//        ServiceIntent.putExtra("lat",userName);
+//        ServiceIntent.putExtra("lang",userName);
+//        startService(ServiceIntent);
+//    }
 
     public static HomePage getInstance() {
         return instance;
@@ -974,10 +1003,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         System.out.println("INNNNNNNNNNNNNn started 000");
         if ((requestCode==100)&&(resultCode==RESULT_OK))
         {
-
-//            AutocompleteFilter filter =
-//                    new AutocompleteFilter.Builder().setCountry("IL").build();
-
             System.out.println("INNNNNNNNNNNNNn started");
             Place place = Autocomplete.getPlaceFromIntent(data);
             sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
@@ -988,11 +1013,31 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             editor.commit();
             addReminder.wantedLocation=place;
             System.out.println("PLACE !!!!1"+place.getName());
-//
+
             a.LocationTextView.setVisibility(View.VISIBLE);
             a.LocationTextView.setText(place.getAddress());
+            a.address=place.getAddress();
+            a.lat=place.getLatLng().longitude;
+            a.lang=place.getLatLng().latitude;
 //            wantedLocation=place;
-
+            /************************************************************************
+            double lat, lang;
+            lang=place.getLatLng().longitude;
+            lat=place.getLatLng().latitude;
+            float[] distance = new float[1];
+            double lat1 = 32.7614296;
+            double lng1 = 35.0195184;
+            Location.distanceBetween(lat, lang, lat1, lng1, distance);
+            if ((distance[0] < 3000)) {
+                System.out.println("im in distance[0] < 3000 ");
+                String key=getSharedPreferences("U", MODE_PRIVATE).getString("key of other notification", null);
+                NotificationHelper notificationHelper = new NotificationHelper(getInstance());
+                Notification nb = notificationHelper.getChannelNotification(key
+                        , HomePage.class,"Congratulation, you have arrive", "You are near "+place.getAddress(),"");
+                notificationHelper.getManager().notify(0, nb);
+                //write notification here
+                // place.getAddress()
+            }***********************************/
             //  location.setText(String.format("Locality Name : %s",place.getName()));
         }
         else if (resultCode== AutocompleteActivity.RESULT_ERROR)

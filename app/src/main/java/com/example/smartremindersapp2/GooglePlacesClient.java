@@ -1,5 +1,8 @@
 package com.example.smartremindersapp2;
 
+import android.app.Notification;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Handler;
 import android.os.Message;
@@ -45,7 +48,8 @@ import java.util.ArrayList;
 public class GooglePlacesClient
 {
     private static final String GOOGLE_API_KEY  = "***";
-
+    private SharedPreferences sharedPreferences;
+    private SharedPreferences.Editor editor;
     private final HttpClient client = new DefaultHttpClient();
 
 //    public static void main(final String[] args) throws ParseException, IOException, URISyntaxException
@@ -74,54 +78,49 @@ public class GooglePlacesClient
         //System.out.println(response);
     }
 
-    public void getResponseThread(final String url,String lat1 , String lang1,String reminderTitle) {
+
+
+    public void getResponseThread(final String url, String lat1 , String lang1, String title,
+                                  String content,String key, Context context) {
         new Thread(new Runnable() {
             public void run() {
-                boolean dissmiss=false;
+//                boolean dissmiss=false;
+
                 String cadHTTP = getResponse(url);
-                String Name;
-                String lat;
-                String lng;
-                String address;
-                int end_indx_place;
-                do {
-                    Name = getparameters(cadHTTP, "\"name\" : \"", "\"");
-                    lat = getparameters(cadHTTP, "lat\" : ", ",");
-                    lng = getparameters(cadHTTP, "lng\" : ", "\n");
-                    address = getparameters(cadHTTP, " \"vicinity\" : \"", "\"");
-                    end_indx_place = cadHTTP.indexOf(" \"vicinity\" : \"") + 15;
-                    cadHTTP = cadHTTP.substring(end_indx_place);
-//
-//                System.out.println("NAme: "+Name);
-//                System.out.println("lat: "+lat);
-//                System.out.println("lng: "+lng);
-//                System.out.println("address: "+address);
-//                System.out.println("end  "+cadHTTP.substring(end_indx_place+10));
-                    float[] distance = new float[1];
-                    Location.distanceBetween(Double.parseDouble(lat), Double.parseDouble(lng), Double.parseDouble(lat1), Double.parseDouble(lang1), distance);
-                    if (distance[0] < 3000) {
-                        /// hey nawras please create notification here
+//                System.out.println(cadHTTP);
+                do1(cadHTTP,lat1, lang1,  title,
+                         content, key,  context);
 
-                        // use reminderTitle for the title of the notification
-                        // use name for the name of the found location and address
-                        // example of the massage ::   (name) found near you at (address)
-                        // give options : dissmiss or suggest another place
-
-
-                        // if he pressed dissmiss set : dissmiss= true
-
-                    }
-                }
-                while(dissmiss==false);
-                //System.out.println(cadHTTP);
-                Message msg = new Message();
-                msg.obj = cadHTTP;
-                handlerHTTP.sendMessage(msg);
             }
         }).start();
     }
 
-    private String getparameters(String response,String searchString,String end){
+    public static String do1(String cadHTTP, String lat1, String lang1, String title,
+                             String content, String key, Context context) {
+        String Name;
+        String lat;
+        String lng;
+        String address;
+        int end_indx_place;
+        Name = getparameters(cadHTTP, "\"name\" : \"", "\"");
+        lat = getparameters(cadHTTP, "lat\" : ", ",");
+        lng = getparameters(cadHTTP, "lng\" : ", "\n");
+        address = getparameters(cadHTTP, " \"vicinity\" : \"", "\"");
+        end_indx_place = cadHTTP.indexOf(" \"vicinity\" : \"") + 15;
+        cadHTTP = cadHTTP.substring(end_indx_place);
+        System.out.println("the next suggested location is: "+address);
+        System.out.println("the next suggested location is: "+Name);
+        float[] distance = new float[1];
+        Location.distanceBetween(Double.parseDouble(lat), Double.parseDouble(lng), Double.parseDouble(lat1), Double.parseDouble(lang1), distance);
+        if (distance[0] < 3000) {
+            NotificationHelper notificationHelper = new NotificationHelper(context);
+            Notification nb = notificationHelper.getChannelNotification(key
+                    , HomePage.class, title, content,cadHTTP);
+            notificationHelper.getManager().notify(0, nb);
+        }
+        return cadHTTP;
+    }
+    private static String getparameters(String response, String searchString, String end){
         int firstIndex=response.indexOf(searchString)+searchString.length();
         String mySubstring=response.substring(firstIndex);
         //System.out.println(mySubstring);
@@ -130,7 +129,7 @@ public class GooglePlacesClient
 
 
     }
-    private String getResponse(String url) {
+    public  String getResponse(String url) {
         HttpClient httpClient = new DefaultHttpClient();
         HttpGet del = new HttpGet(url);
         del.setHeader("content-type", "application/json");

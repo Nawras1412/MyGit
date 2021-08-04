@@ -17,7 +17,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class NotifierLocationRemind extends Service {
-    private static final String CHANNEL_ID = "MyNotificationChannelID";
+    private static final String CHANNEL_ID = "MyNotificationChannelID2";
 
     @Nullable
     @Override
@@ -28,26 +28,20 @@ public class NotifierLocationRemind extends Service {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        System.out.println("im in onStartCommand");
         Calendar calendar=Calendar.getInstance();
         Date date = calendar.getTime();
         String ContentTitle;
         String ContentText;
-        if(intent.getStringExtra("type").equals("DateRemind")){
-            date = new Date(intent.getExtras().getLong("date", -1));
-            ContentTitle="My Date Reminder";
-            ContentText="Show your reminder";
-        }
-        else{
-            ContentTitle="My Location Reminder";
-            ContentText="You are a distance of less than 3000 from the destination";
-        }
         String key=intent.getStringExtra("key");
         Integer pendingKey=intent.getIntExtra("Pending_key",0);
         Intent notificationIntent = new Intent(this, HomePage.class);
         System.out.println("the pending key is: "+pendingKey);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, pendingKey , notificationIntent, 0);
-
-        if(intent.getStringExtra("type").equals("DateRemind")) {
+        ContentTitle=intent.getStringExtra("title");
+        ContentText=intent.getStringExtra("content");
+        date = new Date(intent.getExtras().getLong("date", -1));
+        if(intent.getStringExtra("type").equals("Time")){
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .addAction(R.drawable.ic_cancel, "remove", pendingIntent)
                     .setContentTitle(ContentTitle)
@@ -56,19 +50,24 @@ public class NotifierLocationRemind extends Service {
                     .setContentIntent(pendingIntent)
                     .build();
             notification.flags = Notification.FLAG_AUTO_CANCEL;
-            startForeground(1, notification);
+            startForeground(0, notification);
         }
+
 
         Intent intent2 = new Intent(this, ReminderReceiver.class);
         intent2.putExtra("key",key);
         intent2.putExtra("userName",intent.getStringExtra("userName"));
-        intent2.putExtra("title",intent.getStringExtra("title"));
-        if(intent.getStringExtra("type").equals("LocationRemind")){
-            intent2.putExtra("locationType",intent.getStringExtra("locationType"));
-        }
-
-        intent2.putExtra("ContentTitle",ContentTitle);
-        intent2.putExtra("ContentText",ContentText);
+        intent2.putExtra("title",ContentTitle);
+        intent2.putExtra("content",ContentText);
+        intent2.putExtra("locationType",intent.getStringExtra("locationType"));
+        intent2.putExtra("address",intent.getStringExtra("address"));
+        intent2.putExtra("lat",intent.getDoubleExtra("lat",0));
+        intent2.putExtra("lang",intent.getDoubleExtra("lang",0));
+//        if(intent.getStringExtra("type").equals("LocationRemind")){
+//            intent2.putExtra("locationType",intent.getStringExtra("locationType"));
+//        }
+//        intent2.putExtra("ContentTitle",ContentTitle);
+//        intent2.putExtra("ContentText",ContentText);
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext()
                 , pendingKey, intent2, 0);

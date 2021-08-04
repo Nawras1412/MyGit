@@ -57,6 +57,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -68,6 +69,8 @@ import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -87,16 +90,17 @@ import java.util.List;
 import java.util.Objects;
 
 public class addReminder extends AppCompatActivity {
-    private Dialog add_reminder_dialog, add_description_dialog,add_location_dialog;
+    private Dialog add_reminder_dialog, add_description_dialog,add_location_dialog,category_menu_dialog;
     private Button add_btn;
     private HorizontalScrollView images_scroll;
     private ImageView image_view;
     public TextView LocationTextView;
-    private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn,searchIcon;
+    private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn;//,searchIcon;
     private ImageButton selectDateImage, addDescriptionImage, locationImage;
     private ImageButton removeDate,removeLocation,removeDescription;
     private ImageButton recordingAudio,UploadImage;
-    private TextView title,DescriptionTextView,TimeTextView,searchLocationbar;
+    private TextView title,DescriptionTextView,TimeTextView;
+    //    public TextView searchLocationbar;
     private EditText AddDescriptionEditText;
     private Button save_description,cancel_desc_dialog,searchLocation;
     private Reminder reminder;
@@ -122,9 +126,26 @@ public class addReminder extends AppCompatActivity {
     private Uri oneClipImage=null;
     private ClipData clipimages=null;
     private static final int IMAGE_REQUEST=2;
+    private DatabaseReference keyRef;
     public addReminder(String userName) { UserName=userName; }
-
+    public String address;
+    public Double lat;
+    public Double lang;
     public addReminder() {}
+
+
+    //boolean isRotate =false;
+    private FloatingActionButton btn_food,btn_other,btn_office,btn_car,btn_shop,btn_book,btn_medical,btn_money;
+    private ExtendedFloatingActionButton btn_food_res,btn_food_cafe,btn_food_bakery,btn_money_bank,btn_money_atm,btn_medical_hospital,btn_medical_pharmacy,btn_car_wash,btn_car_repair,btn_car_gas,btn_car_parking,btn_shop_supermarket,btn_shop_mall,btn_office_laywer,btn_office_acoounting,btn_office_police,btn_office_post_office,btn_book_library,btn_book_uni,btn_book_book_store;
+
+    //    ArrayList<Boolean> isRotate=new ArrayList<Boolean>(Arrays.asList(false,false,false,false,false,false,false));
+//    ArrayList<FloatingActionButton> Main_btns=new ArrayList<FloatingActionButton>(Arrays.asList(btn_food,btn_office,btn_car,btn_shop,btn_book,btn_medical,btn_money,btn_other));
+    ArrayList<Boolean> isRotate=new ArrayList<Boolean>();
+    // ArrayList<FloatingActionButton> Main_btns=new ArrayList<FloatingActionButton>(2);
+    FloatingActionButton Main_btns[] =new FloatingActionButton[7];
+
+    ArrayList<ArrayList<ExtendedFloatingActionButton>> subList = new ArrayList<ArrayList<ExtendedFloatingActionButton>>();
+
 
 
     private void ExpandDialogAndSetData2(ImageButton removeIcon,ImageButton image_button, TextView text_view, String string,String type) {
@@ -180,8 +201,8 @@ public class addReminder extends AppCompatActivity {
 
 
     private void ExpandDialogAndSetData(ImageButton removeIcon,ImageButton image_button, TextView text_view, String string,String type) {
-//        int linesNum=string.length()/30;
         int WindowHeight=440+Additions.size()*110;
+        System.out.println("im in expand and my height is: "+WindowHeight);
         Additions.add(type);
         Additions_Images.add(image_button);
         Additions_TextView.add(text_view);
@@ -199,7 +220,8 @@ public class addReminder extends AppCompatActivity {
         image_button.setEnabled(false);
         text_view.setEnabled(false);
         text_view.setVisibility(View.VISIBLE);
-        text_view.setText(string);
+        if(!string.equals("Other"))
+            text_view.setText(string);
 
         if(numberOfAdditions==1){
             System.out.println("im in 1");
@@ -220,11 +242,13 @@ public class addReminder extends AppCompatActivity {
     }
 
 
-//    private void ReduceDialogAndReorder(ImageButton removeIcon,ImageButton image_button, TextView text_view, String string,String type) {
+    //    private void ReduceDialogAndReorder(ImageButton removeIcon,ImageButton image_button, TextView text_view, String string,String type) {
     private void ReduceDialogAndReorder(ImageButton removeIcon,ImageButton image_button, TextView text_view,String type) {
         numberOfAdditions-=1;
-        ViewGroup.LayoutParams params = background_layout. getLayoutParams();
         int WindowHeight=440+110*(numberOfAdditions-1);
+        if(numberOfAdditions==0)
+            WindowHeight=440;
+        ViewGroup.LayoutParams params = background_layout. getLayoutParams();
         System.out.println("bbbbbbbbbbbbb");
         System.out.println(params.height);
         System.out.println(WindowHeight);
@@ -307,19 +331,39 @@ public class addReminder extends AppCompatActivity {
         Context context=HomePage.getInstance();
         Intent ServiceIntent=new Intent(context,NotifierLocationRemind.class);
         context.stopService(ServiceIntent);
-        ServiceIntent.putExtra("date",reminder.getRemindDate().getTime());
-        if(Additions.contains("Location"))
-        if(Additions.contains("Location"))
-        {
-            ServiceIntent.putExtra("type","LocationRemind");
-            ServiceIntent.putExtra("locationType",reminder.getLocationAsString());
+        ServiceIntent.putExtra("title","Location Reminder");
+        ServiceIntent.putExtra("content","I near the desired location");
+        if(Additions.contains("Location") && !Additions.contains("Time")){
+            System.out.println("location and not time");
+            ServiceIntent.putExtra("locationType",Category);
+            ServiceIntent.putExtra("type", "Location");
+            Calendar c=Calendar.getInstance();
+//            long currentTime=c.getTimeInMillis();
+//            Date d=new Date(currentTime+60*1000);
+//            d.setSeconds(0);
+            ServiceIntent.putExtra("date",c.getTime().getTime());
         }
-        else {
-            ServiceIntent.putExtra("type","DateRemind");
+        if(Additions.contains("Location") && Additions.contains("Time") ){
+            ServiceIntent.putExtra("locationType",Category);
+            System.out.println("location and time");
+            ServiceIntent.putExtra("type", "Location");
+            ServiceIntent.putExtra("date",reminder.getRemindDate().getTime());
+        }
+        if(!Additions.contains("Location") && Additions.contains("Time")){
+            System.out.println("not location and time");
+            ServiceIntent.putExtra("locationType", "");
+            ServiceIntent.putExtra("type", "Time");
+            ServiceIntent.putExtra("title","Date Reminder");
+            ServiceIntent.putExtra("date",reminder.getRemindDate().getTime());
+            ServiceIntent.putExtra("content","it is the time to notify");
+        }
+        if(Category.equals("Other")){
+            ServiceIntent.putExtra("locationType","Other");
+            ServiceIntent.putExtra("address",address);
+            ServiceIntent.putExtra("lat",lat);
+            ServiceIntent.putExtra("lang",lang);
         }
         ServiceIntent.putExtra("key",reminder.getKey());
-        ServiceIntent.putExtra("title",reminder.getMessage());
-        ServiceIntent.putExtra("title",reminder.getMessage());
         ServiceIntent.putExtra("Pending_key",reminder.getKey().hashCode());
         ServiceIntent.putExtra("userName",UserName);
         context.startService(ServiceIntent);
@@ -330,10 +374,10 @@ public class addReminder extends AppCompatActivity {
     public void SetFindViewById(){
         add_reminder_dialog.setContentView(R.layout.anna_reminder);
         DescriptionTextView=add_reminder_dialog.findViewById(R.id.DescriptionTextView);
-        searchIcon=add_reminder_dialog.findViewById(R.id.searchIcon);
+//        searchIcon=add_reminder_dialog.findViewById(R.id.searchIcon);
         TimeTextView=add_reminder_dialog.findViewById(R.id.TimeTextView);
         LocationTextView=add_reminder_dialog.findViewById(R.id.LocationTextView);
-        searchLocationbar=add_reminder_dialog.findViewById(R.id.searchLocation);
+//        searchLocationbar=add_reminder_dialog.findViewById(R.id.searchLocation);
         background_layout=add_reminder_dialog.findViewById(R.id.background_layout);
         dialog_layout=add_reminder_dialog.findViewById(R.id.dialog_layout);
         selectDate_btn = add_reminder_dialog.findViewById(R.id.selectDate);
@@ -380,6 +424,8 @@ public class addReminder extends AppCompatActivity {
 
 
     public void openDialog(boolean edit,reminders_view oldReminder,int position){
+        DatabaseReference ref= FirebaseDatabase.getInstance().getReference().child("Users").child(UserName).child("reminder_list");
+        keyRef =ref.push();
         Initialization(edit,oldReminder);
         SetFindViewById();
         if(edit)
@@ -406,7 +452,6 @@ public class addReminder extends AppCompatActivity {
             }
         });
 
-
         removeLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -416,6 +461,7 @@ public class addReminder extends AppCompatActivity {
         });
 
 
+
         cancel_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -423,15 +469,9 @@ public class addReminder extends AppCompatActivity {
             }
         });
 
-
-
-
-
-        add_btn.setOnClickListener(new View.OnClickListener() {
+        add_btn.setOnClickListener(new View.OnClickListener(){
             @Override
-            public void onClick(View v) {
-                DatabaseReference ref= FirebaseDatabase.getInstance().getReference().child("Users").child(UserName).child("reminder_list");
-                DatabaseReference keyRef =ref.push();
+            public void onClick(View v){
                 if(title.getText().toString().isEmpty())
                     reminder.setMessage("Reminder");
                 else
@@ -451,22 +491,12 @@ public class addReminder extends AppCompatActivity {
                 {
                     date = new Date();
                     reminder.setRemindDate((date));
-
-
                 }
-                sendToAlarmManager(reminder);
-
-
-
-//                if(edit) {
-//
-//                    reminder.setRemindDate(oldReminder.getDate());
-//                    reminder.setLocationAsString(oldReminder.getLocationAsString());
-//                    reminder.setDescription(oldReminder.getDescription());
-//                    reminder.setKey(oldReminder.getKey());
-//
-//                }
-
+                System.out.println("the type of the reminder is: "+reminder.getMyType());
+                if(!reminder.getMyType().equals("Todo List")) {
+                    System.out.println("im in reminder not a todo lost reminder ");
+                    sendToAlarmManager(reminder);
+                }
                 add_reminder_dialog.cancel();
                 ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(HomePage.getInstance(), R.array.kinds, android.R.layout.simple_spinner_item);
                 KindsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -474,7 +504,6 @@ public class addReminder extends AppCompatActivity {
                 HomePage.getInstance().getRemindersKindSpinner().setSelection(spinnerPosition);
                 HomePage.getInstance().get_all_reminders_by_kind("all");
                 HomePage.getInstance().getmRecyclerView().setHasFixedSize(true);
-
             }
         });
 
@@ -482,131 +511,394 @@ public class addReminder extends AppCompatActivity {
             @SuppressLint("ResourceAsColor")
             @Override
             public void onClick(View v) {
-                add_location_dialog = new Dialog(add_reminder_dialog.getContext());
-                add_location_dialog.setContentView(R.layout.location_menu);
-                LocationMenu = add_location_dialog.findViewById(R.id.LocationMenu);
-                searchLocation=add_location_dialog.findViewById(R.id.searchButton);
-                List<String> Menu=new ArrayList<>();
+                category_menu_dialog = new Dialog(add_reminder_dialog.getContext());
+                category_menu_dialog.setContentView(R.layout.category_menu);
+                category_menu_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                category_menu_dialog.show();
+                btn_other = category_menu_dialog.findViewById(R.id.btn_other);
 
-                Menu.add("Other");
-                Menu.add("Supermarket");
-                Menu.add("Library");
-                Menu.add("book_store");
-                Menu.add("Atm");
-                Menu.add("Bank");
-                Menu.add("Restaurant");
-                Menu.add("Cafe");
-                Menu.add("Bakery");
-                Menu.add("gas_station");
-                Menu.add("car_wash");
-                Menu.add("car_repair");
-                Menu.add("post_office");
+                btn_food = category_menu_dialog.findViewById(R.id.btn_food);
+                btn_food_res = category_menu_dialog.findViewById(R.id.btn_food_res);
+                btn_food_cafe = category_menu_dialog.findViewById(R.id.btn_food_cafe);
+                btn_food_bakery = category_menu_dialog.findViewById(R.id.btn_food_bakery);
 
-                Menu.add("laundry");
-                Menu.add("pharmacy");
-                RadioButton optionButton;
-                for(String option:Menu){
-                    optionButton = new RadioButton(add_location_dialog.getContext());
-                    optionButton.setText(option);
-                    ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                    params.height=150;
-                    optionButton.setLayoutParams(params);
-                    optionButton.setTextSize(24);
-                    optionButton.setTextColor(Color.GRAY);
-                    optionButton.setButtonTintList(ColorStateList.valueOf(Color.GRAY));
-                    LocationMenu.addView(optionButton);
-                }
+                btn_money = category_menu_dialog.findViewById(R.id.btn_money);
+                btn_money_bank = category_menu_dialog.findViewById(R.id.btn_money_bank);
+                btn_money_atm = category_menu_dialog.findViewById(R.id.btn_money_atm);
 
-                if(reminder.getLocationAsString()!=null){
-                    int count = LocationMenu.getChildCount();
-                    ArrayList<RadioButton> listOfRadioButtons = new ArrayList<RadioButton>();
-                    for (int i=0;i<count;i++) {
-                        View o = LocationMenu.getChildAt(i);
-                        if (o instanceof RadioButton) {
-                            listOfRadioButtons.add((RadioButton)o);
-                        }
-                    }
-                    for(RadioButton button:listOfRadioButtons){
-                        if (button.getText().toString().equals(reminder.getLocationAsString())) {
-                            button.setChecked(true);
-                            searchLocation.setEnabled(true);
-                        }
-                    }
-                }
+                btn_office = category_menu_dialog.findViewById(R.id.btn_office);
+                btn_office_laywer = category_menu_dialog.findViewById(R.id.btn_office_lawyer);
+                btn_office_acoounting = category_menu_dialog.findViewById(R.id.btn_office_accounting);
+                btn_office_post_office = category_menu_dialog.findViewById(R.id.btn_office_postOffice);
+                btn_office_police = category_menu_dialog.findViewById(R.id.btn_office_police);
 
-                LocationMenu.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener(){
-                    @Override
-                    public void onCheckedChanged(RadioGroup group, int checkedId) {
-                        searchLocation.setEnabled(true);
-                        RadioButton checkedRadioButton = (RadioButton)group.findViewById(checkedId);
-                        Category=checkedRadioButton.getText().toString();
-                    }
-                });
+                btn_car = category_menu_dialog.findViewById(R.id.btn_car);
+                btn_car_wash = category_menu_dialog.findViewById(R.id.btn_car_wash);
+                btn_car_repair = category_menu_dialog.findViewById(R.id.btn_car_repair);
+                btn_car_gas = category_menu_dialog.findViewById(R.id.btn_car_gas);
+                btn_car_parking = category_menu_dialog.findViewById(R.id.btn_car_parking);
 
-                searchLocation.setOnClickListener(new View.OnClickListener() {
+                btn_shop = category_menu_dialog.findViewById(R.id.btn_shop);
+                btn_shop_supermarket = category_menu_dialog.findViewById(R.id.btn_shop_supermarket);
+                btn_shop_mall = category_menu_dialog.findViewById(R.id.btn_mall);
+
+                btn_book = category_menu_dialog.findViewById(R.id.btn_book);
+                btn_book_library = category_menu_dialog.findViewById(R.id.btn_book_library);
+                btn_book_uni = category_menu_dialog.findViewById(R.id.btn_book_Uni);
+                btn_book_book_store = category_menu_dialog.findViewById(R.id.btn_book_book_Store);
+
+                btn_medical = category_menu_dialog.findViewById(R.id.btn_medical);
+                btn_medical_pharmacy = category_menu_dialog.findViewById(R.id.btn_medical_pharmacy);
+                btn_medical_hospital = category_menu_dialog.findViewById(R.id.btn_medical_hospital);
+
+                Main_btns[0]=btn_food;
+                Main_btns[1]=btn_money;
+                Main_btns[2]=btn_office;
+                Main_btns[3]=btn_car;
+                Main_btns[4]=btn_shop;
+                Main_btns[5]=btn_book;
+                Main_btns[6]=btn_medical;
+
+                isRotate.add(false);
+                isRotate.add(false);
+                isRotate.add(false);
+                isRotate.add(false);
+                isRotate.add(false);
+                isRotate.add(false);
+                isRotate.add(false);
+
+                ArrayList<ExtendedFloatingActionButton> list0 = new ArrayList<ExtendedFloatingActionButton>(Arrays.asList(btn_food_res,btn_food_cafe,btn_food_bakery));
+                ArrayList<ExtendedFloatingActionButton> list1 = new ArrayList<ExtendedFloatingActionButton>(Arrays.asList(btn_money_bank,btn_money_atm));
+                ArrayList<ExtendedFloatingActionButton> list2 = new ArrayList<ExtendedFloatingActionButton>(Arrays.asList(btn_office_laywer,btn_office_acoounting,btn_office_police,btn_office_post_office));
+                ArrayList<ExtendedFloatingActionButton> list3 = new ArrayList<ExtendedFloatingActionButton>(Arrays.asList(btn_car_wash,btn_car_repair,btn_car_gas,btn_car_parking));
+                ArrayList<ExtendedFloatingActionButton> list4 = new ArrayList<ExtendedFloatingActionButton>(Arrays.asList(btn_shop_supermarket,btn_shop_mall));
+                ArrayList<ExtendedFloatingActionButton> list5 = new ArrayList<ExtendedFloatingActionButton>(Arrays.asList(btn_book_library,btn_book_uni,btn_book_book_store));
+                ArrayList<ExtendedFloatingActionButton> list6 = new ArrayList<ExtendedFloatingActionButton>(Arrays.asList( btn_medical_hospital,btn_medical_pharmacy));
+                subList.add(list0);
+                subList.add(list1);
+                subList.add(list2);
+                subList.add(list3);
+                subList.add(list4);
+                subList.add(list5);
+                subList.add(list6);
+
+
+                btn_other.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //save the chosen category in the reminder and start search the location
-                        add_location_dialog.cancel();
-
-
-
-                        if (Category.equals("Other")){
-                            System.out.println("CATEGORYYYY "+Category);
-                            searchLocationbar.setVisibility(View.VISIBLE);
-                            LocationTextView.setVisibility(View.INVISIBLE);
-                            locationImage.setVisibility(View.INVISIBLE);
-                            searchIcon.setVisibility(View.VISIBLE);
-                            removeLocation.setVisibility(View.INVISIBLE);
-
-
-                            searchLocationbar.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-
-                                    //Places.initialize(HomePage.getInstance(), "AIzaSyDMU9eVBmHymFvymjsCO3pUCBwwGMTqV5w");
-                                    List<Place.Field> fieldList= Arrays.asList(Place.Field.ADDRESS,Place.Field.LAT_LNG,Place.Field.NAME,Place.Field.TYPES);
-                                    Intent intentL= new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.getInstance());
-                                    //Intent intentL= new AutocompletePrediction().IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.this).addCategory("university");
-//setInitialQuery().
-                                    HomePage.getInstance().startActivityForResult(intentL,100);
-                                   // wantedLocation = getSharedPreferences("U", MODE_PRIVATE)
-//                                    sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
-//
-//                                    System.out.println(sharedPreferences.getString("location",null));
-
-
-                                }
-
-                            });
-
-                        }
-                        reminder.setLocationAsString(Category);
-
-                        if(Category=="Other"){
-                            searchLocation.setVisibility(View.INVISIBLE);
-                            wantedLocation=HomePage.getInstance().wantedLocation;
-                            System.out.println("PLACE****************8 "+wantedLocation);
-                        }
-                        if(Additions.contains("Location") && Category!="Other"){
-
-                            LocationTextView.setText(Category);
-                        }
-                        else{
-                            numberOfAdditions+=1;
-                            ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
-                            if (Category.equals("Other")){
-                            LocationTextView.setVisibility(View.INVISIBLE);
-                            locationImage.setVisibility(View.INVISIBLE);
-                            removeLocation.setVisibility(View.INVISIBLE);}
-                        }
+                        System.out.println("im in btn_other");
+                        Category="Other";
+                        afterchoosing();
                     }
                 });
-                add_location_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                add_location_dialog.show();
+
+                btn_food.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        closeAll(0);
+                        ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
+                        buttons.add(btn_food_cafe);
+                        buttons.add(btn_food_bakery);
+                        buttons.add(btn_food_res);
+                        animation(v, btn_food, buttons,0);
+
+                        btn_food_res.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Category = "Restaurant";
+                                afterchoosing();
+                            }
+                        });
+                        btn_food_bakery.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "Bakery";
+                                afterchoosing();
+                            }
+                        });
+                        btn_food_cafe.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "Cafe";
+                                afterchoosing();
+                            }
+                        });
+                    }
+                });
+
+                btn_money.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        closeAll(1);
+
+                        ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
+                        buttons.add(btn_money_bank);
+                        buttons.add(btn_money_atm);
+                        animation(v, btn_money, buttons,1);
+
+                        btn_money_bank.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Category = "Bank";
+                                afterchoosing();
+                            }
+                        });
+                        btn_money_atm.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "ATM";
+                                afterchoosing();
+                            }
+                        });
+
+                    }
+                });
+
+                btn_office.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        closeAll(2);
+                        ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
+                        buttons.add(btn_office_acoounting);
+                        buttons.add(btn_office_police);
+                        buttons.add(btn_office_post_office);
+                        buttons.add(btn_office_laywer);
+                        animation(v, btn_office, buttons,2);
+
+                        btn_office_acoounting.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Category = "accounting";
+                                afterchoosing();
+                            }
+                        });
+                        btn_office_police.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "Police";
+                                afterchoosing();
+                            }
+                        });
+                        btn_office_post_office.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "post_office";
+                                afterchoosing();
+                            }
+                        });
+                        btn_office_laywer.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "lawyer";
+                                afterchoosing();
+                            }
+                        });
+                    }
+                });
+
+                btn_car.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        closeAll(3);
+
+                        ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
+                        buttons.add(btn_car_gas);
+                        buttons.add(btn_car_parking);
+                        buttons.add(btn_car_wash);
+                        buttons.add(btn_car_repair);
+                        animation(v, btn_car, buttons,3);
+
+                        btn_car_gas.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Category = "gas_station";
+                                afterchoosing();
+                            }
+                        });
+                        btn_car_parking.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "parking";
+                                afterchoosing();
+                            }
+                        });
+                        btn_car_wash.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "car_wash";
+                                afterchoosing();
+                            }
+                        });
+                        btn_car_repair.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "car_repair";
+                                afterchoosing();
+                            }
+                        });
+
+                    }
+                });
+
+                btn_shop.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        closeAll(4);
+
+                        ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
+                        buttons.add(btn_shop_supermarket);
+                        buttons.add(btn_shop_mall);
+                        animation(v, btn_shop, buttons,4);
+
+                        btn_shop_supermarket.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Category = "supermarket";
+                                afterchoosing();
+                            }
+                        });
+                        btn_shop.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "shopping_mall";
+                                afterchoosing();
+                            }
+                        });
+
+                    }
+                });
+
+                btn_book.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        closeAll(5);
+
+                        ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
+                        buttons.add(btn_book_book_store);
+                        buttons.add(btn_book_library);
+                        buttons.add(btn_book_uni);
+                        animation(v, btn_book, buttons,5);
+
+                        btn_book_book_store.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Category = "book_store";
+                                afterchoosing();
+                            }
+                        });
+                        btn_book_library.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "library";
+                                afterchoosing();
+                            }
+                        });
+                        btn_book_uni.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "university";
+                                afterchoosing();
+                            }
+                        });
+
+                    }
+                });
+                btn_medical.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        closeAll(6);
+
+                        ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
+                        buttons.add(btn_medical_pharmacy);
+                        buttons.add(btn_medical_hospital);
+                        animation(v, btn_medical, buttons,6);
+
+                        btn_medical_pharmacy.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Category = "pharmacy";
+                                afterchoosing();
+                            }
+                        });
+                        btn_medical_hospital.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                Category = "hospital";
+                                afterchoosing();
+                            }
+                        });
+
+                    }
+                });
+
             }
         });
 
+
+
+
+
+
+
+
+//                searchLocation.setOnClickListener(new View.OnClickListener() {
+//                    @RequiresApi(api = Build.VERSION_CODES.O)
+//                    @Override
+//                    public void onClick(View v) {
+//                        //save the chosen category in the reminder and start search the location
+//                        add_location_dialog.cancel();
+//                        reminder.setLocationAsString(Category);
+//                        if(Category.equals("Other")){
+//                            System.out.println("its other");
+//                            locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_search));
+//                            if(!Additions.contains("Location")) {
+//                                numberOfAdditions+=1;
+//                                ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
+//                            }
+//                            LocationTextView.setText("tab to search");
+//                            LocationTextView.setEnabled(true);
+//                            LocationTextView.setVisibility(View.VISIBLE);
+//                            LocationTextView.setAutofillHints("tab to search");
+//                            LocationTextView.setOnClickListener(new View.OnClickListener() {
+//                                @Override
+//                                public void onClick(View v) {
+//                                    List<Place.Field> fieldList= Arrays.asList(Place.Field.ADDRESS,Place.Field.LAT_LNG,Place.Field.NAME,Place.Field.TYPES);
+//                                    Intent intentL= new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.getInstance());
+//                                    sharedPreferences=HomePage.getInstance().getSharedPreferences("U",MODE_PRIVATE);
+//                                    editor=sharedPreferences.edit();
+//                                    editor.putString("key of other notification",keyRef.getKey());
+//                                    editor.commit();
+//                                    HomePage.getInstance().startActivityForResult(intentL,100);
+//                                }
+//                            });
+//                        }
+//                        else{
+//                            System.out.println("its not other");
+//                            locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_location));
+//                            if(Additions.contains("Location")){
+//                                LocationTextView.setText(Category);
+//                            }
+//                            else{
+//                                numberOfAdditions+=1;
+//                                ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
+//                            }
+//                        }
+//                    }
+//                });
 
 
 
@@ -698,7 +990,7 @@ public class addReminder extends AppCompatActivity {
                 UploadImage.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        openImage();
+                        openGallery();
                     }
                 });
 
@@ -748,6 +1040,84 @@ public class addReminder extends AppCompatActivity {
         add_reminder_dialog.show();
     }
 
+
+    private void afterchoosing(){
+        //save the chosen category in the reminder and start search the location
+        category_menu_dialog.cancel();
+        reminder.setLocationAsString(Category);
+        if(Category.equals("Other")){
+            System.out.println("its other");
+            locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_search));
+            if(!Additions.contains("Location")) {
+                numberOfAdditions+=1;
+                ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
+            }
+            LocationTextView.setText("tab to search");
+            LocationTextView.setEnabled(true);
+            LocationTextView.setVisibility(View.VISIBLE);
+            //LocationTextView.setAutofillHints("tab to search");
+            LocationTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    List<Place.Field> fieldList= Arrays.asList(Place.Field.ADDRESS,Place.Field.LAT_LNG,Place.Field.NAME,Place.Field.TYPES);
+                    Intent intentL= new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.getInstance());
+                    HomePage.getInstance().startActivityForResult(intentL,100);
+                }
+            });
+        }
+        else{
+            System.out.println("its not other");
+            locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_location));
+            if(Additions.contains("Location")){
+                LocationTextView.setText(Category);
+            }
+            else{
+                numberOfAdditions+=1;
+                ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
+            }
+        }
+
+        closeAll(8);
+    }
+    private void closeAll (int indx)
+    {
+        boolean rotate;
+        for (int i=0 ;i<7;i++ ){
+            rotate=isRotate.get(i);
+            System.out.println("ROTATE in closeall "+isRotate.get(i)+" for "+i);
+            if (rotate & i!=indx) {
+                FloatingActionButton main_btn = Main_btns[i];
+                viewAnimation.rotateFab(main_btn,! isRotate.get(i));
+                DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getDrawable()), ColorStateList.valueOf(Color.BLACK)); // <- icon
+                DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getBackground()), ColorStateList.valueOf(Color.parseColor("#FDC53A"))); // <- background
+
+                List<ExtendedFloatingActionButton> buttons = subList.get(i);
+                for (ExtendedFloatingActionButton btn : buttons) {viewAnimation.showOut(btn);
+                }
+                isRotate.set(i,false);
+
+            }}
+
+    }
+    private void animation(View v,FloatingActionButton main_btn, List<ExtendedFloatingActionButton> buttons,int i ){
+        isRotate.set(i,viewAnimation.rotateFab(main_btn,! isRotate.get(i)));
+        System.out.println("ROTATE+"+isRotate.get(i));
+        if(isRotate.get(i)){
+            for (ExtendedFloatingActionButton btn : buttons){viewAnimation.showIn(btn);}
+
+            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getDrawable()), ColorStateList.valueOf(Color.parseColor("#FDC53A"))); // <- icon
+            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getBackground()), ColorStateList.valueOf(Color.BLACK)); // <- background
+
+        }else{
+            for (ExtendedFloatingActionButton btn : buttons){viewAnimation.showOut(btn);}
+
+            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getDrawable()), ColorStateList.valueOf(Color.BLACK)); // <- icon
+            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getBackground()), ColorStateList.valueOf(Color.parseColor("#FDC53A"))); // <- background
+
+        }
+    }
+
+
     private String getFileExtension(Uri uri){
         ContentResolver contentResolver=HomePage.getInstance().getContentResolver();
         MimeTypeMap mimeTypeMap=MimeTypeMap.getSingleton();
@@ -765,8 +1135,7 @@ public class addReminder extends AppCompatActivity {
     }
 
 
-    public void openImage(){
-        System.out.println();
+    public void openGallery(){
         Intent intent=new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -775,16 +1144,15 @@ public class addReminder extends AppCompatActivity {
     }
 
     void uploadImage(String userName) throws IOException {
-
         final ProgressDialog pd = new ProgressDialog(HomePage.getInstance());
         pd.setMessage("Uploading");
         pd.show();
         if (oneClipImage != null) {
-            ImageView imageView2 = new ImageView(image_view.getContext());
-            InputStream is = (InputStream) new URL(oneClipImage.toString()).getContent();
-            Drawable d = Drawable.createFromStream(is, "src name");
-            imageView2.setImageDrawable(d);
-            images_scroll.addView(imageView2);
+//            ImageView imageView2 = new ImageView(image_view.getContext());
+//            InputStream is = (InputStream) new URL(oneClipImage.toString()).getContent();
+//            Drawable d = Drawable.createFromStream(is, "src name");
+//            imageView2.setImageDrawable(d);
+//            images_scroll.addView(imageView2);
 
             final StorageReference fileRef = FirebaseStorage.getInstance().getReference().child("Users")
                     .child(userName).child("Images").child(System.currentTimeMillis() + "."
@@ -868,7 +1236,7 @@ public class addReminder extends AppCompatActivity {
     private String checkType() {
         boolean Location=false,Date=false;
         if (Additions.contains("Location")) Location=true;
-        else{ Date=true;}
+        else if(Additions.contains("Time")) Date=true;
         //if(Location && Date) return "Location_Date";
         if(Location) return "Location";
         if(Date) return "Date";
