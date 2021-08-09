@@ -81,26 +81,28 @@ public class GooglePlacesClient
 
 
     public void getResponseThread(final String url, String lat1 , String lang1, String title,
-                                  String content,String key, Context context) {
+                                  String content,String key, Context context,String type) {
         new Thread(new Runnable() {
             public void run() {
 //                boolean dissmiss=false;
 
                 String cadHTTP = getResponse(url);
-//                System.out.println(cadHTTP);
+                System.out.println(cadHTTP);
                 do1(cadHTTP,lat1, lang1,  title,
-                         content, key,  context);
+                        content, key,  context,type);
+
 
             }
         }).start();
     }
 
     public static String do1(String cadHTTP, String lat1, String lang1, String title,
-                             String content, String key, Context context) {
+                             String content, String key, Context context,String type) {
         String Name;
         String lat;
         String lng;
         String address;
+        String category=type;
         int end_indx_place;
         Name = getparameters(cadHTTP, "\"name\" : \"", "\"");
         lat = getparameters(cadHTTP, "lat\" : ", ",");
@@ -108,15 +110,22 @@ public class GooglePlacesClient
         address = getparameters(cadHTTP, " \"vicinity\" : \"", "\"");
         end_indx_place = cadHTTP.indexOf(" \"vicinity\" : \"") + 15;
         cadHTTP = cadHTTP.substring(end_indx_place);
-        System.out.println("the next suggested location is: "+address);
-        System.out.println("the next suggested location is: "+Name);
+        System.out.println("---------------INNN googleclient");
+        System.out.println("the next suggested location is11: "+address);
+        System.out.println("the next suggested location is11: "+Name);
+        System.out.println(Double.parseDouble( lat.replace(",",".") ));
         float[] distance = new float[1];
-        Location.distanceBetween(Double.parseDouble(lat), Double.parseDouble(lng), Double.parseDouble(lat1), Double.parseDouble(lang1), distance);
-        if (distance[0] < 3000) {
+        Location.distanceBetween(Double.parseDouble( lat ), Double.parseDouble( lng), Double.parseDouble( lat1), Double.parseDouble( lang1), distance);
+        System.out.println("in do distance :"+distance[0]);
+        if (distance[0] < 2000) {
+
             NotificationHelper notificationHelper = new NotificationHelper(context);
+            System.out.println("after notificationHelper");
             Notification nb = notificationHelper.getChannelNotification(key
-                    , HomePage.class, title, content,cadHTTP);
+                    , HomePage.class, title, content,cadHTTP,Name,address,category,lat1,lang1);
+            System.out.println("after  Notification nb");
             notificationHelper.getManager().notify(0, nb);
+            System.out.println("after  getManager");
         }
         return cadHTTP;
     }

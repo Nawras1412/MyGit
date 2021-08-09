@@ -12,7 +12,10 @@ import androidx.annotation.NonNull;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.DatabaseReference;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Reminder {
     public int id;
@@ -24,8 +27,9 @@ public class Reminder {
     private Double LNG;
     private boolean state;
     private String LocationAsString;
-
-
+    private List<String> audios;
+    private String MyType;
+    private boolean DateState;
 
 
 
@@ -49,7 +53,7 @@ public class Reminder {
         this.LNG = LNG;
     }
 
-    String MyType;
+
     public String getMyType() {
         return MyType;
     }
@@ -79,6 +83,16 @@ public class Reminder {
         RemindDate = remindDate;
         setState(true);
         Description="";
+        audios=new ArrayList<>();
+        DateState=false;
+    }
+
+    public List<String> getAudios() {
+        return audios;
+    }
+
+    public void setAudios(List<String> audios) {
+        this.audios = audios;
     }
 
     public boolean isState() {
@@ -114,6 +128,9 @@ public class Reminder {
     public void setId(int id) {
         this.id = id;
     }
+    public boolean isDateState() {return DateState;}
+
+    public void setDateState(boolean dateState) {DateState = dateState;}
 }
 
 

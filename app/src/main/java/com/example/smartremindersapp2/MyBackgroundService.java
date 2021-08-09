@@ -6,11 +6,16 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.location.Location;
+import android.media.MediaActionSound;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
@@ -18,6 +23,8 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.view.SoundEffectConstants;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,6 +32,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationBuilderWithBuilderAccessor;
 import androidx.core.app.NotificationCompat;
 
+import com.example.smartremindersapp2.databinding.HomePageBinding;
 import com.google.android.gms.common.internal.service.Common;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -57,6 +65,7 @@ public class MyBackgroundService extends Service {
     private Handler mServiceHandler;
     private Location mLocation;
     private HomePage homePage1;
+    private Intent intentNoti;
 //    private SharedPreferences mSharedPreferences;
 //    private SharedPreferences.Editor editor;
 
@@ -86,7 +95,7 @@ public class MyBackgroundService extends Service {
         super.onConfigurationChanged(newConfig);
         mChangingConfigiration=true;
     }
-
+    //if no more location reminders?
     private void removeLocationUpdates() {
         try{
             fusedLocationProviderClient.removeLocationUpdates(locationCallback);
@@ -149,6 +158,7 @@ public class MyBackgroundService extends Service {
         System.out.println("last line os get last location");
     }
 
+
     private void createLocationRequest() {
         locationRequest=new LocationRequest();
         locationRequest.setInterval(UPDATE_INTERVAL_IN_MIL);
@@ -157,12 +167,26 @@ public class MyBackgroundService extends Service {
     }
     private void onNewLocation(Location lastLocation) {
         mLocation=lastLocation;
-        System.out.println("INNNN");
+        System.out.println("sending steckyyyy");
         System.out.println(mLocation);
-        float[] distance = new float[1];
-        double lat ,lng;
-        String userName=getSharedPreferences("U",MODE_PRIVATE).getString("username",null);
-       /* reminder_list=*/HomePage.getInstance().get_all_the_reminders_from_firebase2(userName,mLocation);
+        HomePage.getInstance().backgroundLocation(mLocation);
+        //EventBus.getDefault().postSticky(new SendLocationToActivity(mLocation));
+        if (serviceIsRunningInForeGround(this))
+        {
+            System.out.println("got new location !!! "+mLocation.getLatitude() +"  "+mLocation.getLongitude());
+            //HomePage.getInstance().backgroundLocation(mLocation);
+            //notify in background when killed
+            mNotificationManager.notify(NOTI_ID,getNotification());
+
+
+
+
+        }
+
+//            float[] distance = new float[1];
+//        double lat ,lng;
+//        String userName=getSharedPreferences("U",MODE_PRIVATE).getString("username",null);
+//       /* reminder_list=*/HomePage.getInstance().get_all_the_reminders_from_firebase2(userName,mLocation);
 //        System.out.println("SIZE OF LIST ");
 //        System.out.println(reminder_list.isEmpty());
 //        for (Reminder remind : reminder_list)
@@ -197,14 +221,11 @@ public class MyBackgroundService extends Service {
 //        EventBus.getDefault().postSticky(new SendLocationToActivity(mLocation));
 //
 //        //update notification service if running as foreground service
-//        if (serviceIsRunningInForeGround(this))
-//        {
-//            mNotificationManager.notify(NOTI_ID,getNotification());
-//        }
-
+//
     }
 
     private Notification getNotification() {
+        HomePage.getInstance().backgroundLocation(mLocation);
         Intent intent =new Intent(this,MyBackgroundService.class);
         String text = CommonL.getLocationText(mLocation);
         System.out.print("ANNNNNNNNNNNNNNNNAA!!!!!!!!111111");
@@ -214,12 +235,12 @@ public class MyBackgroundService extends Service {
         PendingIntent activityPendingIntent = PendingIntent.getActivity(this,0,new Intent(this,HomePage.class),0);
 
         NotificationCompat.Builder builder=new NotificationCompat.Builder(this)
-                .addAction(R.drawable.ic_launcher_background,"Launch",activityPendingIntent)
-                .addAction(R.drawable.ic_cancel,"remove",servicePendingIntent)
-                .setContentText(text)
-                .setContentTitle(CommonL.getLocationTitle(this))
+                //.addAction(R.drawable.ic_launcher_background,"Launch",activityPendingIntent)
+                //.addAction(R.drawable.ic_cancel,"remove",servicePendingIntent)
+                .setContentTitle("SmartReminders Location usage")
+                .setContentText("the app is using location services in the background")
                 .setOngoing(true)
-                .setPriority(Notification.PRIORITY_HIGH)
+                .setPriority(Notification.PRIORITY_LOW)
                 .setTicker(text)
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .setWhen(System.currentTimeMillis());
@@ -227,7 +248,7 @@ public class MyBackgroundService extends Service {
         {
             builder.setChannelId(CHANNEL_ID);
         }
-        return builder.build();
+        return builder.setNotificationSilent().build();
     }
 
     private boolean serviceIsRunningInForeGround(Context context) {
@@ -275,7 +296,16 @@ public class MyBackgroundService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
         if(!mChangingConfigiration && CommonL.requestionLocationUpdates(this))
-            startForeground(NOTI_ID,getNotification());
+            //notify in background when closed
+            System.out.println("calling----- the noti");
+        startForeground(NOTI_ID,getNotification());
+
+        //startForegroundService(intentNoti);
+        // intentNoti.putExtra("lat", mLocation.getLatitude());
+        //intentNoti.putExtra("lang",  mLocation.getLongitude());
+        //        HomePage.getInstance().startActivityForResult(intent,IMAGE_REQUEST);
+        //startForegroundService(intentNoti);
+
         return true;
     }
 

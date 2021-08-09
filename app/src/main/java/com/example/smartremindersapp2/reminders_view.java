@@ -5,7 +5,9 @@ import android.location.Location;
 import android.widget.ImageView;
 import android.widget.Switch;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class reminders_view {
     private String Title;
@@ -18,6 +20,7 @@ public class reminders_view {
     private String type;
     private String LocationAsString;
     private ImageView Delete_Button;
+    private List<String> audios;
 
 
     public reminders_view(String Key, String title, String description , String type,Date date,
@@ -28,8 +31,11 @@ public class reminders_view {
         this.description = description;
         this.date=date;
         this.LocationAsString=location;
+        this.audios=new ArrayList<>();
     }
-
+    public reminders_view() {}
+    public List<String> getAudios(){return audios;}
+    public void setAudios(List<String> audios1){ this.audios=audios1;}
     public String getLocationAsString(){return LocationAsString;}
     public void setLocationAsString(String Location){
         this.LocationAsString=Location;

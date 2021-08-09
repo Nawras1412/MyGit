@@ -1,6 +1,7 @@
 package com.example.smartremindersapp2;
 
 import android.app.Dialog;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
 import android.view.LayoutInflater;
@@ -19,6 +20,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import static android.content.Context.*;
 
 
 public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramindViewHolder> {
@@ -48,7 +51,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
 
     public class ramindViewHolder extends RecyclerView.ViewHolder {
         public TextView mLocation_Date;
-//        public TextView mminutes;
+        //        public TextView mminutes;
 //        public Switch mSwitch;
         public TextView mtitle;
         public ImageView DeleteB;
@@ -98,8 +101,10 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
                         int position = getAdapterPosition();
                         if (position != RecyclerView.NO_POSITION) {
                             listener.onDeleteClick(position);
+
                         }
                     }
+
                 }
             });
         }
@@ -165,7 +170,11 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
                 if(mRemind_view_list.isEmpty())
                     HomePage.setInstruction(0);
                 notifyDataSetChanged();
+                NotificationManager manager=(NotificationManager) mcontext.getApplicationContext()
+                        .getSystemService(NOTIFICATION_SERVICE);
+                manager.cancelAll();
             }
+
         });
     }
 

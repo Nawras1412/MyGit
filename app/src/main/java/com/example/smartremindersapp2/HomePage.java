@@ -124,29 +124,104 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         return mRecyclerView;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("ResourceAsColor")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        System.out.println("im in homepage");
-        System.out.println(this.getIntent().getStringExtra("type"));
         try{
             if(this.getIntent().getStringExtra("type").equals("Dismiss")) {
-                System.out.println("its dismiss");
+                String key=this.getIntent().getStringExtra("key");
+                addReminder add_remind =new addReminder();
                 NotificationManager manager=(NotificationManager) getApplicationContext()
                         .getSystemService(NOTIFICATION_SERVICE);
                 manager.cancelAll();
+                add_remind.cancelNotification(key,HomePage.getInstance());
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
+                ref.removeValue();
+
+            }  else if(this.getIntent().getStringExtra("type").equals("DELETE")) {
+
+                String key=this.getIntent().getStringExtra("key");
+
+                NotificationManager manager=(NotificationManager) getApplicationContext()
+                        .getSystemService(NOTIFICATION_SERVICE);
+                manager.cancelAll();
+                addReminder add_remind =new addReminder();
+                add_remind.cancelNotification(key,HomePage.getInstance());
+
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
+                ref.removeValue();
+
+
             }
-            else if(this.getIntent().getStringExtra("type").equals("Another")) {
-                System.out.println("its Another");
+            else if(this.getIntent().getStringExtra("type").equals("SNOOZE")) {
+                System.out.println("its snooze wohoo");
+                String key = this.getIntent().getStringExtra("key");
+                NotificationManager manager = (NotificationManager) getApplicationContext()
+                        .getSystemService(NOTIFICATION_SERVICE);
+                manager.cancelAll();
+                addReminder add_remind = new addReminder();
+                add_remind.cancelNotification(key, HomePage.getInstance());
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list");
+
+
+                Calendar date = Calendar.getInstance();
+                long timeInSecs = date.getTimeInMillis();
+                Date afterAdding10Mins = new Date(timeInSecs + (10 * 60 * 100));
+                ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot snapshot) {
+                        reminders_view oldView = new reminders_view();
+                        oldView = snapshot.getValue(reminders_view.class);
+                        Reminder new_reminder = new Reminder();
+                        new_reminder.setRemindDate(afterAdding10Mins);
+                        new_reminder.setDateState(false);
+                        new_reminder.setKey(key);
+                        new_reminder.setLAT(oldView.getLAT());
+                        new_reminder.setLNG(oldView.getLNG());
+                        new_reminder.setState(true);
+                        new_reminder.setLocationAsString(oldView.getLocationAsString());
+                        new_reminder.setMessage(oldView.getTitle());
+                        new_reminder.setDescription(oldView.getDescription());
+                        add_remind.sendToAlarmManager(new_reminder, false);
+
+
+                        HashMap map2 = new HashMap();
+                        map2.put("remindDate", afterAdding10Mins);
+                        map2.put("state", true);
+                        map2.put("dateState", false);
+                        ref.child(key).updateChildren(map2);
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                    }
+                });
+            }else if(this.getIntent().getStringExtra("type").equals("Another")) {
                 String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" + "location=" + "32.7614296" + "," + "35.0195184" + "&" +
                        "rankby=distance" + "&" + "type="+"some type" +"&"+ "key=" + "AIzaSyDMU9eVBmHymFvymjsCO3pUCBwwGMTqV5w";
                 String title=this.getIntent().getStringExtra("title");
                 String content=this.getIntent().getStringExtra("content");
+
+                String category=this.getIntent().getStringExtra("category");
+                String lat1=this.getIntent().getStringExtra("lat1");
+                String lang1=this.getIntent().getStringExtra("lang1");
+
+
+                String key =this.getIntent().getStringExtra("key");
+                NotificationManager manager=(NotificationManager) getApplicationContext()
+                        .getSystemService(NOTIFICATION_SERVICE);
+                manager.cancelAll();
+                addReminder add_remind =new addReminder();
+                add_remind.cancelNotification(key,HomePage.getInstance());
+
                 GooglePlacesClient.do1(this.getIntent().getStringExtra("cadHTTP")
-                        ,"32.7614296","35.0195184",
+                        ,lat1,lang1,
                         title,content
-                        ,this.getIntent().getStringExtra("key"),getInstance());
+                        ,this.getIntent().getStringExtra("key"),getInstance(),category);
+
             }
 
 
@@ -156,7 +231,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         instance = this;
         setContentView(R.layout.home_page);
         drawerLayout = findViewById(R.id.drawer_layout);
-        LocationTextView = findViewById(R.id.LocationTextView);
+//        LocationTextView = findViewById(R.id.LocationTextView);
         add_button = findViewById(R.id.btn_add);
         pen_button = findViewById(R.id.btn_pen);
         locate_button = findViewById(R.id.btn_locateReminder);
@@ -165,7 +240,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         instruction = findViewById(R.id.instructions);
         TextView hello_txt = findViewById(R.id.Hello);
         pen_button = findViewById(R.id.btn_pen);
-        empty = findViewById(R.id.instructions);
+//        empty = findViewById(R.id.instructions);
         Date1 = findViewById(R.id.textView);
         background_layout=findViewById(R.id.background_layout);
         menu_btn=findViewById(R.id.MenuButton);
@@ -209,11 +284,23 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         background_layout.setBackground(ContextCompat.getDrawable(getInstance(), backgroungImage));
         hello_txt.setText(time+ userName+"!");
 
+        PreferenceManager.getDefaultSharedPreferences(HomePage.this).registerOnSharedPreferenceChangeListener(this);
 
+        Dexter.withActivity(HomePage.this).withPermissions(Arrays.asList(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)).withListener(new MultiplePermissionsListener() {
+            @Override
+            public void onPermissionsChecked(MultiplePermissionsReport report) {
+                PreferenceManager.getDefaultSharedPreferences(HomePage.this).registerOnSharedPreferenceChangeListener(HomePage.this);
 
-        if (location_flag == true) {
-            updateLocation();
-        }
+            }
+
+            @Override
+            public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+            }
+        }).check();
+
+//        if (location_flag == true) {
+//            updateLocation();
+//        }
         Places.initialize(getApplicationContext(), "AIzaSyCfsrOq62GRNdUvZeMBhimX4RFX9cpm4uU");
         get_all_reminders_by_kind("all");
         mRecyclerView = findViewById(R.id.recycleViewR);
@@ -291,7 +378,28 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             }
         });
     }
+    @Override
+    protected void onStop() {
+        if(mBound)
+        {
+            unbindService(mServiceConnection);
+            mBound=false;
 
+        }
+        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
+        //EventBus.getDefault().unregister(this);
+        super.onStop();
+    }
+
+
+
+    //
+    @Override
+    protected void onStart() {
+        super.onStart();
+        PreferenceManager.getDefaultSharedPreferences(HomePage.this).registerOnSharedPreferenceChangeListener(this);
+        //EventBus.getDefault().register(HomePage.this);
+    }
 
     public void addReminder(String type) {
         NotificationDate=Calendar.getInstance();
@@ -424,20 +532,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         });
 
 
-        Dexter.withActivity(HomePage.this).withPermissions(Arrays.asList(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)).withListener(new MultiplePermissionsListener() {
-            @Override
-            public void onPermissionsChecked(MultiplePermissionsReport report) {
-                location_btn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mService.requestLocationUpdates();
-                    }
-                });
-                bindService(new Intent(HomePage.this, MyBackgroundService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
-            }
-            @Override
-            public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {}
-        }).check();
+
 
         if (notify_flag == false) {
             AlertDialog.Builder builder = new AlertDialog.Builder(HomePage.this);
@@ -456,6 +551,20 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
 
 
 
+
+
+//
+//@Subscribe (sticky = true,threadMode = ThreadMode.MAIN)
+//public void onListenLocation(SendLocationToActivity event)
+//{
+//    if (event!=null)
+//    {
+//        StringBuilder data=new StringBuilder().append(event.getLocation().getLatitude()).append("/").append(event.getLocation().getLongitude());
+//        Toast.makeText(mService,data,Toast.LENGTH_SHORT).show();
+//    }
+
+
+//}
 
 
 
@@ -638,6 +747,278 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
 
 
 
+//
+//    @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
+//    public void onListenLocation(SendLocationToActivity event) {
+//        if (event != null) {
+//            backgroundLocation(event.getLocation());
+////            double lat_current_d= event.getLocation().getLatitude();
+////            double lang_current_d=event.getLocation().getLongitude();
+////            System.out.println("lat cuurent11 "+lat_current_d);
+////            System.out.println("lang cuurent "+lang_current_d);
+////            String lat_current= String.valueOf(lat_current_d);
+////            String lang_current= String.valueOf(lang_current_d);
+////            // lang_current= String.valueOf(event.getLocation().getLongitude());
+////
+////            ArrayList<Reminder> reminders_locationList = new ArrayList<>();
+////            ArrayList<reminders_view> reminders_views_list = new ArrayList<>();
+////            DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users")
+////                    .child(userName).child("reminder_list");
+////            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+////                @Override
+////                public void onDataChange(DataSnapshot snapshot) {
+////                    for (DataSnapshot ds : snapshot.getChildren()) {
+////                        Reminder reminder = ds.getValue(Reminder.class);
+////                        if (reminder.isDateState()) {
+////                            reminders_locationList.add(reminder);
+////                        }
+////                    }
+////
+////                    for (Reminder reminder : reminders_locationList) {
+////                        String message = reminder.getMessage();
+////                        String type = reminder.getLocationAsString();
+////                        String description = reminder.getDescription();
+////                        String key = reminder.getKey();
+////                        System.out.println("type == "+type);
+////                        if (type.equals("Other")){
+////                            double lat_reminder=reminder.getLAT();
+////                            double lang_reminder=reminder.getLNG();
+////
+////
+////                            System.out.println("lat location "+lat_reminder);
+////
+////                            System.out.println("lang location "+lang_reminder);
+////                            float[] distance = new float[1];
+////                            Location.distanceBetween( lat_reminder, lang_reminder,lat_current_d, lang_current_d, distance);
+////                            System.out.println("distance  "+distance[0]);
+////                            if (distance[0] < 500) {
+////                                NotificationHelper notificationHelper = new NotificationHelper(HomePage.this);
+////                                Notification nb = notificationHelper.getChannelNotification(key
+////                                        , HomePage.class, "222", description,"");
+////                                notificationHelper.getManager().notify(0, nb);
+////                            }
+////
+////
+////
+////                        } else {
+////                            String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" + "location=" + lat_current + "," + lang_current + "&" +
+////                                    "rankby=distance" + "&" + "type=" + type + "&" + "key=" + "AIzaSyDMU9eVBmHymFvymjsCO3pUCBwwGMTqV5w";
+////
+////                            new GooglePlacesClient().getResponseThread(url,
+////                                    lat_current, lang_current, message,
+////                                   description, key, HomePage.this);
+////
+////
+////                        }
+////                        }}
+////                @Override
+////                public void onCancelled(DatabaseError error) {}
+////            });
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+////                new GooglePlacesClient().getResponseThread(url,lat,lang,
+////                        intent.getStringExtra("title"),intent.getStringExtra("content")
+////                        ,intent.getStringExtra("key"),context);
+//
+//                        }
+//
+////            NotificationHelper notificationHelper = new NotificationHelper(HomePage.getInstance());
+////            Notification nb = notificationHelper.getChannelNotification(key
+////                    , HomePage.class,"Congratulation, you have arrive", "You are near ","");
+////            notificationHelper.getManager().notify(0, nb);
+////            StringBuilder data = new StringBuilder().append(event.getLocation().getLatitude()).append("/").append(event.getLocation().getLongitude());
+////            Toast.makeText(this, data, Toast.LENGTH_SHORT).show();
+//        //}
+//    }
+
+
+
+    //
+//    public Notification getNotificationH(Location location) {
+//        Intent intent = new Intent(this, MyBackgroundService.class);
+//        //String text = CommonL.getLocationText(Location);
+//        final boolean[] notify = {false};
+//        double lat_current_d = location.getLatitude();
+//        double lang_current_d = location.getLongitude();
+//        System.out.println("lat cuurent get noti " + lat_current_d);
+//        System.out.println("lang cuurent get noti " + lang_current_d);
+//        String lat_current = String.valueOf(lat_current_d);
+//        String lang_current = String.valueOf(lang_current_d);
+//        // lang_current= String.valueOf(event.getLocation().getLongitude());
+//        final String[] message = {""};
+//        ArrayList<Reminder> reminders_locationList = new ArrayList<>();
+//
+//        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users")
+//                .child(userName).child("reminder_list");
+//        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot snapshot) {
+//                for (DataSnapshot ds : snapshot.getChildren()) {
+//                    Reminder reminder = ds.getValue(Reminder.class);
+//                    if (reminder.isDateState()) {
+//                        reminders_locationList.add(reminder);
+//                    }
+//                }
+//
+//                for (Reminder reminder : reminders_locationList) {
+//                    message[0] = reminder.getMessage();
+//                    String type = reminder.getLocationAsString();
+//                    String description = reminder.getDescription();
+//                    String key = reminder.getKey();
+//                    System.out.println("type == " + type);
+//                    if (type.equals("Other")) {
+//                        double lat_reminder = reminder.getLAT();
+//                        double lang_reminder = reminder.getLNG();
+//
+//
+//                        System.out.println("lat location " + lat_reminder);
+//
+//                        System.out.println("lang location " + lang_reminder);
+//                        float[] distance = new float[1];
+//                        Location.distanceBetween(lat_reminder, lang_reminder, lat_current_d, lang_current_d, distance);
+//                        System.out.println("distance  " + distance[0]);
+//                        if (distance[0] < 500) {
+//                            notify[0] = true;
+////                            NotificationHelper notificationHelper = new NotificationHelper(HomePage.this);
+////                            Notification nb = notificationHelper.getChannelNotification(key
+////                                    , HomePage.class, "222", description, "");
+////                            notificationHelper.getManager().notify(0, nb);
+//
+//                        }
+//
+//
+//                    } else {
+//                        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" + "location=" + lat_current + "," + lang_current + "&" +
+//                                "rankby=distance" + "&" + "type=" + type + "&" + "key=" + "AIzaSyDMU9eVBmHymFvymjsCO3pUCBwwGMTqV5w";
+//
+//                        new GooglePlacesClient().getResponseThread(url,
+//                                lat_current, lang_current, message[0],
+//                                description, key, HomePage.this);
+//
+//
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError error) {
+//            }
+//        });
+//        if (notify[0] == true) {
+//            PendingIntent servicePendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//            PendingIntent activityPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, HomePage.class), 0);
+////ey
+//////                                    , HomePage.class, "222", description, ""
+//            NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+//                    .addAction(R.drawable.ic_launcher_background, "Launch", activityPendingIntent)
+//                    .addAction(R.drawable.ic_cancel, "remove", servicePendingIntent)
+//                    //.setContentText()
+//                    .setContentTitle(message[0])
+//                    .setOngoing(true)
+//                    .setPriority(Notification.PRIORITY_HIGH)
+//                    //.setTicker(text)
+//                    .setSmallIcon(R.drawable.ic_launcher_background)
+//                    .setWhen(System.currentTimeMillis());
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                builder.setChannelId("1223");
+//            }
+//            return builder.build();
+//        }
+//
+//return null;
+//    }
+    public void backgroundLocation(Location location) {
+        System.out.println("CALEED NOTI");
+        double lat_current_d = location.getLatitude();
+        double lang_current_d = location.getLongitude();
+        System.out.println("lat cuurent11 " + lat_current_d);
+        System.out.println("lang cuurent " + lang_current_d);
+        String lat_current = String.valueOf(lat_current_d);
+        String lang_current = String.valueOf(lang_current_d);
+        // lang_current= String.valueOf(event.getLocation().getLongitude());
+
+        ArrayList<Reminder> reminders_locationList = new ArrayList<>();
+
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users")
+                .child(userName).child("reminder_list");
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    Reminder reminder = ds.getValue(Reminder.class);
+                    if (reminder.isDateState() && reminder.isState()) {
+                        reminders_locationList.add(reminder);
+                    }
+                }
+
+                for (Reminder reminder : reminders_locationList) {
+                    String message = reminder.getMessage();
+                    String type = reminder.getLocationAsString();
+                    String description = reminder.getDescription();
+                    String key = reminder.getKey();
+                    System.out.println("type == " + type);
+                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
+                    HashMap map = new HashMap();
+                    map.put("state",false);
+                    if (type.equals("Other")) {
+                        double lat_reminder = reminder.getLAT();
+                        double lang_reminder = reminder.getLNG();
+
+
+                        System.out.println("lat location " + lat_reminder);
+
+                        System.out.println("lang location " + lang_reminder);
+                        float[] distance = new float[1];
+                        Location.distanceBetween(lat_reminder, lang_reminder, lat_current_d, lang_current_d, distance);
+                        System.out.println("distance  " + distance[0]);
+
+                        if (distance[0] < 500) {
+
+
+                            //DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
+                            ref.updateChildren(map);
+                            NotificationHelper notificationHelper = new NotificationHelper(HomePage.this);
+                            Notification nb = notificationHelper.getChannelNotification(key
+                                    , HomePage.class, message+" : you are close to wanted location", description, "","","","","","");
+                            notificationHelper.getManager().notify(0, nb);
+
+
+                        }
+
+
+                    } else {
+
+                        ref.updateChildren(map);
+                        type=type.toLowerCase();
+                        String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" + "location=" + lat_current + "," + lang_current + "&" +
+                                "rankby=distance" + "&" + "type=" + type + "&" + "key=" + "AIzaSyDMU9eVBmHymFvymjsCO3pUCBwwGMTqV5w";
+
+                        new GooglePlacesClient().getResponseThread(url,
+                                lat_current, lang_current, message,
+                                description, key, HomePage.this,type);
+
+
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+            }
+        });
+
+
+    }
 
 
     public void get_all_reminders_by_kind(String ReminderType) {
@@ -651,13 +1032,30 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     Reminder reminder = ds.getValue(Reminder.class);
                     if(ReminderType.equals("all")){
-                        reminders_locationList.add(reminder);
+//                        reminders_locationList.add(reminder);
                     }
                     else {
                         if (reminder.getMyType().contains(ReminderType))
                             reminders_locationList.add(reminder);
 
                     }
+                    System.out.println("before dexter");
+                    reminders_locationList.add(reminder);
+                    System.out.println(reminder.getKey()+reminder.isDateState());
+
+
+                    Dexter.withActivity(HomePage.this).withPermissions(Arrays.asList(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)).withListener(new MultiplePermissionsListener() {
+                        @Override
+                        public void onPermissionsChecked(MultiplePermissionsReport report) {
+
+                            bindService(new Intent(HomePage.this, MyBackgroundService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
+
+                        }
+
+                        @Override
+                        public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                        }
+                    }).check();
                 }
                 for (Reminder reminder : reminders_locationList) {
                     String message = reminder.getMessage();
@@ -685,6 +1083,27 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         });
     }
 
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder iBinder) {
+            System.out.println("CONNECTIED YESSS");
+            MyBackgroundService.LocalBinder binder = (MyBackgroundService.LocalBinder) iBinder;
+            mService = binder.getService();
+            mService.requestLocationUpdates();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+            mBound = false;
+        }
+    };
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+
+    }
 
 
     public void c(ArrayList<reminders_view> reminderss) {
@@ -694,12 +1113,12 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
 
         if (mRecyclerView.getAdapter().getItemCount()==0)
         {
-            if (mBound) {
-                unbindService(mServiceConnection);
-                mBound = false;
-            }
-            PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener((SharedPreferences.OnSharedPreferenceChangeListener) this);
-            EventBus.getDefault().unregister(this);
+//            if (mBound) {
+//                unbindService(mServiceConnection);
+//                mBound = false;
+//            }
+//            PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener((SharedPreferences.OnSharedPreferenceChangeListener) this);
+//            EventBus.getDefault().unregister(this);
         }
         mAdapter.setOnItemClickListener(new ReminderAdapter.OnItemClickListener() {
             @Override
@@ -724,10 +1143,15 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
 
 
 
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {}
-
-
+    //    @Override
+//    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+//        if(key.equals(CommonL.KEY_REQUESTING_lOCATION_UPDATES))
+//        {
+//            boolean isEnabled=sharedPreferences.getBoolean(CommonL.KEY_REQUESTING_lOCATION_UPDATES,false);
+//
+//
+//        }
+//    }
 
     public static void setInstruction(int v) {
         if(v==0)
@@ -736,21 +1160,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             instruction.setVisibility(View.INVISIBLE);
     }
 
-
-    private final ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder iBinder) {
-            MyBackgroundService.LocalBinder binder = (MyBackgroundService.LocalBinder) iBinder;
-            mService = binder.getService();
-            mBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mService = null;
-            mBound = false;
-        }
-    };
 
 
 
@@ -899,111 +1308,108 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         return instance;
     }
 
-    private void updateLocation() {
-        buildLocationRequest();
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(HomePage.this);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-    }
+    //    private void updateLocation() {
+//        buildLocationRequest();
+//        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(HomePage.this);
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            return;
+//        }
+//    }
 
-    private void buildLocationRequest() {
-        locationRequest = new LocationRequest();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(5000);//change to 5 min 300000
-        locationRequest.setFastestInterval(3000);
-        locationRequest.setSmallestDisplacement(10f);
-    }
+//    private void buildLocationRequest() {
+//        locationRequest = new LocationRequest();
+//        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+//        locationRequest.setInterval(5000);//change to 5 min 300000
+//        locationRequest.setFastestInterval(3000);
+//        locationRequest.setSmallestDisplacement(10f);
+//    }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == LOCATION_REQUEST_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getLastLocation();
-            }
-        }
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        if (requestCode == LOCATION_REQUEST_CODE) {
+//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                getLastLocation();
+//            }
+//        }
+//    }
 
-    private void getLastLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        Task<Location> locationTask = fusedLocationProviderClient.getLastLocation();
-        locationTask.addOnSuccessListener(new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null) {
-                    Log.d("onSuccess", location.toString());
-                }
-            }
-        });
-    }
+//    private void getLastLocation() {
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            return;
+//        }
+//        Task<Location> locationTask = fusedLocationProviderClient.getLastLocation();
+//        locationTask.addOnSuccessListener(new OnSuccessListener<Location>() {
+//            @Override
+//            public void onSuccess(Location location) {
+//                if (location != null) {
+//                    Log.d("onSuccess", location.toString());
+//                }
+//            }
+//        });
+//    }
 
-    public void get_all_the_reminders_from_firebase2(String userName,Location mLocation ) {
-        final boolean[] c = {false};
-        ArrayList<Reminder> reminders_locationList = new ArrayList<>();
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list");
-        String b ;
-        Intent intent=new Intent(this, NotifierLocationRemind.class);
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                System.out.println("IN 2");
-                for (DataSnapshot ds : snapshot.getChildren()) {
-                    System.out.println("nnnnnnnnn");
-                    Reminder reminder = ds.getValue(Reminder.class);
-                    System.out.println(reminder.getMessage());
-                    if (Objects.equals(reminder.getMyType(),"Location"))
-                        reminders_locationList.add(reminder);
-                }
-                for (Reminder remind : reminders_locationList) {
-                    double lat= remind.getLAT();
-                    double lng= remind.getLNG();
-
-                    float[] distance = new float[1];
-                    double lat1 = 32.7614296;
-                    double lng1 = 35.0195184;
-                    Location.distanceBetween(lat, lng, lat1, lng1, distance);
-                    if ((distance[0] < 3000)&& (remind.isState() == true)) {
-                        stopService(intent);
-                        intent.putExtra("lat",remind.getLAT());
-                        intent.putExtra("lng",remind.getLNG());
-                        intent.putExtra("state",remind.isState());
-                        intent.putExtra("name",remind.getMessage());
-                        intent.putExtra("key",remind.getKey());
-                        intent.putExtra("Pending_key",remind.getKey().hashCode());
-                        intent.putExtra("userName",userName);
-                        startService(intent);
-                        DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(remind.getKey());
-                        HashMap hashmap = new HashMap();
-                        hashmap.put("state", false);
-                        ref.updateChildren(hashmap);
-                    }
-                }
-                c[0] =true;
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {}
-
-
-        });
-
-
-    }
-
+//    public void get_all_the_reminders_from_firebase2(String userName,Location mLocation ) {
+//        final boolean[] c = {false};
+//        ArrayList<Reminder> reminders_locationList = new ArrayList<>();
+//        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list");
+//        String b ;
+//        Intent intent=new Intent(this, NotifierLocationRemind.class);
+//        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot snapshot) {
+//                System.out.println("IN 2");
+//                for (DataSnapshot ds : snapshot.getChildren()) {
+//                    System.out.println("nnnnnnnnn");
+//                    Reminder reminder = ds.getValue(Reminder.class);
+//                    System.out.println(reminder.getMessage());
+//                    if (Objects.equals(reminder.getMyType(),"Location"))
+//                        reminders_locationList.add(reminder);
+//                }
+//                for (Reminder remind : reminders_locationList) {
+//                    double lat= remind.getLAT();
+//                    double lng= remind.getLNG();
+//
+//                    float[] distance = new float[1];
+//                    double lat1 = 32.7614296;
+//                    double lng1 = 35.0195184;
+//                    Location.distanceBetween(lat, lng, lat1, lng1, distance);
+//                    if ((distance[0] < 500)&& (remind.isState() == true)) {
+//                        stopService(intent);
+//                        intent.putExtra("lat",remind.getLAT());
+//                        intent.putExtra("lng",remind.getLNG());
+//                        intent.putExtra("state",remind.isState());
+//                        intent.putExtra("name",remind.getMessage());
+//                        intent.putExtra("key",remind.getKey());
+//                        intent.putExtra("Pending_key",remind.getKey().hashCode());
+//                        intent.putExtra("userName",userName);
+//                        startService(intent);
+//                        DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(remind.getKey());
+//                        HashMap hashmap = new HashMap();
+//                        hashmap.put("state", false);
+//                        ref.updateChildren(hashmap);
+//                    }
+//                }
+//                c[0] =true;
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError error) {}
+//
+//
+//        });
+//
+//
+//    }
 
 
     //private Button searchLocation=findViewById(R.id.searchButton);
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        LocationTextView = findViewById(R.id.LocationTextView);
+//        LocationTextView = findViewById(R.id.LocationTextView);
         super.onActivityResult(requestCode, resultCode, data);
-        System.out.println("INNNNNNNNNNNNNn started 000");
         if ((requestCode==100)&&(resultCode==RESULT_OK))
         {
-            System.out.println("INNNNNNNNNNNNNn started");
             Place place = Autocomplete.getPlaceFromIntent(data);
             sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
             editor=sharedPreferences.edit();
@@ -1017,53 +1423,35 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             a.LocationTextView.setVisibility(View.VISIBLE);
             a.LocationTextView.setText(place.getAddress());
             a.address=place.getAddress();
-            a.lat=place.getLatLng().longitude;
-            a.lang=place.getLatLng().latitude;
+            a.lat=place.getLatLng().latitude;
+            a.lang=place.getLatLng().longitude;
 //            wantedLocation=place;
             /************************************************************************
-            double lat, lang;
-            lang=place.getLatLng().longitude;
-            lat=place.getLatLng().latitude;
-            float[] distance = new float[1];
-            double lat1 = 32.7614296;
-            double lng1 = 35.0195184;
-            Location.distanceBetween(lat, lang, lat1, lng1, distance);
-            if ((distance[0] < 3000)) {
-                System.out.println("im in distance[0] < 3000 ");
-                String key=getSharedPreferences("U", MODE_PRIVATE).getString("key of other notification", null);
-                NotificationHelper notificationHelper = new NotificationHelper(getInstance());
-                Notification nb = notificationHelper.getChannelNotification(key
-                        , HomePage.class,"Congratulation, you have arrive", "You are near "+place.getAddress(),"");
-                notificationHelper.getManager().notify(0, nb);
-                //write notification here
-                // place.getAddress()
-            }***********************************/
+             double lat, lang;
+             lang=place.getLatLng().longitude;
+             lat=place.getLatLng().latitude;
+             float[] distance = new float[1];
+             double lat1 = 32.7614296;
+             double lng1 = 35.0195184;
+             Location.distanceBetween(lat, lang, lat1, lng1, distance);
+             if ((distance[0] < 3000)) {
+             System.out.println("im in distance[0] < 3000 ");
+             String key=getSharedPreferences("U", MODE_PRIVATE).getString("key of other notification", null);
+             NotificationHelper notificationHelper = new NotificationHelper(getInstance());
+             Notification nb = notificationHelper.getChannelNotification(key
+             , HomePage.class,"Congratulation, you have arrive", "You are near "+place.getAddress(),"");
+             notificationHelper.getManager().notify(0, nb);
+             //write notification here
+             // place.getAddress()
+             }***********************************/
             //  location.setText(String.format("Locality Name : %s",place.getName()));
+
         }
         else if (resultCode== AutocompleteActivity.RESULT_ERROR)
         {
             Status status =Autocomplete.getStatusFromIntent(data);
             Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
         }
-        else if(requestCode==2 && resultCode==RESULT_OK){
-            System.out.println("yessss");
-            addReminder a=new addReminder();
-//            try {
-//                a.setImageUri(data.getClipData());
-//            }catch(){
-//                a.setImageUri(data.getClipData());
-//            }
-            if(data.getClipData()==null)
-                a.setImageUri(data.getData());
-            else
-                a.setClipImageUri(data.getClipData());
-            try {
-                a.uploadImage(userName);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        
     }
-
-
 }

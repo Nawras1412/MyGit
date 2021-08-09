@@ -1,7 +1,6 @@
 package com.example.smartremindersapp2;
-
+import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -13,25 +12,29 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
-import android.content.res.Resources;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.location.Location;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.webkit.MimeTypeMap;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.HorizontalScrollView;
@@ -41,21 +44,21 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
@@ -63,7 +66,6 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
@@ -71,23 +73,16 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-
-import java.lang.reflect.Array;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.List;
-import java.util.Objects;
+import java.util.UUID;
 
 public class addReminder extends AppCompatActivity {
     private Dialog add_reminder_dialog, add_description_dialog,add_location_dialog,category_menu_dialog;
@@ -98,7 +93,7 @@ public class addReminder extends AppCompatActivity {
     private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn;//,searchIcon;
     private ImageButton selectDateImage, addDescriptionImage, locationImage;
     private ImageButton removeDate,removeLocation,removeDescription;
-    private ImageButton recordingAudio,UploadImage;
+    private FloatingActionButton mRecordBtn;
     private TextView title,DescriptionTextView,TimeTextView;
     //    public TextView searchLocationbar;
     private EditText AddDescriptionEditText;
@@ -109,7 +104,7 @@ public class addReminder extends AppCompatActivity {
     private Calendar NotificationDate;
     private RadioGroup LocationMenu;
     private RadioButton radioButtonOption;
-    private String Category;
+    private String Category="";
     private String UserName;
     private int numberOfAdditions;
     private List<String> Additions;
@@ -129,26 +124,39 @@ public class addReminder extends AppCompatActivity {
     private DatabaseReference keyRef;
     public addReminder(String userName) { UserName=userName; }
     public String address;
-    public Double lat;
-    public Double lang;
+    public Double lat=null;
+    public Double lang=null;
     public addReminder() {}
-
-
+    private TextView mRecordLabel;
+    private MediaRecorder mRecorder;
+    private static final String LOG_TAG="Record_log";
+    private StorageReference mStorage=FirebaseStorage.getInstance().getReference();
+    public static final int RECORD_AUDIO = 0;
+    private ScrollView all_audios;
+    private ImageView delete_audio;
+    private List<String> all_audios_list;
     //boolean isRotate =false;
     private FloatingActionButton btn_food,btn_other,btn_office,btn_car,btn_shop,btn_book,btn_medical,btn_money;
     private ExtendedFloatingActionButton btn_food_res,btn_food_cafe,btn_food_bakery,btn_money_bank,btn_money_atm,btn_medical_hospital,btn_medical_pharmacy,btn_car_wash,btn_car_repair,btn_car_gas,btn_car_parking,btn_shop_supermarket,btn_shop_mall,btn_office_laywer,btn_office_acoounting,btn_office_police,btn_office_post_office,btn_book_library,btn_book_uni,btn_book_book_store;
-
+    private int currentPosition=0;
+    private SeekBar seekBar;
+    private boolean play=false;
+    private Handler handler=new Handler();
+    private String PathName="";
+    private MediaRecorder mediaRecorder;
+    private MediaPlayer mediaPlayer= new MediaPlayer();;
+    final int REQUEST_PERMISSION_CODE=1000;
     //    ArrayList<Boolean> isRotate=new ArrayList<Boolean>(Arrays.asList(false,false,false,false,false,false,false));
 //    ArrayList<FloatingActionButton> Main_btns=new ArrayList<FloatingActionButton>(Arrays.asList(btn_food,btn_office,btn_car,btn_shop,btn_book,btn_medical,btn_money,btn_other));
     ArrayList<Boolean> isRotate=new ArrayList<Boolean>();
     // ArrayList<FloatingActionButton> Main_btns=new ArrayList<FloatingActionButton>(2);
     FloatingActionButton Main_btns[] =new FloatingActionButton[7];
-
     ArrayList<ArrayList<ExtendedFloatingActionButton>> subList = new ArrayList<ArrayList<ExtendedFloatingActionButton>>();
 
 
 
-    private void ExpandDialogAndSetData2(ImageButton removeIcon,ImageButton image_button, TextView text_view, String string,String type) {
+
+    private void ExpandDialogAndSetData2(ImageButton removeIcon, ImageButton image_button, TextView text_view, String string, String type) {
         numberOfAdditions+=1;
         int WindowHeight=440+Additions.size()*110;
         Additions.add(type);
@@ -186,8 +194,6 @@ public class addReminder extends AppCompatActivity {
         }
     }
 
-
-
     private void ArrangingTheWindow(int NextTextViewY, int NextImageButtonY,int index){
         System.out.println("the value of index is: "+index);
         System.out.println("the size of Additions is: "+Additions.size());
@@ -198,7 +204,6 @@ public class addReminder extends AppCompatActivity {
         //        Additions_TextView.get(index).setX((float) 150);  //150
         Additions_TextView.get(index).setY(NextTextViewY);
     }
-
 
     private void ExpandDialogAndSetData(ImageButton removeIcon,ImageButton image_button, TextView text_view, String string,String type) {
         int WindowHeight=440+Additions.size()*110;
@@ -241,8 +246,6 @@ public class addReminder extends AppCompatActivity {
         }
     }
 
-
-    //    private void ReduceDialogAndReorder(ImageButton removeIcon,ImageButton image_button, TextView text_view, String string,String type) {
     private void ReduceDialogAndReorder(ImageButton removeIcon,ImageButton image_button, TextView text_view,String type) {
         numberOfAdditions-=1;
         int WindowHeight=440+110*(numberOfAdditions-1);
@@ -314,11 +317,12 @@ public class addReminder extends AppCompatActivity {
             reminder.setMyType(oldReminder.getType());
             reminder.setLAT(oldReminder.getLAT());
             reminder.setLNG(oldReminder.getLNG());
+            reminder.setAudios(oldReminder.getAudios());
         }
     }
 
 
-    void cancelNotification(String key ,Context context) {
+    public static void cancelNotification(String key ,Context context) {
         System.out.println("the pending key is:    "+ key.hashCode());
         AlarmManager alarmManager = (AlarmManager) HomePage.getInstance().getSystemService(HomePage.getInstance().ALARM_SERVICE);
         Intent intent = new Intent(HomePage.getInstance(), NotifierLocationRemind.class);
@@ -327,49 +331,64 @@ public class addReminder extends AppCompatActivity {
     }
 
 
-    private void sendToAlarmManager(Reminder reminder) {
+    public void sendToAlarmManager(Reminder reminder,boolean check)  {
         Context context=HomePage.getInstance();
         Intent ServiceIntent=new Intent(context,NotifierLocationRemind.class);
         context.stopService(ServiceIntent);
         ServiceIntent.putExtra("title","Location Reminder");
         ServiceIntent.putExtra("content","I near the desired location");
-        if(Additions.contains("Location") && !Additions.contains("Time")){
-            System.out.println("location and not time");
-            ServiceIntent.putExtra("locationType",Category);
+
+        if (check==false)
+        {
+            ServiceIntent.putExtra("locationType","Other");
             ServiceIntent.putExtra("type", "Location");
-            Calendar c=Calendar.getInstance();
+            ServiceIntent.putExtra("key", reminder.getKey());
+            ServiceIntent.putExtra("date",reminder.getRemindDate().getTime());
+            ServiceIntent.putExtra("address","");
+            ServiceIntent.putExtra("lat",reminder.getLNG());
+            ServiceIntent.putExtra("lang",reminder.getLAT());
+        }
+        else {
+
+
+            if (Additions.contains("Location") && !Additions.contains("Time")) {
+                System.out.println("location and not time");
+                ServiceIntent.putExtra("locationType", Category);
+                ServiceIntent.putExtra("type", "Location");
+                Calendar c = Calendar.getInstance();
 //            long currentTime=c.getTimeInMillis();
 //            Date d=new Date(currentTime+60*1000);
 //            d.setSeconds(0);
-            ServiceIntent.putExtra("date",c.getTime().getTime());
-        }
-        if(Additions.contains("Location") && Additions.contains("Time") ){
-            ServiceIntent.putExtra("locationType",Category);
-            System.out.println("location and time");
-            ServiceIntent.putExtra("type", "Location");
-            ServiceIntent.putExtra("date",reminder.getRemindDate().getTime());
-        }
-        if(!Additions.contains("Location") && Additions.contains("Time")){
-            System.out.println("not location and time");
-            ServiceIntent.putExtra("locationType", "");
-            ServiceIntent.putExtra("type", "Time");
-            ServiceIntent.putExtra("title","Date Reminder");
-            ServiceIntent.putExtra("date",reminder.getRemindDate().getTime());
-            ServiceIntent.putExtra("content","it is the time to notify");
-        }
-        if(Category.equals("Other")){
-            ServiceIntent.putExtra("locationType","Other");
-            ServiceIntent.putExtra("address",address);
-            ServiceIntent.putExtra("lat",lat);
-            ServiceIntent.putExtra("lang",lang);
+                ServiceIntent.putExtra("date", c.getTime().getTime());
+            }
+            if (Additions.contains("Location") && Additions.contains("Time")) {
+                ServiceIntent.putExtra("locationType", Category);
+                System.out.println("location and time");
+                ServiceIntent.putExtra("type", "Location");
+                ServiceIntent.putExtra("date", reminder.getRemindDate().getTime());
+            }
+            if (!Additions.contains("Location") && Additions.contains("Time")) {
+                System.out.println("not location and time");
+                ServiceIntent.putExtra("locationType", "");
+                ServiceIntent.putExtra("type", "Time");
+                ServiceIntent.putExtra("title", "Date Reminder");
+                ServiceIntent.putExtra("date", reminder.getRemindDate().getTime());
+                ServiceIntent.putExtra("content", "it is the time to notify");
+            }
+            if (Category != null) {
+                if (Category.equals("Other")) {
+                    ServiceIntent.putExtra("locationType", "Other");
+                    ServiceIntent.putExtra("address", address);
+                    ServiceIntent.putExtra("lat", lat);
+                    ServiceIntent.putExtra("lang", lang);
+                }
+            }
         }
         ServiceIntent.putExtra("key",reminder.getKey());
         ServiceIntent.putExtra("Pending_key",reminder.getKey().hashCode());
         ServiceIntent.putExtra("userName",UserName);
         context.startService(ServiceIntent);
     }
-
-
 
     public void SetFindViewById(){
         add_reminder_dialog.setContentView(R.layout.anna_reminder);
@@ -421,9 +440,8 @@ public class addReminder extends AppCompatActivity {
                     , oldReminder.getLocationAsString(), "Location");
     }
 
-
-
     public void openDialog(boolean edit,reminders_view oldReminder,int position){
+        all_audios_list=new ArrayList<>();
         DatabaseReference ref= FirebaseDatabase.getInstance().getReference().child("Users").child(UserName).child("reminder_list");
         keyRef =ref.push();
         Initialization(edit,oldReminder);
@@ -442,13 +460,15 @@ public class addReminder extends AppCompatActivity {
             }
         });
 
-
         removeDescription.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 reminder.setDescription(null);
                 ReduceDialogAndReorder(removeDescription,addDescriptionImage,DescriptionTextView,
                         "Description");
+                all_audios_list=new ArrayList<>();
+                System.out.println("the size of the list after remove description: "
+                        +all_audios_list.size());
             }
         });
 
@@ -461,7 +481,6 @@ public class addReminder extends AppCompatActivity {
         });
 
 
-
         cancel_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -472,30 +491,52 @@ public class addReminder extends AppCompatActivity {
         add_btn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
+                boolean delete=true;
+                System.out.println("cattt2222  "+Category +" lattt "+ lat );
+                if(Category.equals("Other") && lat==null){
+                    Toast.makeText(HomePage.getInstance(),"No Location Specified! try again",Toast.LENGTH_LONG).show();
+                    cancel_btn.performClick();
+                    // cancelNotification(reminder.getKey(),HomePage.getInstance());
+                    delete=false;
+                }
+                reminder.setAudios(all_audios_list);
+                uploadAudios();
                 if(title.getText().toString().isEmpty())
                     reminder.setMessage("Reminder");
                 else
                     reminder.setMessage(title.getText().toString());
                 reminder.setState(true);
                 reminder.setMyType(checkType());
-                if(!edit) {
+                if(!edit&& delete) {
                     reminder.setKey(keyRef.getKey());
                     keyRef.setValue(reminder);
                 }
-                else{
+                else if(delete){
                     cancelNotification(reminder.getKey(),HomePage.getInstance());
                     keyRef=ref.child(reminder.getKey());
                     keyRef.setValue(reminder);
                 }
-                if(reminder.getRemindDate()==null)
+                if(reminder.getRemindDate()==null && delete)
                 {
                     date = new Date();
                     reminder.setRemindDate((date));
+//                    keyRef=ref.child(reminder.getKey());
+//                    keyRef.setValue(reminder);
                 }
-                System.out.println("the type of the reminder is: "+reminder.getMyType());
-                if(!reminder.getMyType().equals("Todo List")) {
+
+                if(reminder.getMyType().equals("Location") && reminder.getLocationAsString().equals("Other")&& delete)
+                {
+                    System.out.println("GOT IN SETTIG LANG AmD LAT");
+                    reminder.setLAT(lat);
+                    reminder.setLNG(lang);
+                    keyRef=ref.child(reminder.getKey());
+                    keyRef.setValue(reminder);
+
+                }
+                System.out.println("the  of the reminder is: "+reminder.getMyType());
+                if(!reminder.getMyType().equals("Todo List") && delete) {
                     System.out.println("im in reminder not a todo lost reminder ");
-                    sendToAlarmManager(reminder);
+                    sendToAlarmManager(reminder,true);
                 }
                 add_reminder_dialog.cancel();
                 ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(HomePage.getInstance(), R.array.kinds, android.R.layout.simple_spinner_item);
@@ -847,13 +888,6 @@ public class addReminder extends AppCompatActivity {
             }
         });
 
-
-
-
-
-
-
-
 //                searchLocation.setOnClickListener(new View.OnClickListener() {
 //                    @RequiresApi(api = Build.VERSION_CODES.O)
 //                    @Override
@@ -898,11 +932,6 @@ public class addReminder extends AppCompatActivity {
 //                        }
 //                    }
 //                });
-
-
-
-
-
 
 
         selectDate_btn.setOnClickListener(new View.OnClickListener() {
@@ -971,27 +1000,100 @@ public class addReminder extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //Initialization of add description dialog
+
+                if(!checkPermissionFromDevice())
+                    requestPermission();
+
                 add_description_dialog = new Dialog(add_reminder_dialog.getContext());
                 add_description_dialog.setContentView(R.layout.add_description);
-                images_scroll = add_description_dialog.findViewById(R.id.images_scroll);
+                Chronometer simpleChronometer = add_description_dialog.findViewById(R.id.simpleChronometer); // initiate a chronometer
+
+                all_audios=add_description_dialog.findViewById(R.id.all_audios_);
+                delete_audio=add_description_dialog.findViewById(R.id.delete_audio);
                 save_description = add_description_dialog.findViewById(R.id.save_description);
                 cancel_desc_dialog = add_description_dialog.findViewById(R.id.cancel_desc_dialog);
-                recordingAudio = add_description_dialog.findViewById(R.id.audio);
-                UploadImage = add_description_dialog.findViewById(R.id.upload_image);
+                mRecordBtn = add_description_dialog.findViewById(R.id.recordBtn);
                 AddDescriptionEditText = add_description_dialog.findViewById(R.id.AddDescriptionEditText);
                 AddDescriptionEditText.setFocusedByDefault(true);
-                image_view = add_description_dialog.findViewById(R.id.image_view);
                 if (reminder.getDescription() != null) {
                     AddDescriptionEditText.setText(reminder.getDescription());
                     save_description.setEnabled(true);
                 }
 
-                UploadImage.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        openGallery();
+                if(reminder.getAudios()!=null){
+                    save_description.setEnabled(true);
+                    for(int i=0;i<all_audios_list.size();i++){
+                        LinearLayout audios=add_description_dialog.findViewById(R.id.kinear_all_audios);
+                        LayoutInflater inflater=LayoutInflater.from(add_description_dialog.getContext());
+                        View view= inflater.inflate(R.layout.one_audio,audios,false);
+                        ImageView playAudio=view.findViewById(R.id.playAudio);
+                        ImageView deleteAudio=view.findViewById(R.id.delete_audio);
+                        seekBar=view.findViewById(R.id.seekBar);
+                        view.setTag(all_audios_list.get(i));
+                        audios.addView(view);
+                        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                            @Override
+                            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                                if(fromUser) mediaPlayer.seekTo(progress);
+                            }
+                            @Override
+                            public void onStartTrackingTouch(SeekBar seekBar) {}
+                            @Override
+                            public void onStopTrackingTouch(SeekBar seekBar) {/*mediaPlayer.seekTo(seekBar.getProgress());*/}
+                        });
+                        deleteAudio.setOnClickListener(new View.OnClickListener(){
+                            @Override
+                            public void onClick(View v){
+                                LinearLayout audios=add_description_dialog.findViewById(R.id.kinear_all_audios);
+                                audios.removeView((LinearLayout)v.getParent());
+                                all_audios_list.remove((String)((View)v.getParent()).getTag());
+                            }
+                        });
+                        playAudio.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v){
+                                if (play)
+                                    play = false;
+                                else
+                                    play = true;
+                                if (play) {
+                                    mediaPlayer = new MediaPlayer();
+                                    try {
+                                        mediaPlayer.setDataSource((String)((View)v.getParent()).getTag());
+//                        mediaPlayer.prepare();
+                                        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                                            @Override
+                                            public void onPrepared(MediaPlayer mp) {
+                                                mp.start();
+                                            }
+                                        });
+                                        mediaPlayer.prepare();
+
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    seekBar.setMax(mediaPlayer.getDuration());
+//                    mediaPlayer.start();
+                                    UpdateSeekBar updateSeekBar = new UpdateSeekBar();
+                                    handler.post(updateSeekBar);
+                                } else {
+                                    System.out.println("play is false");
+                                    if (mediaPlayer != null) {
+//                        mediaPlayer.stop();
+//                        mediaPlayer.release();
+                                        mediaPlayer.pause();
+                                        currentPosition = mediaPlayer.getCurrentPosition();
+//                        setupMediaRecorder();
+                                    }
+                                }
+                                mediaPlayer.seekTo(seekBar.getProgress());
+                            }
+                        });
                     }
-                });
+                }
+
+
 
                 AddDescriptionEditText.addTextChangedListener(new TextWatcher() {
                     @Override
@@ -1001,13 +1103,11 @@ public class addReminder extends AppCompatActivity {
                         else
                             save_description.setEnabled(false);
                     }
-
                     @Override
                     public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
                     @Override
                     public void afterTextChanged(Editable s) {}
                 });
-
 
                 cancel_desc_dialog.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -1020,26 +1120,212 @@ public class addReminder extends AppCompatActivity {
                     @RequiresApi(api = Build.VERSION_CODES.Q)
                     @Override
                     public void onClick(View v) {
+                        String content="";
+                        if(all_audios_list.size()!=0)
+                            content="Audio ";
+                        if(!AddDescriptionEditText.getText().toString().equals(""))
+                            content+="Description";
+
                         if(Additions.contains("Description")){
-                            DescriptionTextView.setText(AddDescriptionEditText.getText().toString());
+                            DescriptionTextView.setText(content);
                         }
                         else{
                             numberOfAdditions+=1;
-                            ExpandDialogAndSetData(removeDescription,addDescriptionImage,DescriptionTextView,AddDescriptionEditText.getText().toString(),"Description");
+                            ExpandDialogAndSetData(removeDescription,addDescriptionImage,DescriptionTextView,content,"Description");
                         }
                         reminder.setDescription(AddDescriptionEditText.getText().toString());
+                        reminder.setAudios(all_audios_list);
                         add_description_dialog.cancel();
+                    }
+                });
+
+                mRecordBtn.setOnTouchListener(new View.OnTouchListener() {
+                    @RequiresApi(api = Build.VERSION_CODES.P)
+                    @SuppressLint("ClickableViewAccessibility")
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if(event.getAction() == MotionEvent.ACTION_DOWN){
+                            if (checkPermissionFromDevice()) {
+                                PathName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" +
+                                        UUID.randomUUID().toString() + "audio_record.3gp";
+                                setupMediaRecorder();
+                                try {
+                                    mediaRecorder.prepare();
+                                    mediaRecorder.start();
+                                    simpleChronometer.start();
+                                }catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                Toast.makeText(HomePage.getInstance(), "Recording ...", Toast.LENGTH_SHORT).show();
+                            } else
+                                requestPermission();
+                        }else if(event.getAction() == MotionEvent.ACTION_UP){
+                            System.out.println("the max amplitude "+mediaRecorder.getMaxAmplitude());
+                            simpleChronometer.stop();
+                            simpleChronometer.setBase(SystemClock.elapsedRealtime());
+                            mediaRecorder.stop();
+                            mediaRecorder.release();
+                            mediaRecorder=null;
+                            addToScrollView();
+                        }
+                        return false;
                     }
                 });
                 add_description_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 add_description_dialog.show();
             }
         });
+
         add_reminder_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         add_reminder_dialog.show();
     }
 
 
+
+    private void setupMediaRecorder() {
+        mediaRecorder = new MediaRecorder();
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        System.out.println("the path name of the audio is: "+PathName);
+        mediaRecorder.setOutputFile(PathName);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+    }
+
+
+
+    private void uploadAudios(){
+        for(int i=0;i<all_audios_list.size();i++) {
+            final ProgressDialog pd = new ProgressDialog(HomePage.getInstance());
+            pd.setMessage("Uploading Audio ...");
+            pd.show();
+            StorageReference filePath = mStorage.child("Users").child(UserName).child("Audio")
+                    .child(keyRef.getKey())
+                    .child(System.currentTimeMillis() + "_" + "new_audio.3gp");
+            Uri uri = Uri.fromFile(new File(all_audios_list.get(i)));
+            filePath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    pd.dismiss();
+                }
+            });
+        }
+    }
+
+    private void addToScrollView(){
+        all_audios_list.add(PathName);
+        if(all_audios_list.size()==1)
+            save_description.setEnabled(true);
+        LinearLayout audios=add_description_dialog.findViewById(R.id.kinear_all_audios);
+        LayoutInflater inflater=LayoutInflater.from(add_description_dialog.getContext());
+        View view= inflater.inflate(R.layout.one_audio,audios,false);
+        ImageView playAudio=view.findViewById(R.id.playAudio);
+        ImageView deleteAudio=view.findViewById(R.id.delete_audio);
+        seekBar=view.findViewById(R.id.seekBar);
+        view.setTag(PathName);
+        audios.addView(view);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if(fromUser) mediaPlayer.seekTo(progress);
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {/*mediaPlayer.seekTo(seekBar.getProgress());*/}
+        });
+        deleteAudio.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                LinearLayout audios=add_description_dialog.findViewById(R.id.kinear_all_audios);
+                audios.removeView((LinearLayout)v.getParent());
+                all_audios_list.remove((String)((View)v.getParent()).getTag());
+            }
+        });
+        playAudio.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v){
+                if (play)
+                    play = false;
+                else
+                    play = true;
+                if (play) {
+                    mediaPlayer = new MediaPlayer();
+                    try {
+                        mediaPlayer.setDataSource((String)((View)v.getParent()).getTag());
+//                        mediaPlayer.prepare();
+                        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                            @Override
+                            public void onPrepared(MediaPlayer mp) {
+                                mp.start();
+                            }
+                        });
+                        mediaPlayer.prepare();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    seekBar.setMax(mediaPlayer.getDuration());
+//                    mediaPlayer.start();
+                    UpdateSeekBar updateSeekBar = new UpdateSeekBar();
+                    handler.post(updateSeekBar);
+                } else {
+                    System.out.println("play is false");
+                    if (mediaPlayer != null) {
+//                        mediaPlayer.stop();
+//                        mediaPlayer.release();
+                        mediaPlayer.pause();
+                        currentPosition = mediaPlayer.getCurrentPosition();
+//                        setupMediaRecorder();
+                    }
+                }
+                mediaPlayer.seekTo(seekBar.getProgress());
+            }
+        });
+    }
+
+    public class UpdateSeekBar implements Runnable{
+        @Override
+        public void run() {
+            seekBar.setProgress(mediaPlayer.getCurrentPosition());
+            handler.postDelayed(this,100);
+            if(mediaPlayer.getCurrentPosition()==mediaPlayer.getDuration()) {
+                seekBar.setProgress(0);
+                play=true;
+            }
+        }
+    }
+
+    private void requestPermission() {
+        ActivityCompat.requestPermissions(HomePage.getInstance(),new String[]{
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.RECORD_AUDIO
+
+        },REQUEST_PERMISSION_CODE);
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode){
+            case REQUEST_PERMISSION_CODE:
+            {
+                if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED)
+                    Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+                else
+                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+            break;
+        }
+    }
+    private boolean checkPermissionFromDevice() {
+        int write_external_storage_result= ContextCompat.checkSelfPermission
+                (HomePage.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int record_audio_result=ContextCompat.checkSelfPermission(HomePage.getInstance(),
+                Manifest.permission.RECORD_AUDIO);
+        return write_external_storage_result== PackageManager.PERMISSION_GRANTED
+                && record_audio_result==PackageManager.PERMISSION_GRANTED;
+    }
     private void afterchoosing(){
         //save the chosen category in the reminder and start search the location
         category_menu_dialog.cancel();
@@ -1078,8 +1364,7 @@ public class addReminder extends AppCompatActivity {
 
         closeAll(8);
     }
-    private void closeAll (int indx)
-    {
+    private void closeAll (int indx) {
         boolean rotate;
         for (int i=0 ;i<7;i++ ){
             rotate=isRotate.get(i);
@@ -1115,93 +1400,6 @@ public class addReminder extends AppCompatActivity {
 
         }
     }
-
-
-    private String getFileExtension(Uri uri){
-        ContentResolver contentResolver=HomePage.getInstance().getContentResolver();
-        MimeTypeMap mimeTypeMap=MimeTypeMap.getSingleton();
-        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri));
-    }
-
-    public void setImageUri(Uri oneClipImage){
-        this.oneClipImage=oneClipImage;
-    }
-
-    public void setClipImageUri(ClipData imageUri1){
-//    public void setImageUri(Uri imageUri1) {
-//        this.imageUri = imageUri1;
-        this.clipimages=imageUri1;
-    }
-
-
-    public void openGallery(){
-        Intent intent=new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        HomePage.getInstance().startActivityForResult(intent,IMAGE_REQUEST);
-    }
-
-    void uploadImage(String userName) throws IOException {
-        final ProgressDialog pd = new ProgressDialog(HomePage.getInstance());
-        pd.setMessage("Uploading");
-        pd.show();
-        if (oneClipImage != null) {
-//            ImageView imageView2 = new ImageView(image_view.getContext());
-//            InputStream is = (InputStream) new URL(oneClipImage.toString()).getContent();
-//            Drawable d = Drawable.createFromStream(is, "src name");
-//            imageView2.setImageDrawable(d);
-//            images_scroll.addView(imageView2);
-
-            final StorageReference fileRef = FirebaseStorage.getInstance().getReference().child("Users")
-                    .child(userName).child("Images").child(System.currentTimeMillis() + "."
-                            + getFileExtension(oneClipImage));
-            fileRef.putFile(oneClipImage).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onComplete(Task<UploadTask.TaskSnapshot> task) {
-                    fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri uri) {
-                            String url = uri.toString();
-                            Log.d("DownloadUrl", url);
-                            pd.dismiss();
-                            Toast.makeText(HomePage.getInstance(), "Image upload successfull", Toast.LENGTH_LONG).show();
-                        }
-                    });
-                }
-            });
-        } else {
-            for (int i = 0; i < clipimages.getItemCount(); i++) {
-                System.out.println("im in for loop");
-                ClipData.Item item = clipimages.getItemAt(i);
-                imageUri = item.getUri();
-//                ImageView imageView2=new ImageView(image_view.getContext());
-//                InputStream is = (InputStream) new URL(imageUri.toString()).getContent();
-//                Drawable d = Drawable.createFromStream(is, "src name");
-//                imageView2.setImageDrawable(d);
-//                images_scroll.addView(imageView2);
-//                .with(this).load(imageUri).into(images_scroll);
-                final StorageReference fileRef = FirebaseStorage.getInstance().getReference().child("Users")
-                        .child(userName).child("Images").child(System.currentTimeMillis() + "."
-                                + getFileExtension(imageUri));
-                fileRef.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onComplete(Task<UploadTask.TaskSnapshot> task) {
-                        fileRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                String url = uri.toString();
-                                Log.d("DownloadUrl", url);
-                                pd.dismiss();
-                                Toast.makeText(HomePage.getInstance(), "Image upload successfull", Toast.LENGTH_LONG).show();
-                            }
-                        });
-                    }
-                });
-            }
-        }
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -1220,18 +1418,12 @@ public class addReminder extends AppCompatActivity {
             LocationTextView.setText(place.getAddress());
             wantedLocation=place;
             System.out.println("PLACE !!!!1"+place.getName());
-
-            //  location.setText(String.format("Locality Name : %s",place.getName()));
         }
-        else if (resultCode== AutocompleteActivity.RESULT_ERROR)
-        {
+        else if (resultCode== AutocompleteActivity.RESULT_ERROR) {
             Status status =Autocomplete.getStatusFromIntent(data);
             Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
         }
     }
-
-
-
     private String checkType() {
         boolean Location=false,Date=false;
         if (Additions.contains("Location")) Location=true;
