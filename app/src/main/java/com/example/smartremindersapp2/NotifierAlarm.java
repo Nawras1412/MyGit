@@ -318,7 +318,7 @@ public class NotifierAlarm extends Service {
     private static Ringtone ringtone;
     private Timer t = new Timer();
     private static final String CHANNEL_ID = "MyNotificationChannelID";
-    private String key;
+    private String key,title;
     private static boolean stopring;
     private static boolean killTimer;
     private int k;
@@ -351,6 +351,7 @@ public class NotifierAlarm extends Service {
         stopring=true;
         killTimer=false;
         key=intent.getStringExtra("key");
+        title=intent.getStringExtra("title");
         date = new Date(intent.getExtras().getLong("date", -1));
         Integer pendingKey=intent.getIntExtra("Pending_key",0);
         Intent notificationIntent = new Intent(this, all_alarms.class);
@@ -382,6 +383,7 @@ public class NotifierAlarm extends Service {
                 k++;
                 if(k==2) {
                     intent2.putExtra("key", key);
+                    intent2.putExtra("title", title);
                     intent2.putExtra("userName",intent.getStringExtra("userName"));
                     AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
                     PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext()

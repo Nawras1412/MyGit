@@ -231,7 +231,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                             boolean status;
                             if(AlarmDate.getText().toString().split(" ")[0].equals("Every"))status=false;
                             else status=true;
-                            startAlarm(new_key,status);
+                            startAlarm(new_key,status,AlarmName.getText().toString());
                             System.out.println("im before open new all_alarms page");
                             mAuxiliaryFunctions.openNewPage(getApplicationContext(),all_alarms.class);
 //                            ExampleAdapter.updateAlarmsList(getIntent().getIntExtra("position",0),new_alarm);
@@ -255,7 +255,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                     boolean status;
                     if(AlarmDate.getText().toString().split(" ")[0].equals("Every"))status=false;
                     else status=true;
-                    startAlarm(key,status);
+                    startAlarm(key,status,AlarmName.getText().toString());
                 }
 
             }
@@ -283,6 +283,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
     }
 
     public void StartAlarmClockActivity(String key){
+
         System.out.println("the key of the edited alarm is "+key);
         DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(key);
         ref.addListenerForSingleValueEvent(new ValueEventListener(){
@@ -380,7 +381,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         else AlarmDate.setText(daysList.substring(0,daysList.length()-2));
     }
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private void startAlarm(String key,boolean status) {
+    private void startAlarm(String key,boolean status,String title) {
 //        int i = 0;
 //        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 //        Intent intent = new Intent(this, AlertReceiver.class);
@@ -404,22 +405,24 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
             stopService(ServiceIntent);
             ServiceIntent.putExtra("date",date.getTime());
             ServiceIntent.putExtra("Pending_key",key.hashCode());
+            //anna
+            ServiceIntent.putExtra("title",title);
             ServiceIntent.putExtra("key",key);
             ServiceIntent.putExtra("userName",userName);
             startService(ServiceIntent);
         }else {
             System.out.println("im in status = false");
-            if (daysList.contains("Sun"))  setRepeatedAlarm(i++,Calendar.SUNDAY,key);
-            if (daysList.contains("Mon"))  setRepeatedAlarm(i++,Calendar.MONDAY,key);
-            if (daysList.contains("Tue"))  setRepeatedAlarm(i++,Calendar.TUESDAY,key);
-            if (daysList.contains("Wed"))  setRepeatedAlarm(i++,Calendar.WEDNESDAY,key);
-            if (daysList.contains("Thur")) setRepeatedAlarm(i++,Calendar.THURSDAY,key);
-            if (daysList.contains("Fri"))  setRepeatedAlarm(i++,Calendar.FRIDAY,key);
-            if (daysList.contains("Sat"))  setRepeatedAlarm(i++,Calendar.SATURDAY,key);
+            if (daysList.contains("Sun"))  setRepeatedAlarm(i++,Calendar.SUNDAY,key,title);
+            if (daysList.contains("Mon"))  setRepeatedAlarm(i++,Calendar.MONDAY,key,title);
+            if (daysList.contains("Tue"))  setRepeatedAlarm(i++,Calendar.TUESDAY,key,title);
+            if (daysList.contains("Wed"))  setRepeatedAlarm(i++,Calendar.WEDNESDAY,key,title);
+            if (daysList.contains("Thur")) setRepeatedAlarm(i++,Calendar.THURSDAY,key,title);
+            if (daysList.contains("Fri"))  setRepeatedAlarm(i++,Calendar.FRIDAY,key,title);
+            if (daysList.contains("Sat"))  setRepeatedAlarm(i++,Calendar.SATURDAY,key,title);
         }
     }
 
-    public void setRepeatedAlarm(int i,int day,String key) {
+    public void setRepeatedAlarm(int i,int day,String key,String title) {
         Intent intent=new Intent(this,NotifierAlarm.class);
         stopService(intent);
 //        updateHourAndMinutesInCalendar();
@@ -455,6 +458,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         date=c.getTime();
         intent.putExtra("Pending_key",key.hashCode() + i);
         intent.putExtra("date",date.getTime());
+        intent.putExtra("title",title);
         intent.putExtra("key",key);
         intent.putExtra("userName",userName);
         startService(intent);

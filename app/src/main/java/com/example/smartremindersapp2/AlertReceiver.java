@@ -69,6 +69,8 @@ public class AlertReceiver extends BroadcastReceiver {
                 .getSharedPreferences("U",Context.MODE_PRIVATE);
         SharedPreferences.Editor editor=sharedPreferences.edit();
         String key=intent.getStringExtra("key");
+        String title=intent.getStringExtra("title");
+
         System.out.println("the key in the AlertReceiver is: "+key);
         editor.putString("Current Ring Key",key);
         editor.commit();
@@ -77,7 +79,7 @@ public class AlertReceiver extends BroadcastReceiver {
 //        SetNewAlarmsIfRepeating(key,usr_name);
         NotificationHelper notificationHelper = new NotificationHelper(context);
         Notification nb = notificationHelper.getChannelNotification(intent.getStringExtra("key")
-                ,all_alarms.class,"Alarm!","Your AlarmManager is working.","","alarm","","","","");
+                ,all_alarms.class,"Alarm!",title,"","alarm","","","","");
         notificationHelper.getManager().notify(key.hashCode(), nb);
         ringtone = RingtoneManager.getRingtone(context, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE));
         new CountDownTimer(30*1000, 1000){
