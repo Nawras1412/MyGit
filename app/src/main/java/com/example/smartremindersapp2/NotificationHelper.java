@@ -201,7 +201,7 @@ public class NotificationHelper extends ContextWrapper {
 
         if(cadHTTP!=""){
 
-
+            System.out.println("category notification  "+Title+": "+ category +" found nearby ");
 
             //String category= String.valueOf((ref.child("locationAsString").get()));
             //System.out.println("categpry "+  category);
@@ -233,7 +233,8 @@ public class NotificationHelper extends ContextWrapper {
 //            builder.addAction(R.drawable.ic_cancel, "Choose Another", pendingIntent);
 //            notification=builder.build();
         }
-        if (name.equals("alarm")){
+
+        else if (name.equals("alarm") ){
             System.out.println("alarm journy 4444");
             notification = new NotificationCompat.Builder(this, channelID)
                     .setContentTitle(Title)
