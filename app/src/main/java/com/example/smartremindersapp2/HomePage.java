@@ -260,7 +260,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         if(calendar.getTime().getHours()>=12 &&
                 calendar.getTime().getHours()<17) {
             btn_color=R.color.black;
-            texts_color=R.color.black;
+            texts_color=R.color.white;
             backgroungImage= R.drawable.image3;
             time = "Good Afternoon, ";
         }
