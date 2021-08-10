@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/AppTheme"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
 
     <LinearLayout
         android:id="@+id/background_layout"
         android:layout_width="415dp"
-        android:layout_height="270dp"
+        android:layout_height="300dp"
         android:layout_gravity="center"
         android:background="#CCCCFF"
         android:backgroundTint="#8C8080"
@@ -23,9 +26,43 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/dialog_layout"
             android:layout_width="415dp"
-            android:layout_height="270dp"
+            android:layout_height="300dp"
             android:background="#2E2D2D">
 
+
+
+            <Chronometer
+                android:id="@+id/simpleChronometer2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#E8DFDF"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/all_audios2"
+                app:layout_constraintHorizontal_bias="0.631"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.787" />
+
+            <ScrollView
+                android:id="@+id/all_audios2"
+                android:layout_width="256dp"
+                android:layout_height="75dp"
+                android:scrollbars="none"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.452"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.737">
+
+                <LinearLayout
+                    android:id="@+id/kinear_all_audios"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </ScrollView>
 
             <EditText
                 android:id="@+id/Title"
@@ -89,10 +126,10 @@
                 android:textColor="#000000"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.91"
+                app:layout_constraintHorizontal_bias="0.953"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.929" />
+                app:layout_constraintVertical_bias="0.937" />
 
             <ImageButton
                 android:id="@+id/cancel_Btn"
@@ -109,10 +146,10 @@
             <EditText
                 android:id="@+id/descriptionTextView"
                 android:layout_width="377dp"
-                android:layout_height="126dp"
+                android:layout_height="88dp"
                 android:backgroundTint="#807373"
                 android:ems="10"
-                android:hint="Description!"
+                android:hint="Add Description!"
                 android:inputType="textMultiLine|textPersonName"
                 android:textColor="#A5A2A2"
                 android:textColorHint="#A5A2A2"
@@ -120,7 +157,38 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.21"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.32" />
+
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+
+                android:id="@+id/recordBtn2"
+                android:layout_width="49dp"
+                android:layout_height="49dp"
+                app:backgroundTint="#FDC53A"
+
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.03"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.661"
+                app:srcCompat="@drawable/ic_baseline_keyboard_voice_24"></com.google.android.material.floatingactionbutton.FloatingActionButton>
+
+            <!--            <ImageView-->
+<!--                android:id="@+id/recordBtn2"-->
+<!--                android:layout_width="50dp"-->
+<!--                android:layout_height="51dp"-->
+<!--                android:background="#FDC53A"-->
+
+<!--                app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                app:layout_constraintEnd_toEndOf="parent"-->
+<!--                app:layout_constraintHorizontal_bias="0.043"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent"-->
+<!--                app:layout_constraintVertical_bias="0.674"-->
+<!--                app:srcCompat="@drawable/ic_baseline_keyboard_voice_24" />-->
 
             <!--    <EditText-->
             <!--        android:id="@+id/description"-->

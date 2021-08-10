@@ -137,6 +137,7 @@
         android:layout_width="42dp"
         android:layout_height="52dp"
         android:backgroundTint="#00FFFFFF"
+        android:saveEnabled="false"
         android:src="@drawable/ic_baseline_lock_24"
         android:tint="#D6D3D3"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -363,7 +363,7 @@ public class NotifierAlarm extends Service {
                 .setContentIntent(pendingIntent)
                 .build();
         notification.flags = Notification.FLAG_AUTO_CANCEL;
-        startForeground(1,notification);
+        startForeground(0,notification);
 
         SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
         SharedPreferences.Editor editor=sharedPreferences.edit();

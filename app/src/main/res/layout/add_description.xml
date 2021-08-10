@@ -16,7 +16,7 @@
 
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/recordBtn"
+            android:id="@+id/recordBtn2"
             android:layout_width="49dp"
             android:layout_height="49dp"
             app:backgroundTint="#FDC53A"
@@ -29,30 +29,17 @@
             app:srcCompat="@drawable/ic_baseline_keyboard_voice_24"></com.google.android.material.floatingactionbutton.FloatingActionButton>
 
         <Chronometer
-            android:id="@+id/simpleChronometer"
+            android:id="@+id/simpleChronometer2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#E8DFDF"
             android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/all_audios."
+            app:layout_constraintEnd_toStartOf="@+id/all_audios2"
             app:layout_constraintHorizontal_bias="0.704"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.761" />
-
-        <ImageButton
-            android:layout_width="45dp"
-            android:layout_height="42dp"
-            android:backgroundTint="#2E2D2D"
-            android:tint="#E4DCC6"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.956"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.202"
-            app:srcCompat="@drawable/ic_baseline_keyboard_voice_24" />
 
         <Button
             android:id="@+id/cancel_desc_dialog"
@@ -95,13 +82,13 @@
             android:textColorHint="#B69797"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.385"
+            app:layout_constraintHorizontal_bias="0.373"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.01" />
+            app:layout_constraintVertical_bias="0.026" />
 
         <ScrollView
-            android:id="@+id/all_audios."
+            android:id="@+id/all_audios2"
             android:layout_width="256dp"
             android:layout_height="75dp"
             android:scrollbars="none"

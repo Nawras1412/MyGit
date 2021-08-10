@@ -8,7 +8,6 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.content.ClipData;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,7 +30,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.webkit.MimeTypeMap;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Chronometer;
@@ -63,9 +61,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
 
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
@@ -139,7 +135,7 @@ public class addReminder extends AppCompatActivity {
     private FloatingActionButton btn_food,btn_other,btn_office,btn_car,btn_shop,btn_book,btn_medical,btn_money;
     private ExtendedFloatingActionButton btn_food_res,btn_food_cafe,btn_food_bakery,btn_money_bank,btn_money_atm,btn_medical_hospital,btn_medical_pharmacy,btn_car_wash,btn_car_repair,btn_car_gas,btn_car_parking,btn_shop_supermarket,btn_shop_mall,btn_office_laywer,btn_office_acoounting,btn_office_police,btn_office_post_office,btn_book_library,btn_book_uni,btn_book_book_store;
     private int currentPosition=0;
-    private SeekBar seekBar;
+    private SeekBar seekBar2;
     private boolean play=false;
     private Handler handler=new Handler();
     private String PathName="";
@@ -413,13 +409,18 @@ public class addReminder extends AppCompatActivity {
         removeDescription=add_reminder_dialog.findViewById(R.id.RemoveLocation);
     }
 
-    public void InitializeTheDialogIfEdit(reminders_view oldReminder){
+    public void InitializeTheDialogIfEdit(reminders_view oldReminder) {
+        all_audios_list = oldReminder.getAudios();
         title.setText(oldReminder.getTitle());
-        if (oldReminder.getDescription() != null)
-            ExpandDialogAndSetData2(removeDescription,addDescriptionImage,DescriptionTextView, oldReminder.getDescription().trim(), "Description");
+        if (oldReminder.getDescription() != null || oldReminder.getAudios() != null) {
+            String content = "";
+            if (oldReminder.getDescription() != null) content += " +Description";
+            if (oldReminder.getAudios() != null) content += " +Audio";
 
-        if (oldReminder.getType().equals("Date")) {
-            String hour,minutes;
+            ExpandDialogAndSetData2(removeDescription, addDescriptionImage, DescriptionTextView, content, "Description");
+        }
+        if (oldReminder.getType().equals("Date")){
+            String hour, minutes;
             Date date = oldReminder.getDate();
             if (Integer.toString(date.getHours()).length() == 1)
                 hour = "0" + Integer.toString(date.getHours());
@@ -432,12 +433,39 @@ public class addReminder extends AppCompatActivity {
                 minutes = Integer.toString(date.getMinutes());
             String formattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(date);
             formattedDate = formattedDate + " - " + hour + ":" + minutes;
-            ExpandDialogAndSetData2(removeDate,selectDateImage,TimeTextView, formattedDate, "Time");
+            ExpandDialogAndSetData2(removeDate, selectDateImage, TimeTextView, formattedDate, "Time");
         }
 
-        if (oldReminder.getType().equals("Location") )
-            ExpandDialogAndSetData2(removeLocation,locationImage, LocationTextView
-                    , oldReminder.getLocationAsString(), "Location");
+        if (oldReminder.getType().equals("Location")) {
+            if (oldReminder.getLocationAsString().equals("Other")) {
+                locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_search));
+                System.out.println("oldReminder.getLocation()  " + oldReminder.getLocation());
+                System.out.println("oldReminder.get other()  " + oldReminder.getTitle());
+                ExpandDialogAndSetData2(removeLocation, locationImage, LocationTextView
+                        , oldReminder.getLocation(), "Location");
+
+                LocationTextView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        List<Place.Field> fieldList = Arrays.asList(Place.Field.ADDRESS, Place.Field.LAT_LNG, Place.Field.NAME, Place.Field.TYPES);
+                        Intent intentL = new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fieldList).setCountry("IL").build(HomePage.getInstance());
+                        HomePage.getInstance().startActivityForResult(intentL, 100);
+                    }
+                });
+                LocationTextView.setEnabled(true);
+                LocationTextView.setVisibility(View.VISIBLE);
+                //LocationTextView.setAutofillHints("tab to search");
+                //LocationTextView.setText(oldReminder.getlocation());
+                //LocationTextView.setAutofillHints("tab to search");
+            } else {
+                ExpandDialogAndSetData2(removeLocation, locationImage, LocationTextView
+                        , oldReminder.getLocationAsString(), "Location");
+            }
+
+            //
+            //            ExpandDialogAndSetData2(removeLocation,locationImage, LocationTextView
+            //                    , oldReminder.getLocationAsString(), "Location");
+        }
     }
 
     public void openDialog(boolean edit,reminders_view oldReminder,int position){
@@ -506,6 +534,7 @@ public class addReminder extends AppCompatActivity {
                 else
                     reminder.setMessage(title.getText().toString());
                 reminder.setState(true);
+                reminder.setLocation(address);
                 reminder.setMyType(checkType());
                 if(!edit&& delete) {
                     reminder.setKey(keyRef.getKey());
@@ -527,6 +556,7 @@ public class addReminder extends AppCompatActivity {
                 if(reminder.getMyType().equals("Location") && reminder.getLocationAsString().equals("Other")&& delete)
                 {
                     System.out.println("GOT IN SETTIG LANG AmD LAT");
+                    reminder.setLocation(address);
                     reminder.setLAT(lat);
                     reminder.setLNG(lang);
                     keyRef=ref.child(reminder.getKey());
@@ -1006,13 +1036,13 @@ public class addReminder extends AppCompatActivity {
 
                 add_description_dialog = new Dialog(add_reminder_dialog.getContext());
                 add_description_dialog.setContentView(R.layout.add_description);
-                Chronometer simpleChronometer = add_description_dialog.findViewById(R.id.simpleChronometer); // initiate a chronometer
+                Chronometer simpleChronometer = add_description_dialog.findViewById(R.id.simpleChronometer2); // initiate a chronometer
 
-                all_audios=add_description_dialog.findViewById(R.id.all_audios_);
+                all_audios=add_description_dialog.findViewById(R.id.all_audios2);
                 delete_audio=add_description_dialog.findViewById(R.id.delete_audio);
                 save_description = add_description_dialog.findViewById(R.id.save_description);
                 cancel_desc_dialog = add_description_dialog.findViewById(R.id.cancel_desc_dialog);
-                mRecordBtn = add_description_dialog.findViewById(R.id.recordBtn);
+                mRecordBtn = add_description_dialog.findViewById(R.id.recordBtn2);
                 AddDescriptionEditText = add_description_dialog.findViewById(R.id.AddDescriptionEditText);
                 AddDescriptionEditText.setFocusedByDefault(true);
                 if (reminder.getDescription() != null) {
@@ -1028,7 +1058,7 @@ public class addReminder extends AppCompatActivity {
                         View view= inflater.inflate(R.layout.one_audio,audios,false);
                         ImageView playAudio=view.findViewById(R.id.playAudio);
                         ImageView deleteAudio=view.findViewById(R.id.delete_audio);
-                        seekBar=view.findViewById(R.id.seekBar);
+                        SeekBar seekBar=view.findViewById(R.id.seekBar);
                         view.setTag(all_audios_list.get(i));
                         audios.addView(view);
                         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -1052,6 +1082,7 @@ public class addReminder extends AppCompatActivity {
                         playAudio.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v){
+                                seekBar2=seekBar;
                                 if (play)
                                     play = false;
                                 else
@@ -1098,7 +1129,8 @@ public class addReminder extends AppCompatActivity {
                 AddDescriptionEditText.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        if(!AddDescriptionEditText.getText().toString().isEmpty())
+                        if(!AddDescriptionEditText.getText().toString().isEmpty()
+                        || all_audios_list.size()!=0)
                             save_description.setEnabled(true);
                         else
                             save_description.setEnabled(false);
@@ -1221,13 +1253,17 @@ public class addReminder extends AppCompatActivity {
         View view= inflater.inflate(R.layout.one_audio,audios,false);
         ImageView playAudio=view.findViewById(R.id.playAudio);
         ImageView deleteAudio=view.findViewById(R.id.delete_audio);
-        seekBar=view.findViewById(R.id.seekBar);
+        SeekBar seekBar=view.findViewById(R.id.seekBar);
         view.setTag(PathName);
         audios.addView(view);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(fromUser) mediaPlayer.seekTo(progress);
+            public void onProgressChanged(SeekBar seekBar2, int progress, boolean fromUser) {
+
+                if(fromUser){
+                    mediaPlayer.seekTo(progress);
+                    System.out.println("im in seekbar...");
+                }
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -1245,6 +1281,7 @@ public class addReminder extends AppCompatActivity {
         playAudio.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
+                seekBar2=seekBar;
                 if (play)
                     play = false;
                 else
@@ -1272,7 +1309,7 @@ public class addReminder extends AppCompatActivity {
                     handler.post(updateSeekBar);
                 } else {
                     System.out.println("play is false");
-                    if (mediaPlayer != null) {
+                    if(mediaPlayer != null) {
 //                        mediaPlayer.stop();
 //                        mediaPlayer.release();
                         mediaPlayer.pause();
@@ -1288,11 +1325,13 @@ public class addReminder extends AppCompatActivity {
     public class UpdateSeekBar implements Runnable{
         @Override
         public void run() {
-            seekBar.setProgress(mediaPlayer.getCurrentPosition());
+            seekBar2.setProgress(mediaPlayer.getCurrentPosition());
             handler.postDelayed(this,100);
             if(mediaPlayer.getCurrentPosition()==mediaPlayer.getDuration()) {
-                seekBar.setProgress(0);
+                System.out.println("im in run...");
+                seekBar2.setProgress(0);
                 play=true;
+
             }
         }
     }

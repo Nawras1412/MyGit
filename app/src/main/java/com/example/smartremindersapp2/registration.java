@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,7 +15,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 
@@ -40,35 +44,55 @@ public class registration extends AppCompatActivity {
         EmailText = findViewById(R.id.Email_r);
         PassWardText = findViewById(R.id.password_r);
         ConfirmPassWardText = findViewById(R.id.ConfirmPassword_r);
+        List<String> users=new ArrayList<>();
+        ref=FirebaseDatabase.getInstance().getReference().child("Users");
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                    User user= ds.getValue(User.class);
+//                    HashMap user = ds.getValue(HashMap.class);
+                    System.out.println(user.getUserName());
+                    users.add(user.getUserName());
+                }
+//                for (DataSnapshot snapshot:dataSnapshot.getChildren()){
+//                    System.out.println(((String)snapshot.getValue()));
+////                    users.add((String)snapshot.getValue());
+//                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {}
+        });
+        UserNameText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void afterTextChanged(Editable s) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(users.contains(UserNameText.getText().toString()))
+                    AuxiliaryFunctions.SetErrorOnTextView(UserNameText,"user name already exist");
+                else
+                    UserNameText.setError(null);
+            }
+
+
+        });
     }
 
     public void Registration(View view) {
         List<String> TheError=checkRegistrationData(NameText,UserNameText,EmailText,PassWardText,ConfirmPassWardText);
         boolean legal=Exeptions(TheError);
-        if (legal==true){
-            ref=FirebaseDatabase.getInstance().getReference().child("Users").child(UserNameText.getText().toString());
-            ref.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if(dataSnapshot.exists()){
-                        AuxiliaryFunctions.SetErrorOnTextView(UserNameText,"user name already exist");
-                    } else {
-                        User user = new User(NameText.getText().toString(), UserNameText.getText().toString(), EmailText.getText().toString(),
-                                PassWardText.getText().toString());
-                        SaveInDatabase.saveUser(user);
-                        AuxiliaryFunctions opendialog=AuxiliaryFunctions.getInstance();
-                        opendialog.openDialogD(getSupportFragmentManager());
-
-
-                        SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
-                        SharedPreferences.Editor editor=sharedPreferences.edit();;
-                        editor.putInt("AlarmsNum",0);
-                        editor.commit();
-                    }
-                }
-                @Override
-                public void onCancelled(DatabaseError databaseError) {}
-            });
+        if (legal==true && UserNameText.getError()==null){
+            User user = new User(NameText.getText().toString(), UserNameText.getText().toString(), EmailText.getText().toString(),
+                    PassWardText.getText().toString());
+            SaveInDatabase.saveUser(user);
+            AuxiliaryFunctions opendialog=AuxiliaryFunctions.getInstance();
+            opendialog.openDialogD(getSupportFragmentManager());
+            SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
+            SharedPreferences.Editor editor=sharedPreferences.edit();;
+            editor.putInt("AlarmsNum",0);
+            editor.commit();
         }
     }
 

@@ -26,7 +26,17 @@ public class Reminder {
     private Double LAT;
     private Double LNG;
     private boolean state;
+
+    public String getLocation() {
+        return Location;
+    }
+
+    public void setLocation(String location) {
+        Location = location;
+    }
+
     private String LocationAsString;
+    private String Location;
     private List<String> audios;
     private String MyType;
     private boolean DateState;

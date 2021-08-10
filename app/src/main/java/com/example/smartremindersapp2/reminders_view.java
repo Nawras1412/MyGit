@@ -18,20 +18,32 @@ public class reminders_view {
     private String key;
     private Switch Switch;
     private String type;
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    private String location;
     private String LocationAsString;
     private ImageView Delete_Button;
     private List<String> audios;
 
 
     public reminders_view(String Key, String title, String description , String type,Date date,
-                          String location) {
+                          String location,String address,List<String> audioArr) {
         this.key = Key;
         this.Title = title;
         this.type=type;
+        this.location=address;
         this.description = description;
         this.date=date;
         this.LocationAsString=location;
-        this.audios=new ArrayList<>();
+//        this.audios=new ArrayList<>();
+        this.audios=audioArr;
     }
     public reminders_view() {}
     public List<String> getAudios(){return audios;}

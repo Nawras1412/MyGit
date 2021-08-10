@@ -11,10 +11,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -24,7 +27,7 @@ import java.util.Date;
 import static android.content.Context.*;
 
 
-public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramindViewHolder> {
+public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramindViewHolder>{
     private static ArrayList<reminders_view> mRemind_view_list;
     private String username;
     private Context mcontext;
@@ -70,15 +73,17 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (listener != null) {
+                    if (listener != null)  {
                         int position = getAdapterPosition();
                         if (position != RecyclerView.NO_POSITION) {
                             listener.onItemClick(position);
                             //get the position of the edited alarm
-                            Dialog dialog = new Dialog(mcontext);
+//                            Dialog dialog = new Dialog(mcontext);
                             reminders_view currentReminder=mRemind_view_list.get(position);
+                            System.out.println("currentReminder.getAudios().size()"
+                            +currentReminder.getAudios().size());
                             if(currentReminder.getType().equals("Todo List")) {
-                                dialog.setContentView(R.layout.todo_list);
+                                //dialog.setContentView(R.layout.anna_reminder);
                                 addTodoList a=new addTodoList(username);
                                 a.openDialog(true,currentReminder,position);
 //                                SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
@@ -86,7 +91,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
 //                                editor.putString("key of edited todo list",)
                             }
                             else{
-                                dialog.setContentView(R.layout.add_reminder);
+//                                dialog.setContentView(R.layout.add_reminder);
                                 addReminder a=new addReminder(username);
                                 a.openDialog(true,currentReminder,position);
                             }
@@ -156,6 +161,9 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
 
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("reminder_list").child(currentReminer.getKey());
+//        StorageReference filePath = FirebaseStorage.getInstance().getReference()
+//                .child("Users").child(username).child("Audio").child(currentReminer.getKey());
+
         holder.DeleteB.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
@@ -164,7 +172,9 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
                     System.out.println("its not null");
                     addReminder cancelR=new addReminder();
                     cancelR.cancelNotification(currentReminer.getKey(),mcontext);
+
                 }
+//                filePath.delete();
                 ref.removeValue();
                 mRemind_view_list.remove(position);
                 if(mRemind_view_list.isEmpty())
@@ -172,7 +182,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
                 notifyDataSetChanged();
                 NotificationManager manager=(NotificationManager) mcontext.getApplicationContext()
                         .getSystemService(NOTIFICATION_SERVICE);
-                manager.cancelAll();
+                manager.cancel(currentReminer.getKey().hashCode());
             }
 
         });

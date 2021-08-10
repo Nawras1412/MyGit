@@ -124,7 +124,7 @@ public class GooglePlacesClient
             Notification nb = notificationHelper.getChannelNotification(key
                     , HomePage.class, title, content,cadHTTP,Name,address,category,lat1,lang1);
             System.out.println("after  Notification nb");
-            notificationHelper.getManager().notify(0, nb);
+            notificationHelper.getManager().notify(key.hashCode(), nb);
             System.out.println("after  getManager");
         }
         return cadHTTP;
