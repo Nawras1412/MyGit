@@ -382,6 +382,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
     }
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void startAlarm(String key,boolean status,String title) {
+        System.out.println("alarm journy 1111");
 //        int i = 0;
 //        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 //        Intent intent = new Intent(this, AlertReceiver.class);
@@ -420,6 +421,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
             if (daysList.contains("Fri"))  setRepeatedAlarm(i++,Calendar.FRIDAY,key,title);
             if (daysList.contains("Sat"))  setRepeatedAlarm(i++,Calendar.SATURDAY,key,title);
         }
+        System.out.println("alarm journy out 1111");
     }
 
     public void setRepeatedAlarm(int i,int day,String key,String title) {

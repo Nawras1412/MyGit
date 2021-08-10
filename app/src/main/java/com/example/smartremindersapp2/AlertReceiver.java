@@ -65,6 +65,7 @@ public class AlertReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent){
+        System.out.println("alarm journy 33333");
         SharedPreferences sharedPreferences=context
                 .getSharedPreferences("U",Context.MODE_PRIVATE);
         SharedPreferences.Editor editor=sharedPreferences.edit();

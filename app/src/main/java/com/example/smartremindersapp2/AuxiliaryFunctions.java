@@ -57,9 +57,9 @@ public class AuxiliaryFunctions extends AppCompatActivity {
     }
 
     public void closeDrawer(DrawerLayout drawerLayout) {
-//        if (drawerLayout.isDrawerOpen(GravityCompat.START)){
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)){
         drawerLayout.closeDrawer(GravityCompat.START);
-//        }
+        }
     }
 
 

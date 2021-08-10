@@ -11,26 +11,37 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
+        app:layout_constraintStart_toStartOf="parent"
 
 
-        <!--        <include layout="@layout/main_toolbar" />-->
+        <include
+            layout="@layout/main_toolbar"
+            android:layout_width="match_parent"
+
+            android:layout_height="60dp"
+            android:background="#2C2929"
+            android:backgroundTint="#575050" />
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="545dp"
             android:background="#2E2D2D"
-            tools:context=".all_alarms">
+
+            app:layout_constraintStart_toStartOf="parent"
+            tools:context=".all_alarms"
+            tools:layout_editor_absoluteY="-10dp">
 
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycleView"
                 android:layout_width="match_parent"
-                android:layout_height="468dp"
+                android:layout_height="510dp"
                 android:layout_alignWithParentIfMissing="true"
                 android:layout_alignParentStart="false"
-                android:layout_centerInParent="true"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
                 android:layout_marginEnd="0dp"
-                android:layout_marginBottom="45dp"
+                android:layout_marginBottom="-1dp"
                 android:background="#2E2D2D"
                 android:padding="15dp"
                 android:scrollbars="vertical" />
@@ -43,10 +54,10 @@
                 android:layout_alignParentTop="true"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentBottom="true"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="23dp"
-                android:layout_marginEnd="261dp"
-                android:layout_marginBottom="543dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="273dp"
+                android:layout_marginBottom="495dp"
                 android:text="My Alarms"
                 android:textColor="#D3D4DA"
                 android:textSize="28sp"
@@ -64,10 +75,8 @@
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@+id/recycleView"
                 android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true"
                 android:layout_alignParentEnd="true"
                 android:layout_marginStart="81dp"
-                android:layout_marginTop="208dp"
                 android:layout_marginEnd="80dp"
                 android:layout_marginBottom="178dp"
                 android:gravity="center"
@@ -104,23 +113,18 @@
 
     </LinearLayout>
 
+
+
     <RelativeLayout
-        android:layout_width="match_parent"
+        android:layout_width="300dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@android:color/white">
 
         <include
-            layout="@layout/main_nav_drawer"/>
-
-        <Switch
-            android:id="@+id/switch1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Switch" />
+            layout="@layout/main_nav_drawer"
+            android:backgroundTint="#B88787" />
 
 
     </RelativeLayout>
-
-
 </androidx.drawerlayout.widget.DrawerLayout>

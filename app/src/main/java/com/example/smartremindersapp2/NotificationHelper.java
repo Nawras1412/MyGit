@@ -234,6 +234,7 @@ public class NotificationHelper extends ContextWrapper {
 //            notification=builder.build();
         }
         if (name.equals("alarm")){
+            System.out.println("alarm journy 4444");
             notification = new NotificationCompat.Builder(this, channelID)
                     .setContentTitle(Title)
                     .setContentText(Content)
@@ -241,8 +242,8 @@ public class NotificationHelper extends ContextWrapper {
                     .setPriority(Notification.PRIORITY_HIGH) // addition
                     .setSmallIcon(R.drawable.ic_alarm).setContentIntent(pendingIntent1)
                     .setOngoing(true).setCategory(Notification.CATEGORY_SERVICE)
-                    .addAction(R.drawable.ic_cancel, "Dismiss", pendingIntent1)
                     .addAction(R.drawable.ic_cancel, "SNOOZE", pendingIntent4)
+                    .addAction(R.drawable.ic_cancel, "Dismiss", pendingIntent1)
                     .build();
 
         }

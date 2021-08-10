@@ -50,6 +50,7 @@ public class all_alarms extends AppCompatActivity {
     private SharedPreferences.Editor editor;
     private int hour;
     private int minutes;
+    private boolean snooze;
     private static TextView instruction;
 
 
@@ -58,6 +59,7 @@ public class all_alarms extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //snooze=false;
         userName=getSharedPreferences("U",MODE_PRIVATE).
                 getString("username",null);
         try{
@@ -88,10 +90,13 @@ public class all_alarms extends AppCompatActivity {
                 HashMap map2 = new HashMap();
                 map2.put("date", afterAdding10Mins);
                 map2.put("checked", true);
+                map2.put("minutes", afterAdding10Mins.getMinutes());
+                map2.put("hour", afterAdding10Mins.getHours());
                 System.out.println("3.5");
                 ref.child(key).updateChildren(map2);
                 System.out.println("4444");
                 alarm_clock AC=new alarm_clock();
+                snooze=true;
                 AC.startAlarm(key,true,this.getIntent().getStringExtra("title"));
 //                NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext());
 //                Notification nb = notificationHelper.getChannelNotification(key
@@ -137,7 +142,7 @@ public class all_alarms extends AppCompatActivity {
                         if(snapshot.getValue()==null) {
                             System.out.println("im in snapshot.getValue()==null");
                             HashMap map = new HashMap();
-                            map.put("checked", false); // must be checked
+                           map.put("checked", false); // must be checked
                             ref.updateChildren(map);
                         }
                         else{

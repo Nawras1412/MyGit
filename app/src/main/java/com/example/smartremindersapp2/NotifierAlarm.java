@@ -347,6 +347,7 @@ public class NotifierAlarm extends Service {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        System.out.println("alarm journy 2222");
         k=0;
         stopring=true;
         killTimer=false;
