@@ -1,6 +1,7 @@
 package com.example.smartremindersapp2;
 
 import android.annotation.SuppressLint;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
@@ -28,6 +29,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+
+import static android.content.Context.NOTIFICATION_SERVICE;
 
 //int[][] states = new int[][] {
 //        new int[] {-android.R.attr.state_checked},
@@ -242,6 +245,9 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
                            all_alarms AC = new all_alarms();
                            AC.cancelAlarm(currentAlarm,mcontext);
                        }
+                       NotificationManager manager=(NotificationManager) mcontext.getApplicationContext()
+                               .getSystemService(NOTIFICATION_SERVICE);
+                       manager.cancel(currentAlarm.getKey().hashCode());
                        ref.removeValue();
                        mAlram_view_list.remove(position);
                        if(mAlram_view_list.isEmpty())

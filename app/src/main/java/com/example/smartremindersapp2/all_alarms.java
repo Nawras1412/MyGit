@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -55,6 +56,21 @@ public class all_alarms extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        try{
+        if(this.getIntent().getStringExtra("type").equals("Dismiss")) {
+            String key=this.getIntent().getStringExtra("key");
+            addReminder add_remind =new addReminder();
+            NotificationManager manager=(NotificationManager) getApplicationContext()
+                    .getSystemService(NOTIFICATION_SERVICE);
+            manager.cancel(key.hashCode());
+            add_remind.cancelNotification(key,HomePage.getInstance());
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
+            ref.removeValue();
+
+        }}
+        catch(Exception ex){
+            System.out.println("in catch");
+        }
         System.out.println("im in all_alarms onCreate");
         msharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
         editor=msharedPreferences.edit();

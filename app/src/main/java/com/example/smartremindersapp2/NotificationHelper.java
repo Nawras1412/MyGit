@@ -232,6 +232,18 @@ public class NotificationHelper extends ContextWrapper {
 //            builder.addAction(R.drawable.ic_cancel, "Choose Another", pendingIntent);
 //            notification=builder.build();
         }
+        if (name.equals("alarm")){
+            notification = new NotificationCompat.Builder(this, channelID)
+                    .setContentTitle(Title)
+                    .setContentText(Content)
+                    .setAutoCancel(true)
+                    .setPriority(Notification.PRIORITY_HIGH) // addition
+                    .setSmallIcon(R.drawable.ic_alarm).setContentIntent(pendingIntent1)
+                    .setOngoing(true).setCategory(Notification.CATEGORY_SERVICE)
+                    .addAction(R.drawable.ic_cancel, "Dismiss", pendingIntent1)
+                    .build();
+
+        }
         else{
             notification = new NotificationCompat.Builder(this, channelID)
                     .setContentTitle(Title)

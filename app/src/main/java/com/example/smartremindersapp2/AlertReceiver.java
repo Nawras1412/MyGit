@@ -77,8 +77,8 @@ public class AlertReceiver extends BroadcastReceiver {
 //        SetNewAlarmsIfRepeating(key,usr_name);
         NotificationHelper notificationHelper = new NotificationHelper(context);
         Notification nb = notificationHelper.getChannelNotification(intent.getStringExtra("key")
-                ,all_alarms.class,"Alarm!","Your AlarmManager is working.","","","","","","");
-        notificationHelper.getManager().notify(0, nb);
+                ,all_alarms.class,"Alarm!","Your AlarmManager is working.","","alarm","","","","");
+        notificationHelper.getManager().notify(key.hashCode(), nb);
         ringtone = RingtoneManager.getRingtone(context, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE));
         new CountDownTimer(30*1000, 1000){
             @Override
