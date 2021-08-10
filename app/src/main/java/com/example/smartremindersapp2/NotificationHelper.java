@@ -179,6 +179,7 @@ public class NotificationHelper extends ContextWrapper {
         Intent notificationIntent4 = new Intent(this, returnedPage);
         notificationIntent4.putExtra("key",key);
         notificationIntent4.putExtra("type","SNOOZE");
+        notificationIntent4.putExtra("title",Title);
         PendingIntent pendingIntent4=PendingIntent.getActivity(this,key.hashCode()+3
                 ,notificationIntent4,PendingIntent.FLAG_UPDATE_CURRENT);
 //        Bundle extras = new Bundle();
@@ -241,6 +242,7 @@ public class NotificationHelper extends ContextWrapper {
                     .setSmallIcon(R.drawable.ic_alarm).setContentIntent(pendingIntent1)
                     .setOngoing(true).setCategory(Notification.CATEGORY_SERVICE)
                     .addAction(R.drawable.ic_cancel, "Dismiss", pendingIntent1)
+                    .addAction(R.drawable.ic_cancel, "SNOOZE", pendingIntent4)
                     .build();
 
         }

@@ -381,7 +381,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         else AlarmDate.setText(daysList.substring(0,daysList.length()-2));
     }
     @RequiresApi(api = Build.VERSION_CODES.M)
-    private void startAlarm(String key,boolean status,String title) {
+    public void startAlarm(String key,boolean status,String title) {
 //        int i = 0;
 //        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 //        Intent intent = new Intent(this, AlertReceiver.class);

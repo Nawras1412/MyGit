@@ -27,7 +27,7 @@ public class alarm_view {
 
     public alarm_view(){}
 
-
+    public void setDate(Date date) {this.date = date;}
 
     public String getKey() {
         return key;
