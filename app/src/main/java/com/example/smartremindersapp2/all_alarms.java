@@ -60,25 +60,6 @@ public class all_alarms extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         userName=getSharedPreferences("U",MODE_PRIVATE).
                 getString("username",null);
-        System.out.println("im in all_alarms onCreate");
-        msharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
-        editor=msharedPreferences.edit();
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_all_alarms);
-        drawerLayout=findViewById(R.id.drawer_layout);
-        instruction = findViewById(R.id.instructions_A);
-
-        addAlarmImage = findViewById(R.id.imageView);
-        addAlarmImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v){
-                myAuxiliaryFunctions.openNewPage(getApplicationContext(),alarm_clock.class);
-            }
-        });
-        mRecyclerView = findViewById(R.id.recycleView);
-        mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new LinearLayoutManager(this);
-        myAuxiliaryFunctions=AuxiliaryFunctions.getInstance();
         try{
             if(this.getIntent().getStringExtra("type").equals("Dismiss")) {
                 String key=this.getIntent().getStringExtra("key");
@@ -107,7 +88,6 @@ public class all_alarms extends AppCompatActivity {
                 HashMap map2 = new HashMap();
                 map2.put("date", afterAdding10Mins);
                 map2.put("checked", true);
-                map2.put("minutes",afterAdding10Mins.getMinutes());
                 System.out.println("3.5");
                 ref.child(key).updateChildren(map2);
                 System.out.println("4444");
@@ -117,105 +97,76 @@ public class all_alarms extends AppCompatActivity {
 //                Notification nb = notificationHelper.getChannelNotification(key
 //                        ,all_alarms.class,"Alarm!","Your AlarmManager is working.","","alarm","","","","");
 //                notificationHelper.getManager().notify(key.hashCode(), nb);
-            }else{
-                if(AlertReceiver.getRingtone()!=null) {
-                    System.out.println("AlertReceiver.getRingtone()!=null");
-                    if (AlertReceiver.getRingtone().isPlaying()){
-                        System.out.println("AlertReceiver.getRingtone().isPlaying()");
-                        DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(msharedPreferences.getString("Current Ring Key",null));
-                        NotifierAlarm.setKillTimer();
-                        System.out.println("the current is:"+msharedPreferences.getString("Current Ring Key",null));
-                        editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
-                        editor.putInt("AlarmsNum",msharedPreferences.getInt("AlarmsNum",0)-1);
-                        editor.commit();
-                        ref.child("days_date").addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                if(snapshot.getValue()==null) {
-                                    System.out.println("im in snapshot.getValue()==null");
-                                    HashMap map = new HashMap();
-                                    map.put("checked", false); // must be checked
-                                    ref.updateChildren(map);
-                                }
-                                else{
-                                    DatabaseReference ref3=FirebaseDatabase.getInstance().getReference().child("Users")
-                                            .child(userName).child("Alarms").
-                                                    child(msharedPreferences.getString("Current Ring Key",null));
-                                    ref3.addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                            alarm_view alarm=snapshot.getValue(alarm_view.class);
-                                            hour=alarm.getHour();
-                                            minutes=alarm.getMinutes();
-                                            setRepeatedAlarm(alarm.getDays_date().size()+1,msharedPreferences.getString("Current Ring Key",null),true);
-                                        }
-                                        @Override
-                                        public void onCancelled(@NonNull DatabaseError error) {}
-                                    });
-                                }
-                                alarms_list = get_all_the_alarms_from_firebase(userName);
-                            }
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {}
-                        });
-                    }
-                }
-                else {
-                    System.out.println("im in get_all_the_alarms_from_firebase");
-                    alarms_list = get_all_the_alarms_from_firebase(userName);
-                }
             }
         }
         catch(Exception ex){
             System.out.println("in catch");
         }
+        System.out.println("im in all_alarms onCreate");
+        msharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
+        editor=msharedPreferences.edit();
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_all_alarms);
+        drawerLayout=findViewById(R.id.drawer_layout);
+        instruction = findViewById(R.id.instructions_A);
 
-//        if(AlertReceiver.getRingtone()!=null) {
-//            System.out.println("AlertReceiver.getRingtone()!=null");
-//            if (AlertReceiver.getRingtone().isPlaying()){
-//                System.out.println("AlertReceiver.getRingtone().isPlaying()");
-//                DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(msharedPreferences.getString("Current Ring Key",null));
-//                NotifierAlarm.setKillTimer();
-//                System.out.println("the current is:"+msharedPreferences.getString("Current Ring Key",null));
-//                editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
-//                editor.putInt("AlarmsNum",msharedPreferences.getInt("AlarmsNum",0)-1);
-//                editor.commit();
-//                ref.child("days_date").addListenerForSingleValueEvent(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                        if(snapshot.getValue()==null) {
-//                            System.out.println("im in snapshot.getValue()==null");
-//                            HashMap map = new HashMap();
-//                            map.put("checked", false); // must be checked
-//                            ref.updateChildren(map);
-//                        }
-//                        else{
-//                            DatabaseReference ref3=FirebaseDatabase.getInstance().getReference().child("Users")
-//                                    .child(userName).child("Alarms").
-//                                            child(msharedPreferences.getString("Current Ring Key",null));
-//                            ref3.addListenerForSingleValueEvent(new ValueEventListener() {
-//                                @Override
-//                                public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                                    alarm_view alarm=snapshot.getValue(alarm_view.class);
-//                                    hour=alarm.getHour();
-//                                    minutes=alarm.getMinutes();
-//                                    setRepeatedAlarm(alarm.getDays_date().size()+1,msharedPreferences.getString("Current Ring Key",null),true);
-//                                }
-//                                @Override
-//                                public void onCancelled(@NonNull DatabaseError error) {}
-//                            });
-//                        }
-//                        alarms_list = get_all_the_alarms_from_firebase(userName);
-//                    }
-//                    @Override
-//                    public void onCancelled(@NonNull DatabaseError error) {}
-//                });
-//            }
-//        }
-//        else {
-//            System.out.println("im in get_all_the_alarms_from_firebase");
-//            alarms_list = get_all_the_alarms_from_firebase(userName);
-//        }
+        addAlarmImage = findViewById(R.id.imageView);
+        addAlarmImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v){
+                myAuxiliaryFunctions.openNewPage(getApplicationContext(),alarm_clock.class);
+            }
+        });
+        mRecyclerView = findViewById(R.id.recycleView);
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager(this);
+        myAuxiliaryFunctions=AuxiliaryFunctions.getInstance();
+        if(AlertReceiver.getRingtone()!=null) {
+            System.out.println("AlertReceiver.getRingtone()!=null");
+            if (AlertReceiver.getRingtone().isPlaying()){
+                System.out.println("AlertReceiver.getRingtone().isPlaying()");
+                DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(msharedPreferences.getString("Current Ring Key",null));
+                NotifierAlarm.setKillTimer();
+                System.out.println("the current is:"+msharedPreferences.getString("Current Ring Key",null));
+                editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
+                editor.putInt("AlarmsNum",msharedPreferences.getInt("AlarmsNum",0)-1);
+                editor.commit();
+                ref.child("days_date").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if(snapshot.getValue()==null) {
+                            System.out.println("im in snapshot.getValue()==null");
+                            HashMap map = new HashMap();
+                            map.put("checked", false); // must be checked
+                            ref.updateChildren(map);
+                        }
+                        else{
+                            DatabaseReference ref3=FirebaseDatabase.getInstance().getReference().child("Users")
+                                    .child(userName).child("Alarms").
+                                            child(msharedPreferences.getString("Current Ring Key",null));
+                            ref3.addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    alarm_view alarm=snapshot.getValue(alarm_view.class);
+                                    hour=alarm.getHour();
+                                    minutes=alarm.getMinutes();
+                                    setRepeatedAlarm(alarm.getDays_date().size()+1,msharedPreferences.getString("Current Ring Key",null),true);
+                                }
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {}
+                            });
+                        }
+                        alarms_list = get_all_the_alarms_from_firebase(userName);
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
+            }
+        }
+        else {
+            System.out.println("im in get_all_the_alarms_from_firebase");
+            alarms_list = get_all_the_alarms_from_firebase(userName);
+        }
 
         // we must update the switch in the fire database and in the application
         //            String key=NotificationHelper.getKey();
