@@ -63,50 +63,48 @@ public class all_alarms extends AppCompatActivity {
         userName=getSharedPreferences("U",MODE_PRIVATE).
                 getString("username",null);
         try{
-            if(this.getIntent().getStringExtra("type").equals("Dismiss")) {
-                String key=this.getIntent().getStringExtra("key");
+            if(getIntent().getStringExtra("type").equals("Dismiss")) {
+                System.out.println();
+                String key=getIntent().getStringExtra("key");
 //                addReminder add_remind =new addReminder();
-                NotificationManager manager=(NotificationManager) getApplicationContext()
-                        .getSystemService(NOTIFICATION_SERVICE);
-                manager.cancel(key.hashCode());
+//                NotificationManager manager=(NotificationManager) getApplicationContext()
+//                        .getSystemService(NOTIFICATION_SERVICE);
+//                manager.cancel(key.hashCode());
 //                add_remind.cancelNotification(key,HomePage.getInstance());
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
                 ref.removeValue();
-            }else if(this.getIntent().getStringExtra("type").equals("SNOOZE")) {
-                System.out.println("its snooze 11111");
-
-                String key = this.getIntent().getStringExtra("key");
-                System.out.println("key "+key);
-                NotificationManager manager = (NotificationManager) getApplicationContext()
-                        .getSystemService(NOTIFICATION_SERVICE);
-                manager.cancel(key.hashCode());
-                System.out.println("2222");
-                DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms");
-                System.out.println("2.5");
+            }
+            else if(getIntent().getStringExtra("type").equals("SNOOZE")) {
+                System.out.println("im in snooze");
+                String key = getIntent().getStringExtra("key");
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference().
+                        child("Users").child(userName).child("Alarms").child(key);
+                System.out.println("the key is: "+key);
+                HashMap map2 = new HashMap();
+                map2.put("checked", true);
+                ref.updateChildren(map2);
                 Calendar date = Calendar.getInstance();
                 long timeInSecs = date.getTimeInMillis();
-                Date afterAdding10Mins = new Date(timeInSecs + (10 * 60 * 100));
-                System.out.println("33333");
-                HashMap map2 = new HashMap();
-                map2.put("date", afterAdding10Mins);
-                map2.put("checked", true);
-                map2.put("minutes", afterAdding10Mins.getMinutes());
-                map2.put("hour", afterAdding10Mins.getHours());
-                System.out.println("3.5");
-                ref.child(key).updateChildren(map2);
-                System.out.println("4444");
-                alarm_clock AC=new alarm_clock();
-                snooze=true;
-                AC.startAlarm(key,true,this.getIntent().getStringExtra("title"));
-//                NotificationHelper notificationHelper = new NotificationHelper(getApplicationContext());
-//                Notification nb = notificationHelper.getChannelNotification(key
-//                        ,all_alarms.class,"Alarm!","Your AlarmManager is working.","","alarm","","","","");
-//                notificationHelper.getManager().notify(key.hashCode(), nb);
+                Date afterAdding10Mins = new Date(timeInSecs + ( 60 * 1000));
+                System.out.println("the minutes of the new alarm is: "+afterAdding10Mins.getMinutes());
+                System.out.println("the hours of the new alarm is: "+afterAdding10Mins.getHours());
+
+
+                Intent ServiceIntent=new Intent(this,NotifierAlarm.class);
+                stopService(ServiceIntent);
+                ServiceIntent.putExtra("date",afterAdding10Mins.getTime());
+                ServiceIntent.putExtra("Pending_key",key.hashCode());
+                ServiceIntent.putExtra("title", getIntent().getStringExtra("title"));
+                ServiceIntent.putExtra("key",key);
+                ServiceIntent.putExtra("userName",userName);
+                startService(ServiceIntent);
             }
+
         }
         catch(Exception ex){
-            System.out.println("in catch");
+            ex.printStackTrace();
         }
+        
         System.out.println("im in all_alarms onCreate");
         msharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
         editor=msharedPreferences.edit();
@@ -142,8 +140,9 @@ public class all_alarms extends AppCompatActivity {
                         if(snapshot.getValue()==null) {
                             System.out.println("im in snapshot.getValue()==null");
                             HashMap map = new HashMap();
-                           map.put("checked", false); // must be checked
-                            ref.updateChildren(map);
+                            map.put("checked", false); // must be checked
+                            if(!getIntent().getStringExtra("type").equals("SNOOZE"))
+                                ref.updateChildren(map);
                         }
                         else{
                             DatabaseReference ref3=FirebaseDatabase.getInstance().getReference().child("Users")
