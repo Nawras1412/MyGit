@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.icu.number.Scale;
+import android.icu.text.CaseMap;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.ContextThemeWrapper;
@@ -117,6 +118,7 @@ public class all_alarms extends AppCompatActivity {
         addAlarmImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
+
                 myAuxiliaryFunctions.openNewPage(getApplicationContext(),alarm_clock.class);
             }
         });
@@ -136,7 +138,7 @@ public class all_alarms extends AppCompatActivity {
                 editor.commit();
                 ref.child("days_date").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    public void onDataChange(DataSnapshot snapshot) {
                         if(snapshot.getValue()==null) {
                             System.out.println("im in snapshot.getValue()==null");
                             HashMap map = new HashMap();
@@ -145,6 +147,7 @@ public class all_alarms extends AppCompatActivity {
                                 ref.updateChildren(map);
                         }
                         else{
+                            System.out.println("im in else ");
                             DatabaseReference ref3=FirebaseDatabase.getInstance().getReference().child("Users")
                                     .child(userName).child("Alarms").
                                             child(msharedPreferences.getString("Current Ring Key",null));

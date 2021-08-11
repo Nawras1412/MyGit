@@ -1,3 +1,7 @@
+// عمرو دياب - معاك قلبي
+
+
+
 package com.example.smartremindersapp2;
 
 import androidx.annotation.NonNull;
@@ -123,6 +127,8 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     public static RecyclerView getmRecyclerView() {
         return mRecyclerView;
     }
+
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("ResourceAsColor")

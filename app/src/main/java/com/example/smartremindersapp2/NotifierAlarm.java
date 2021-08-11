@@ -377,12 +377,16 @@ public class NotifierAlarm extends Service {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void run(){
+                System.out.println(sharedPreferences.getInt("AlarmsNum",0));
                 if(sharedPreferences.getInt("AlarmsNum",0)==0){
+                    System.out.println("stop run");
                     cancel();
                 }
                 System.out.println("im run");
                 k++;
                 if(k==2) {
+                    System.out.println("im in k==2");
+                    System.out.println(date.getHours()+" "+date.getMinutes());
                     intent2.putExtra("key", key);
                     intent2.putExtra("title", title);
                     intent2.putExtra("userName",intent.getStringExtra("userName"));

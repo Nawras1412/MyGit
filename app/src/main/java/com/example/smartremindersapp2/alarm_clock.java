@@ -233,7 +233,11 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                             else status=true;
                             startAlarm(new_key,status,AlarmName.getText().toString());
                             System.out.println("im before open new all_alarms page");
-                            mAuxiliaryFunctions.openNewPage(getApplicationContext(),all_alarms.class);
+                            Intent intent=new Intent(getApplicationContext(), all_alarms.class);
+                            getApplicationContext().startActivity(intent);
+//                            finish();
+                            HomePage.getmRecyclerView().setHasFixedSize(true);
+//                            mAuxiliaryFunctions.openNewPage(getApplicationContext(),all_alarms.class);
 //                            ExampleAdapter.updateAlarmsList(getIntent().getIntExtra("position",0),new_alarm);
                         }
 
@@ -251,7 +255,11 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                     alarm_view alarm=new alarm_view(key,AlarmName.getText().toString(),hour
                             ,minutes,checkedBoxes,true,date);
                     keyRef.setValue(alarm);
-                    mAuxiliaryFunctions.openNewPage(getApplicationContext(),all_alarms.class);
+                    Intent intent=new Intent(getApplicationContext(), all_alarms.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getApplicationContext().startActivity(intent);
+//                    finish();
+//                    mAuxiliaryFunctions.openNewPage(getApplicationContext(),all_alarms.class);
                     boolean status;
                     if(AlarmDate.getText().toString().split(" ")[0].equals("Every"))status=false;
                     else status=true;

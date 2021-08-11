@@ -528,7 +528,8 @@ public class addReminder extends AppCompatActivity {
                     delete=false;
                 }
                 reminder.setAudios(all_audios_list);
-                uploadAudios();
+                if(all_audios_list!=null)
+                    uploadAudios();
                 if(title.getText().toString().isEmpty())
                     reminder.setMessage("Reminder");
                 else

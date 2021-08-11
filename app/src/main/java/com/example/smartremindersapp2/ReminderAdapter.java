@@ -80,8 +80,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
                             //get the position of the edited alarm
 //                            Dialog dialog = new Dialog(mcontext);
                             reminders_view currentReminder=mRemind_view_list.get(position);
-                            System.out.println("currentReminder.getAudios().size()"
-                            +currentReminder.getAudios().size());
+
                             if(currentReminder.getType().equals("Todo List")) {
                                 //dialog.setContentView(R.layout.anna_reminder);
                                 addTodoList a=new addTodoList(username);
