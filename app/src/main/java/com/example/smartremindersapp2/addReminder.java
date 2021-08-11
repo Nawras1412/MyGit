@@ -192,7 +192,7 @@ public class addReminder extends AppCompatActivity {
 
     private void ArrangingTheWindow(int NextTextViewY, int NextImageButtonY,int index){
         System.out.println("the value of index is: "+index);
-        System.out.println("the size of Additions is: "+Additions.size());
+   //     System.out.println("the size of Additions is: "+Additions.size());
 //        if (Additions.get(index).equals("Location")) NextTextViewY+=20;
 //        Additions_Images.get(index).setX((float) 20);  //20
         Additions_Images.get(index).setY(NextImageButtonY);

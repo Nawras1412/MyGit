@@ -68,9 +68,9 @@ public class all_alarms extends AppCompatActivity {
                 System.out.println();
                 String key=getIntent().getStringExtra("key");
 //                addReminder add_remind =new addReminder();
-//                NotificationManager manager=(NotificationManager) getApplicationContext()
-//                        .getSystemService(NOTIFICATION_SERVICE);
-//                manager.cancel(key.hashCode());
+                NotificationManager manager=(NotificationManager) getApplicationContext()
+                        .getSystemService(NOTIFICATION_SERVICE);
+                manager.cancel(key.hashCode());
 //                add_remind.cancelNotification(key,HomePage.getInstance());
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
                 ref.removeValue();
@@ -84,6 +84,9 @@ public class all_alarms extends AppCompatActivity {
                 HashMap map2 = new HashMap();
                 map2.put("checked", true);
                 ref.updateChildren(map2);
+                NotificationManager manager=(NotificationManager) getApplicationContext()
+                        .getSystemService(NOTIFICATION_SERVICE);
+                manager.cancel(key.hashCode());
                 Calendar date = Calendar.getInstance();
                 long timeInSecs = date.getTimeInMillis();
                 Date afterAdding10Mins = new Date(timeInSecs + ( 60 * 1000));
