@@ -176,6 +176,16 @@ public class MyBackgroundService extends Service {
             System.out.println("got new location !!! "+mLocation.getLatitude() +"  "+mLocation.getLongitude());
             //HomePage.getInstance().backgroundLocation(mLocation);
             //notify in background when killed
+            //
+            //
+            // DatabaseReference ref11 = FirebaseDatabase.getInstance().getReference().child("Users")
+            //                .child(userName);
+            //        HashMap hashmap = new HashMap();
+            //        hashmap.put("address", location);
+            //   ref11.updateChildren(hashmap);
+
+
+
             mNotificationManager.notify(NOTI_ID,getNotification());
 
 

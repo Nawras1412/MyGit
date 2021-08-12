@@ -15,6 +15,7 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.location.Location;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -23,6 +24,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -53,6 +55,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -69,14 +72,18 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -132,7 +139,7 @@ public class addReminder extends AppCompatActivity {
     private ImageView delete_audio;
     private List<String> all_audios_list;
     //boolean isRotate =false;
-    private FloatingActionButton btn_food,btn_other,btn_office,btn_car,btn_shop,btn_book,btn_medical,btn_money;
+    private FloatingActionButton btn_person,btn_food,btn_other,btn_office,btn_car,btn_shop,btn_book,btn_medical,btn_money;
     private ExtendedFloatingActionButton btn_food_res,btn_food_cafe,btn_food_bakery,btn_money_bank,btn_money_atm,btn_medical_hospital,btn_medical_pharmacy,btn_car_wash,btn_car_repair,btn_car_gas,btn_car_parking,btn_shop_supermarket,btn_shop_mall,btn_office_laywer,btn_office_acoounting,btn_office_police,btn_office_post_office,btn_book_library,btn_book_uni,btn_book_book_store;
     private int currentPosition=0;
     private SeekBar seekBar2;
@@ -142,6 +149,7 @@ public class addReminder extends AppCompatActivity {
     private MediaRecorder mediaRecorder;
     private MediaPlayer mediaPlayer= new MediaPlayer();;
     final int REQUEST_PERMISSION_CODE=1000;
+    private boolean delete=true;
     //    ArrayList<Boolean> isRotate=new ArrayList<Boolean>(Arrays.asList(false,false,false,false,false,false,false));
 //    ArrayList<FloatingActionButton> Main_btns=new ArrayList<FloatingActionButton>(Arrays.asList(btn_food,btn_office,btn_car,btn_shop,btn_book,btn_medical,btn_money,btn_other));
     ArrayList<Boolean> isRotate=new ArrayList<Boolean>();
@@ -192,7 +200,7 @@ public class addReminder extends AppCompatActivity {
 
     private void ArrangingTheWindow(int NextTextViewY, int NextImageButtonY,int index){
         System.out.println("the value of index is: "+index);
-   //     System.out.println("the size of Additions is: "+Additions.size());
+        //     System.out.println("the size of Additions is: "+Additions.size());
 //        if (Additions.get(index).equals("Location")) NextTextViewY+=20;
 //        Additions_Images.get(index).setX((float) 20);  //20
         Additions_Images.get(index).setY(NextImageButtonY);
@@ -221,7 +229,7 @@ public class addReminder extends AppCompatActivity {
         image_button.setEnabled(false);
         text_view.setEnabled(false);
         text_view.setVisibility(View.VISIBLE);
-        if(!string.equals("Other"))
+        if(!string.equals("Other") && !string.equals("Person"))
             text_view.setText(string);
 
         if(numberOfAdditions==1){
@@ -293,8 +301,10 @@ public class addReminder extends AppCompatActivity {
 //        }
     }
 
-
+    private String userName;
     public void Initialization(boolean edit,reminders_view oldReminder){
+        userName=HomePage.getInstance().getSharedPreferences("U",MODE_PRIVATE).
+                getString("username",null);
         numberOfAdditions=0;
         reminder=new Reminder();
         Additions=new ArrayList<>();
@@ -346,7 +356,22 @@ public class addReminder extends AppCompatActivity {
         }
         else {
 
-
+            if (Additions.contains("Person") && !Additions.contains("Time")) {
+                System.out.println("Person and not time");
+                ServiceIntent.putExtra("locationType", Category);
+                ServiceIntent.putExtra("type", "Person");
+                Calendar c = Calendar.getInstance();
+//            long currentTime=c.getTimeInMillis();
+//            Date d=new Date(currentTime+60*1000);
+//            d.setSeconds(0);
+                ServiceIntent.putExtra("date", c.getTime().getTime());
+            }
+            if (Additions.contains("Person") && Additions.contains("Time")) {
+                ServiceIntent.putExtra("locationType", Category);
+                System.out.println("Person and time");
+                ServiceIntent.putExtra("type", "Person");
+                ServiceIntent.putExtra("date", reminder.getRemindDate().getTime());
+            }
             if (Additions.contains("Location") && !Additions.contains("Time")) {
                 System.out.println("location and not time");
                 ServiceIntent.putExtra("locationType", Category);
@@ -519,13 +544,53 @@ public class addReminder extends AppCompatActivity {
         add_btn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                boolean delete=true;
-                System.out.println("cattt2222  "+Category +" lattt "+ lat );
+                if(Category.equals("Person")){
+                    //check Email
+                    String email =LocationTextView.getText().toString();
+                    System.out.println("the emain from textview is: "+email);
+//                    ArrayList<User> usersList = new ArrayList<>();
+                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users");
+                    ref.addListenerForSingleValueEvent(new ValueEventListener(){
+                        @Override
+                        public void onDataChange(DataSnapshot snapshot) {
+                            for (DataSnapshot ds : snapshot.getChildren()) {
+                                User user = ds.getValue(User.class);
+                                System.out.println("thee email:" + user.getEmail());
+                                System.out.println("the name:" + user.getName());
+                                if (email.equals(user.getEmail())) {
+                                    System.out.println("the clicked email is: "+email);
+                                    System.out.println("the desired person is: "+user.getName());
+                                    //create notification
+                                    reminder.setMyType("Person");
+                                    reminder.setPerson(user);
+                                    // reminder.setLocationAsString("Person");
+                                }
+                            }
+                            if(reminder.getPerson()==null) {
+                                //if email doesnt exist :
+                                Toast.makeText(HomePage.getInstance(), "no User with this Email", Toast.LENGTH_LONG).show();
+                                cancel_btn.performClick();
+                                delete = false;
+                                System.out.println("delete :" + delete);
+                            }
+
+                            HashMap h=new HashMap();
+                            h.put("status","1");
+                            ref.child(userName).updateChildren(h);
+                            System.out.println("im at the end of snapshot");
+                        }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {}
+                    });
+
+
+                }
+                System.out.println("delete value is: "+delete);
                 if(Category.equals("Other") && lat==null){
                     Toast.makeText(HomePage.getInstance(),"No Location Specified! try again",Toast.LENGTH_LONG).show();
                     cancel_btn.performClick();
                     // cancelNotification(reminder.getKey(),HomePage.getInstance());
-                    delete=false;
+                    delete =false;
                 }
                 reminder.setAudios(all_audios_list);
                 if(all_audios_list!=null)
@@ -577,7 +642,10 @@ public class addReminder extends AppCompatActivity {
                 HomePage.getInstance().get_all_reminders_by_kind("all");
                 HomePage.getInstance().getmRecyclerView().setHasFixedSize(true);
             }
+
         });
+
+
 
         location_btn.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("ResourceAsColor")
@@ -587,6 +655,9 @@ public class addReminder extends AppCompatActivity {
                 category_menu_dialog.setContentView(R.layout.category_menu);
                 category_menu_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 category_menu_dialog.show();
+
+
+                btn_person = category_menu_dialog.findViewById(R.id.btn_person);
                 btn_other = category_menu_dialog.findViewById(R.id.btn_other);
 
                 btn_food = category_menu_dialog.findViewById(R.id.btn_food);
@@ -850,6 +921,16 @@ public class addReminder extends AppCompatActivity {
                     }
                 });
 
+
+
+                btn_person.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        Category="Person";
+                        afterchoosing();
+                    }
+                });
                 btn_book.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -1131,7 +1212,7 @@ public class addReminder extends AppCompatActivity {
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
                         if(!AddDescriptionEditText.getText().toString().isEmpty()
-                        || all_audios_list.size()!=0)
+                                || all_audios_list.size()!=0)
                             save_description.setEnabled(true);
                         else
                             save_description.setEnabled(false);
@@ -1212,6 +1293,7 @@ public class addReminder extends AppCompatActivity {
         add_reminder_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         add_reminder_dialog.show();
     }
+
 
 
 
@@ -1370,35 +1452,98 @@ public class addReminder extends AppCompatActivity {
         //save the chosen category in the reminder and start search the location
         category_menu_dialog.cancel();
         reminder.setLocationAsString(Category);
-        if(Category.equals("Other")){
-            System.out.println("its other");
-            locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_search));
+        LocationTextView.setCursorVisible(false);
+        LocationTextView.setFocusableInTouchMode(false);
+        if(Category.equals("Person")){
+            LocationTextView.setText("");
+            LocationTextView.setHint("Write e-mail");
+            System.out.println("its person");
+            locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_baseline_person_24));
             if(!Additions.contains("Location")) {
                 numberOfAdditions+=1;
                 ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
             }
-            LocationTextView.setText("tab to search");
-            LocationTextView.setEnabled(true);
-            LocationTextView.setVisibility(View.VISIBLE);
-            //LocationTextView.setAutofillHints("tab to search");
+//            LocationTextView.setText("Write e-mail");
             LocationTextView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    List<Place.Field> fieldList= Arrays.asList(Place.Field.ADDRESS,Place.Field.LAT_LNG,Place.Field.NAME,Place.Field.TYPES);
-                    Intent intentL= new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.getInstance());
-                    HomePage.getInstance().startActivityForResult(intentL,100);
+                    LocationTextView.setCursorVisible(true);
+                    LocationTextView.setFocusableInTouchMode(true);
+                    LocationTextView.setInputType(InputType.TYPE_CLASS_TEXT);
+                    LocationTextView.requestFocus(); //to trigger the soft input
+//                    System.out.println("im in vvv");
+//                    LocationTextView.getEditableText();
+//                    LocationTextView.setClickable(true);
+//                    if(LocationTextView.getText().toString().isEmpty())
+//                        LocationTextView.setText("Write e-mail");
+//                    else if(LocationTextView.getText().toString().equals("Write e-mail"))
+//                        LocationTextView.setText("");
                 }
             });
+//            LocationTextView.addTextChangedListener(new TextWatcher() {
+//                @Override
+//                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//                    LocationTextView.setCursorVisible(true);
+//                    LocationTextView.setFocusableInTouchMode(true);
+//                    LocationTextView.setInputType(InputType.TYPE_CLASS_TEXT);
+//                    LocationTextView.requestFocus(); //to trigger the soft input
+//                    if(LocationTextView.getText().toString().isEmpty())
+//                        LocationTextView.setText("Write e-mail");
+//                    else if(LocationTextView.getText().toString().equals("Write e-mail"))
+//                        LocationTextView.setText("");
+//                }
+//                @Override
+//                public void afterTextChanged(Editable s) {}
+//                @Override
+//                public void onTextChanged(CharSequence s, int start, int before, int count) {
+//                    if(LocationTextView.getText().toString().isEmpty())
+//                        LocationTextView.setText("Write e-mail");
+//                    else if(LocationTextView.getText().toString().equals("Write e-mail"))
+//                        LocationTextView.setText("");
+//
+//                }
+//
+//
+//            });
+
+            LocationTextView.setEnabled(true);
+            LocationTextView.setVisibility(View.VISIBLE);
         }
-        else{
-            System.out.println("its not other");
-            locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_location));
-            if(Additions.contains("Location")){
-                LocationTextView.setText(Category);
-            }
-            else{
-                numberOfAdditions+=1;
-                ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
+        else {
+            if (Category.equals("Other")) {
+                System.out.println("its other");
+                locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_search));
+                if (!Additions.contains("Location")) {
+                    numberOfAdditions += 1;
+                    ExpandDialogAndSetData(removeLocation, locationImage, LocationTextView, Category, "Location");
+                }
+                LocationTextView.setText("tab to search");
+                LocationTextView.setEnabled(true);
+                LocationTextView.setVisibility(View.VISIBLE);
+//            LocationTextView.setClickable(true);
+                //LocationTextView.setAutofillHints("tab to search");
+                LocationTextView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        List<Place.Field> fieldList = Arrays.asList(Place.Field.ADDRESS, Place.Field.LAT_LNG, Place.Field.NAME, Place.Field.TYPES);
+                        Intent intentL = new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fieldList).setCountry("IL").build(HomePage.getInstance());
+                        HomePage.getInstance().startActivityForResult(intentL, 100);
+                    }
+                });
+            } else {
+//            LocationTextView.setClickable(false);
+            LocationTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {}
+            });
+                System.out.println("its not other");
+                locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_location));
+                if (Additions.contains("Location")) {
+                    LocationTextView.setText(Category);
+                } else {
+                    numberOfAdditions += 1;
+                    ExpandDialogAndSetData(removeLocation, locationImage, LocationTextView, Category, "Location");
+                }
             }
         }
 
@@ -1466,11 +1611,15 @@ public class addReminder extends AppCompatActivity {
     }
     private String checkType() {
         boolean Location=false,Date=false;
+
         if (Additions.contains("Location")) Location=true;
         else if(Additions.contains("Time")) Date=true;
         //if(Location && Date) return "Location_Date";
         if(Location) return "Location";
         if(Date) return "Date";
+        if(Category.equals("Person")){
+            return "Person";
+        }
         return "Todo List";
     }
 

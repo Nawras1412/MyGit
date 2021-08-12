@@ -64,7 +64,7 @@ public class all_alarms extends AppCompatActivity {
         userName=getSharedPreferences("U",MODE_PRIVATE).
                 getString("username",null);
         try{
-            if(getIntent().getStringExtra("type").equals("Dismiss")) {
+            if(getIntent().getStringExtra("type").equals("Dismiss")){
                 System.out.println();
                 String key=getIntent().getStringExtra("key");
 //                addReminder add_remind =new addReminder();
@@ -76,6 +76,8 @@ public class all_alarms extends AppCompatActivity {
                 ref.removeValue();
             }
             else if(getIntent().getStringExtra("type").equals("SNOOZE")) {
+                editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
+                editor.commit();
                 System.out.println("im in snooze");
                 String key = getIntent().getStringExtra("key");
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().
@@ -83,6 +85,8 @@ public class all_alarms extends AppCompatActivity {
                 System.out.println("the key is: "+key);
                 HashMap map2 = new HashMap();
                 map2.put("checked", true);
+
+
                 ref.updateChildren(map2);
                 NotificationManager manager=(NotificationManager) getApplicationContext()
                         .getSystemService(NOTIFICATION_SERVICE);
@@ -106,7 +110,7 @@ public class all_alarms extends AppCompatActivity {
 
         }
         catch(Exception ex){
-            ex.printStackTrace();
+            System.out.println("in catch");
         }
         
         System.out.println("im in all_alarms onCreate");

@@ -561,6 +561,13 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         System.out.println("lang cuurent " + lang_current_d);
         String lat_current = String.valueOf(lat_current_d);
         String lang_current = String.valueOf(lang_current_d);
+        DatabaseReference ref11 = FirebaseDatabase.getInstance().getReference().child("Users")
+                .child(userName);
+        HashMap hashmap = new HashMap();
+        hashmap.put("lat", lat_current_d);
+        hashmap.put("lang", lang_current_d);
+        ref11.updateChildren(hashmap);
+
         // lang_current= String.valueOf(event.getLocation().getLongitude());
 
         ArrayList<Reminder> reminders_locationList = new ArrayList<>();
@@ -586,6 +593,58 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                     DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
                     HashMap map = new HashMap();
                     map.put("state",false);
+                    if (type.equals("Person")) {
+                        if(reminder.getPerson()==null)
+                            System.out.println("the person is null");
+                        String name1=reminder.getPerson().getName();
+                        DatabaseReference ref1 = FirebaseDatabase.getInstance().getReference().child("Users").child(name1);
+                        ref1.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot snapshot) {
+                                double lat_reminder = (Double) snapshot.child("lat").getValue();
+                                double lang_reminder = (Double) snapshot.child("lang").getValue();
+                                float[] distance = new float[1];
+                                Location.distanceBetween(lat_reminder, lang_reminder, lat_current_d, lang_current_d, distance);
+                                System.out.println("distance  " + distance[0]);
+
+                                if (distance[0] < 500) {
+
+
+                                    //DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
+                                    ref.updateChildren(map);
+                                    NotificationHelper notificationHelper = new NotificationHelper(HomePage.this);
+                                    Notification nb = notificationHelper.getChannelNotification(key
+                                            , HomePage.class, message+" : You are close to "+ name1, description, "","","","","","");
+                                    notificationHelper.getManager().notify(key.hashCode(), nb);
+
+
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError error) {
+
+                            }
+                        });
+//                        double lat_reminder = reminder.getPerson().getLat();
+//                        double lang_reminder = reminder.getPerson().getLang();
+//                        float[] distance = new float[1];
+//                        Location.distanceBetween(lat_reminder, lang_reminder, lat_current_d, lang_current_d, distance);
+//                        System.out.println("distance  " + distance[0]);
+//
+//                        if (distance[0] < 500) {
+//
+//
+//                            //DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
+//                            ref.updateChildren(map);
+//                            NotificationHelper notificationHelper = new NotificationHelper(HomePage.this);
+//                            Notification nb = notificationHelper.getChannelNotification(key
+//                                    , HomePage.class, message+" : You are close to "+ name1, description, "","","","","","");
+//                            notificationHelper.getManager().notify(key.hashCode(), nb);
+//
+//
+//                        }
+                    }
                     if (type.equals("Other")) {
                         double lat_reminder = reminder.getLAT();
                         double lang_reminder = reminder.getLNG();

@@ -217,6 +217,7 @@
             android:layout_width="278dp"
             android:layout_height="43dp"
             android:editable="false"
+            android:hint="write e-mail"
             android:textColor="#8F8B82"
             android:textColorHint="#A59E9E"
             android:textSize="16dp"

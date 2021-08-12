@@ -16,8 +16,17 @@ public class reminders_view {
     private Double LNG;
     private String description;
     private String key;
+    private User Person;
     private Switch Switch;
     private String type;
+
+    public User getPerson() {
+        return Person;
+    }
+
+    public void setPerson(User person) {
+        Person = person;
+    }
 
     public String getLocation() {
         return location;
@@ -82,7 +91,7 @@ public class reminders_view {
     public String getKey() {
         return key;
     }
-//    public boolean getSwitch() {
+    //    public boolean getSwitch() {
 //        return Switch.isChecked();
 //    }
 //    public void setSwitch(boolean aSwitch) {

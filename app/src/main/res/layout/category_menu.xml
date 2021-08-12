@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="415dp"
-    android:layout_height="516dp"
-    android:layout_gravity="center"
+    android:layout_height="580dp"
+    android:layout_gravity="center|top"
     android:orientation="vertical"
     android:padding="3dp">
 
@@ -14,12 +14,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:backgroundTint="#FDC53A"
-        app:layout_constraintBottom_toTopOf="@+id/btn_food"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.044"
+        app:layout_constraintHorizontal_bias="0.052"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.969"
+        app:layout_constraintVertical_bias="0.486"
         app:srcCompat="@drawable/ic_money">
 
     </com.google.android.material.floatingactionbutton.FloatingActionButton>
@@ -34,20 +34,33 @@
         app:layout_constraintHorizontal_bias="0.044"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0"
+        app:layout_constraintVertical_bias="0.969"
         app:srcCompat="@drawable/ic_add"></com.google.android.material.floatingactionbutton.FloatingActionButton>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btn_person"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:backgroundTint="#AA9B97"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.044"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.843"
+        app:srcCompat="@drawable/ic_baseline_person_24"></com.google.android.material.floatingactionbutton.FloatingActionButton>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btn_car"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:backgroundTint="#FDC53A"
-        app:layout_constraintBottom_toTopOf="@+id/btn_shop"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.044"
+        app:layout_constraintHorizontal_bias="0.052"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.873"
+        app:layout_constraintVertical_bias="0.125"
         app:srcCompat="@drawable/ic_car"></com.google.android.material.floatingactionbutton.FloatingActionButton>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -55,12 +68,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:backgroundTint="#FDC53A"
-        app:layout_constraintBottom_toTopOf="@+id/btn_other"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.044"
+        app:layout_constraintHorizontal_bias="0.052"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.975"
+        app:layout_constraintVertical_bias="0.725"
         app:srcCompat="@drawable/ic_medical"></com.google.android.material.floatingactionbutton.FloatingActionButton>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -68,12 +81,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:backgroundTint="#FDC53A"
-        app:layout_constraintBottom_toTopOf="@+id/btn_medical"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.044"
+        app:layout_constraintHorizontal_bias="0.052"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.979"
+        app:layout_constraintVertical_bias="0.603"
         app:srcCompat="@drawable/ic_food">
 
     </com.google.android.material.floatingactionbutton.FloatingActionButton>
@@ -91,11 +104,10 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.449"
+        app:layout_constraintHorizontal_bias="0.455"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btn_food_bakery"
-        app:layout_constraintVertical_bias="0.776"
-        >
+        app:layout_constraintVertical_bias="0.092">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -110,12 +122,12 @@
         app:fabSize="mini"
         app:icon="@drawable/ic_cafe"
         app:iconTint="#FDC53A"
-        app:layout_constraintBottom_toTopOf="@+id/btn_food_bakery"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.168"
+        app:layout_constraintHorizontal_bias="0.152"
         app:layout_constraintStart_toEndOf="@+id/btn_food"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.96">
+        app:layout_constraintVertical_bias="0.607">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -132,10 +144,10 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.386"
+        app:layout_constraintHorizontal_bias="0.376"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.564">
+        app:layout_constraintVertical_bias="0.479">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -151,12 +163,12 @@
         app:fabSize="mini"
         app:icon="@drawable/ic_library"
         app:iconTint="#FDC53A"
-        app:layout_constraintBottom_toTopOf="@+id/btn_book_book_Store"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/btn_book"
+        app:layout_constraintHorizontal_bias="0.086"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.961">
+        app:layout_constraintVertical_bias="0.359">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -172,10 +184,10 @@
         app:fabSize="mini"
         app:icon="@drawable/ic_bookstore"
         app:iconTint="#FDC53A"
-        app:layout_constraintBottom_toTopOf="@+id/btn_book_Uni"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.96">
+        app:layout_constraintVertical_bias="0.464">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -192,10 +204,10 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.417"
+        app:layout_constraintHorizontal_bias="0.405"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.149">
+        app:layout_constraintVertical_bias="0.127">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -203,7 +215,6 @@
         android:id="@+id/btn_book_Uni"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="320dp"
         android:layout_marginEnd="140dp"
         android:text="University"
         android:textColor="#FDC53A"
@@ -212,8 +223,10 @@
         app:fabSize="mini"
         app:icon="@drawable/ic_university"
         app:iconTint="#FDC53A"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.562">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -231,10 +244,10 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.457"
+        app:layout_constraintHorizontal_bias="0.430"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.149">
+        app:layout_constraintVertical_bias="0.116">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -252,10 +265,10 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.363"
+        app:layout_constraintHorizontal_bias="0.374"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.519">
+        app:layout_constraintVertical_bias="0.441">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -276,10 +289,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
 
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.345"
+        app:layout_constraintHorizontal_bias="0.36"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.392">
+        app:layout_constraintVertical_bias="0.331">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -300,10 +313,10 @@
 
 
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.344"
+        app:layout_constraintHorizontal_bias="0.35"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.246">
+        app:layout_constraintVertical_bias="0.208">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -321,10 +334,10 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.226"
+        app:layout_constraintHorizontal_bias="0.21"
         app:layout_constraintStart_toEndOf="@+id/btn_shop"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.266">
+        app:layout_constraintVertical_bias="0.232">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -333,7 +346,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="14dp"
-        android:layout_marginEnd="180dp"
+        android:layout_marginEnd="176dp"
         android:text="mall"
         android:textColor="#FDC53A"
         android:visibility="invisible"
@@ -344,7 +357,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.378">
+        app:layout_constraintVertical_bias="0.324">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -384,17 +397,17 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.415"
+        app:layout_constraintHorizontal_bias="0.393"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.286">
+        app:layout_constraintVertical_bias="0.231">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/btn_office_accounting"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="204dp"
+        android:layout_height="46dp"
         android:layout_marginStart="37dp"
         android:text="accounting Office"
         android:textColor="#FDC53A"
@@ -405,10 +418,10 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.506"
+        app:layout_constraintHorizontal_bias="0.436"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.427">
+        app:layout_constraintVertical_bias="0.337">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -425,10 +438,10 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.172"
+        app:layout_constraintHorizontal_bias="0.187"
         app:layout_constraintStart_toEndOf="@+id/btn_medical"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.85">
+        app:layout_constraintVertical_bias="0.725">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -445,10 +458,10 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.393"
+        app:layout_constraintHorizontal_bias="0.39"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.856">
+        app:layout_constraintVertical_bias="0.71">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -465,10 +478,10 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.39"
+        app:layout_constraintHorizontal_bias="0.405"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.982">
+        app:layout_constraintVertical_bias="0.825">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -485,10 +498,10 @@
         app:iconTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.389"
+        app:layout_constraintHorizontal_bias="0.383"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.69">
+        app:layout_constraintVertical_bias="0.584">
 
     </com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>
 
@@ -497,12 +510,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:backgroundTint="#FDC53A"
-        app:layout_constraintBottom_toTopOf="@+id/btn_money"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.044"
+        app:layout_constraintHorizontal_bias="0.052"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.961"
+        app:layout_constraintVertical_bias="0.364"
         app:srcCompat="@drawable/ic_book">
 
     </com.google.android.material.floatingactionbutton.FloatingActionButton>
@@ -511,13 +524,13 @@
         android:id="@+id/btn_shop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
         app:backgroundTint="#FDC53A"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.327"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.052"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.291"
+        app:layout_constraintVertical_bias="0.246"
         app:srcCompat="@drawable/ic_shop">
 
     </com.google.android.material.floatingactionbutton.FloatingActionButton>

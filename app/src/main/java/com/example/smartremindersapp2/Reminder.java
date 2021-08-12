@@ -39,6 +39,16 @@ public class Reminder {
     private String Location;
     private List<String> audios;
     private String MyType;
+    private User Person;
+
+    public User getPerson() {
+        return Person;
+    }
+
+    public void setPerson(User person) {
+        Person = person;
+    }
+
     private boolean DateState;
 
 

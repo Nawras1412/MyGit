@@ -89,9 +89,13 @@ public class AlertReceiver extends BroadcastReceiver {
                 System.out.println("the current key is: "+intent.getStringExtra("key"));
                 System.out.println("the ring key is in AlertReciever:");
                 System.out.println(sharedPreferences.getBoolean("ring "+intent.getStringExtra("key"),false));
-                if(sharedPreferences.getBoolean("ring "+key,false))
+                System.out.println("the current is:"+sharedPreferences.getString("Current Ring Key",null));
+                if(sharedPreferences.getBoolean("ring "+key,false)) {
                     ringtone.play();
+                    System.out.println("im in play");
+                }
                 else{
+                    System.out.println("im in stop");
                     ringtone.stop();
                     cancel();
                 }

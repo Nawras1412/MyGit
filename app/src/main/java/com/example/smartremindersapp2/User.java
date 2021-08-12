@@ -1,5 +1,7 @@
 package com.example.smartremindersapp2;
 
+import android.location.Location;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,16 +14,20 @@ public class User {
     private String Email;
     private String Password;
     private String Status;
+    private double lat;
+    private double lang;
 
     /*
      Constructors
     */
-    public User(String name, String userName, String email, String password) {
+    public User(String name, String userName, String email, String password,Double lat1,Double lang1) {
         Name = name;
         UserName = userName;
         Email = email;
         Password = password;
         Status="0";
+        lat=lat1;
+        lang=lang1;
 
     }
     public User() {}
@@ -29,6 +35,32 @@ public class User {
     /*
      getters
     */
+
+//    public Location getAddress() {
+////        return address;
+////    }
+////
+////    public void setAddress(Location address1) {
+////        address = address1;
+////    }
+
+
+    public double getLat() {
+        return lat;
+    }
+
+    public void setLat(double lat) {
+        this.lat = lat;
+    }
+
+    public double getLang() {
+        return lang;
+    }
+
+    public void setLang(double lang) {
+        this.lang = lang;
+    }
+
     public String getStatus() {
         return Status;
     }

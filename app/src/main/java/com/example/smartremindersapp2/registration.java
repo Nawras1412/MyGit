@@ -85,7 +85,7 @@ public class registration extends AppCompatActivity {
         boolean legal=Exeptions(TheError);
         if (legal==true && UserNameText.getError()==null){
             User user = new User(NameText.getText().toString(), UserNameText.getText().toString(), EmailText.getText().toString(),
-                    PassWardText.getText().toString());
+                    PassWardText.getText().toString(),0.,0.);
             SaveInDatabase.saveUser(user);
             AuxiliaryFunctions opendialog=AuxiliaryFunctions.getInstance();
             opendialog.openDialogD(getSupportFragmentManager());
