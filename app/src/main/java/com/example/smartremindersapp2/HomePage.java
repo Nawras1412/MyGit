@@ -601,8 +601,12 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                         ref1.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot snapshot) {
-                                double lat_reminder = (Double) snapshot.child("lat").getValue();
-                                double lang_reminder = (Double) snapshot.child("lang").getValue();
+//                                Long x=(Long)(snapshot.child("lat").getValue());
+//                                Double lat_reminder = x.doubleValue();
+//                                x=(Long)snapshot.child("lang").getValue();
+//                                Double lang_reminder = x.doubleValue();
+                                double lat_reminder =(double)(snapshot.child("lat").getValue());
+                                double lang_reminder =(double)snapshot.child("lang").getValue();
                                 float[] distance = new float[1];
                                 Location.distanceBetween(lat_reminder, lang_reminder, lat_current_d, lang_current_d, distance);
                                 System.out.println("distance  " + distance[0]);
@@ -645,7 +649,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
 //
 //                        }
                     }
-                    if (type.equals("Other")) {
+                    else if (type.equals("Other")) {
                         double lat_reminder = reminder.getLAT();
                         double lang_reminder = reminder.getLNG();
 
@@ -738,7 +742,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                     String key = reminder.getKey();
                     Date date=reminder.getRemindDate();
                     String location=reminder.getLocationAsString();
-                    reminders_view remindView = new reminders_view(key,message, description,type,date,location,reminder.getLocation(),reminder.getAudios());
+                    reminders_view remindView = new reminders_view(key,message, description,type,date,location,reminder.getLocation(),reminder.getAudios(),reminder.getPerson());
                     if (type.contains("Location")) {
                         remindView.setLAT(reminder.getLAT());
                         remindView.setLNG(reminder.getLNG());

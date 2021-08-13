@@ -403,6 +403,10 @@ public class addReminder extends AppCompatActivity {
                     ServiceIntent.putExtra("lat", lat);
                     ServiceIntent.putExtra("lang", lang);
                 }
+                if (Category.equals("Person")) {
+                    ServiceIntent.putExtra("locationType", "Person");
+                    ServiceIntent.putExtra("email", LocationTextView.getText().toString());
+                }
             }
         }
         ServiceIntent.putExtra("key",reminder.getKey());
@@ -444,7 +448,7 @@ public class addReminder extends AppCompatActivity {
 
             ExpandDialogAndSetData2(removeDescription, addDescriptionImage, DescriptionTextView, content, "Description");
         }
-        if (oldReminder.getType().equals("Date")){
+        if (oldReminder.getDate()!=null){
             String hour, minutes;
             Date date = oldReminder.getDate();
             if (Integer.toString(date.getHours()).length() == 1)
@@ -482,17 +486,17 @@ public class addReminder extends AppCompatActivity {
                 //LocationTextView.setAutofillHints("tab to search");
                 //LocationTextView.setText(oldReminder.getlocation());
                 //LocationTextView.setAutofillHints("tab to search");
-            } else {
+            }else if(oldReminder.getLocationAsString().equals("Person")){
+                locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_baseline_person_24));
+                ExpandDialogAndSetData2(removeLocation, locationImage, LocationTextView
+                        ,oldReminder.getPerson().getEmail(), "Location");
+            }
+            else {
                 ExpandDialogAndSetData2(removeLocation, locationImage, LocationTextView
                         , oldReminder.getLocationAsString(), "Location");
             }
-
-            //
-            //            ExpandDialogAndSetData2(removeLocation,locationImage, LocationTextView
-            //                    , oldReminder.getLocationAsString(), "Location");
         }
     }
-
     public void openDialog(boolean edit,reminders_view oldReminder,int position){
         all_audios_list=new ArrayList<>();
         DatabaseReference ref= FirebaseDatabase.getInstance().getReference().child("Users").child(UserName).child("reminder_list");
@@ -544,6 +548,9 @@ public class addReminder extends AppCompatActivity {
         add_btn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
+                if(reminder.getLocationAsString()!=null)
+                    Category=reminder.getLocationAsString();
+                System.out.println("the category is: "+Category);
                 if(Category.equals("Person")){
                     //check Email
                     String email =LocationTextView.getText().toString();
@@ -553,9 +560,11 @@ public class addReminder extends AppCompatActivity {
                     ref.addListenerForSingleValueEvent(new ValueEventListener(){
                         @Override
                         public void onDataChange(DataSnapshot snapshot) {
+                            System.out.println("immmmm");
                             for (DataSnapshot ds : snapshot.getChildren()) {
                                 User user = ds.getValue(User.class);
                                 System.out.println("thee email:" + user.getEmail());
+                                System.out.println("clicked mail: "+email);
                                 System.out.println("the name:" + user.getName());
                                 if (email.equals(user.getEmail())) {
                                     System.out.println("the clicked email is: "+email);
@@ -574,76 +583,239 @@ public class addReminder extends AppCompatActivity {
                                 System.out.println("delete :" + delete);
                             }
 
-                            HashMap h=new HashMap();
-                            h.put("status","1");
-                            ref.child(userName).updateChildren(h);
-                            System.out.println("im at the end of snapshot");
+                            // here
+                            reminder.setAudios(all_audios_list);
+                            if (all_audios_list != null)
+                                uploadAudios();
+                            if (title.getText().toString().isEmpty())
+                                reminder.setMessage("Reminder");
+                            else
+                                reminder.setMessage(title.getText().toString());
+                            reminder.setState(true);
+                            reminder.setLocation(address);
+                            reminder.setMyType(checkType());
+                            if (!edit && delete) {
+                                reminder.setKey(keyRef.getKey());
+                                keyRef.setValue(reminder);
+                            } else if (delete) {
+                                cancelNotification(reminder.getKey(), HomePage.getInstance());
+                                keyRef = ref.child(reminder.getKey());
+                                keyRef.setValue(reminder);
+                            }
+                            if (reminder.getRemindDate() == null && delete) {
+                                date = new Date();
+                                reminder.setRemindDate((date));
+//                    keyRef=ref.child(reminder.getKey());
+//                    keyRef.setValue(reminder);
+                            }
+
+                            if (reminder.getMyType().equals("Location") && reminder.getLocationAsString().equals("Other") && delete) {
+                                System.out.println("GOT IN SETTIG LANG AmD LAT");
+                                reminder.setLocation(address);
+                                reminder.setLAT(lat);
+                                reminder.setLNG(lang);
+                                keyRef = ref.child(reminder.getKey());
+                                keyRef.setValue(reminder);
+
+                            }
+                            System.out.println("the  of the reminder is: " + reminder.getMyType());
+                            if (!reminder.getMyType().equals("Todo List") && delete) {
+                                System.out.println("im in reminder not a todo lost reminder ");
+                                sendToAlarmManager(reminder, true);
+                            }
+                            add_reminder_dialog.cancel();
+                            ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(HomePage.getInstance(), R.array.kinds, android.R.layout.simple_spinner_item);
+                            KindsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            int spinnerPosition = KindsAdapter.getPosition("all");
+                            HomePage.getInstance().getRemindersKindSpinner().setSelection(spinnerPosition);
+                            HomePage.getInstance().get_all_reminders_by_kind("all");
+                            HomePage.getInstance().getmRecyclerView().setHasFixedSize(true);
+
                         }
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {}
                     });
-
-
-                }
-                System.out.println("delete value is: "+delete);
-                if(Category.equals("Other") && lat==null){
-                    Toast.makeText(HomePage.getInstance(),"No Location Specified! try again",Toast.LENGTH_LONG).show();
-                    cancel_btn.performClick();
-                    // cancelNotification(reminder.getKey(),HomePage.getInstance());
-                    delete =false;
-                }
-                reminder.setAudios(all_audios_list);
-                if(all_audios_list!=null)
-                    uploadAudios();
-                if(title.getText().toString().isEmpty())
-                    reminder.setMessage("Reminder");
-                else
-                    reminder.setMessage(title.getText().toString());
-                reminder.setState(true);
-                reminder.setLocation(address);
-                reminder.setMyType(checkType());
-                if(!edit&& delete) {
-                    reminder.setKey(keyRef.getKey());
-                    keyRef.setValue(reminder);
-                }
-                else if(delete){
-                    cancelNotification(reminder.getKey(),HomePage.getInstance());
-                    keyRef=ref.child(reminder.getKey());
-                    keyRef.setValue(reminder);
-                }
-                if(reminder.getRemindDate()==null && delete)
-                {
-                    date = new Date();
-                    reminder.setRemindDate((date));
+                }else {
+                    System.out.println("cattt2222  " + Category + " lattt " + lat);
+                    if (Category.equals("Other") && lat == null) {
+                        Toast.makeText(HomePage.getInstance(), "No Location Specified! try again", Toast.LENGTH_LONG).show();
+                        cancel_btn.performClick();
+                        // cancelNotification(reminder.getKey(),HomePage.getInstance());
+                        delete = false;
+                    }
+                    reminder.setAudios(all_audios_list);
+                    if (all_audios_list != null)
+                        uploadAudios();
+                    if (title.getText().toString().isEmpty())
+                        reminder.setMessage("Reminder");
+                    else
+                        reminder.setMessage(title.getText().toString());
+                    reminder.setState(true);
+                    reminder.setLocation(address);
+                    reminder.setMyType(checkType());
+                    if (!edit && delete) {
+                        reminder.setKey(keyRef.getKey());
+                        keyRef.setValue(reminder);
+                    } else if (delete) {
+                        cancelNotification(reminder.getKey(), HomePage.getInstance());
+                        keyRef = ref.child(reminder.getKey());
+                        keyRef.setValue(reminder);
+                    }
+                    if (reminder.getRemindDate() == null && delete) {
+                        date = new Date();
+                        reminder.setRemindDate((date));
 //                    keyRef=ref.child(reminder.getKey());
 //                    keyRef.setValue(reminder);
-                }
+                    }
 
-                if(reminder.getMyType().equals("Location") && reminder.getLocationAsString().equals("Other")&& delete)
-                {
-                    System.out.println("GOT IN SETTIG LANG AmD LAT");
-                    reminder.setLocation(address);
-                    reminder.setLAT(lat);
-                    reminder.setLNG(lang);
-                    keyRef=ref.child(reminder.getKey());
-                    keyRef.setValue(reminder);
+                    if (reminder.getMyType().equals("Location") && reminder.getLocationAsString().equals("Other") && delete) {
+                        System.out.println("GOT IN SETTIG LANG AmD LAT");
+                        reminder.setLocation(address);
+                        reminder.setLAT(lat);
+                        reminder.setLNG(lang);
+                        keyRef = ref.child(reminder.getKey());
+                        keyRef.setValue(reminder);
 
+                    }
+                    System.out.println("the  of the reminder is: " + reminder.getMyType());
+                    if (!reminder.getMyType().equals("Todo List") && delete) {
+                        System.out.println("im in reminder not a todo lost reminder ");
+                        sendToAlarmManager(reminder, true);
+                    }
+                    add_reminder_dialog.cancel();
+                    ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(HomePage.getInstance(), R.array.kinds, android.R.layout.simple_spinner_item);
+                    KindsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    int spinnerPosition = KindsAdapter.getPosition("all");
+                    HomePage.getInstance().getRemindersKindSpinner().setSelection(spinnerPosition);
+                    HomePage.getInstance().get_all_reminders_by_kind("all");
+                    HomePage.getInstance().getmRecyclerView().setHasFixedSize(true);
                 }
-                System.out.println("the  of the reminder is: "+reminder.getMyType());
-                if(!reminder.getMyType().equals("Todo List") && delete) {
-                    System.out.println("im in reminder not a todo lost reminder ");
-                    sendToAlarmManager(reminder,true);
-                }
-                add_reminder_dialog.cancel();
-                ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(HomePage.getInstance(), R.array.kinds, android.R.layout.simple_spinner_item);
-                KindsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                int spinnerPosition = KindsAdapter.getPosition("all");
-                HomePage.getInstance().getRemindersKindSpinner().setSelection(spinnerPosition);
-                HomePage.getInstance().get_all_reminders_by_kind("all");
-                HomePage.getInstance().getmRecyclerView().setHasFixedSize(true);
             }
-
         });
+
+//        add_btn.setOnClickListener(new View.OnClickListener(){
+//            @Override
+//            public void onClick(View v){
+//                if(Category.equals("Person")){
+//                    //check Email
+//                    String email =LocationTextView.getText().toString();
+//                    System.out.println("the emain from textview is: "+email);
+////                    ArrayList<User> usersList = new ArrayList<>();
+//                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users");
+//                    ref.addListenerForSingleValueEvent(new ValueEventListener(){
+//                        @Override
+//                        public void onDataChange(DataSnapshot snapshot) {
+//                            System.out.println("immmmm");
+//                            for (DataSnapshot ds : snapshot.getChildren()) {
+//                                User user = ds.getValue(User.class);
+//                                System.out.println("thee email:" + user.getEmail());
+//                                System.out.println("clicked mail: "+email);
+//                                System.out.println("the name:" + user.getName());
+//                                if (email.equals(user.getEmail())) {
+//                                    System.out.println("the clicked email is: "+email);
+//                                    System.out.println("the desired person is: "+user.getName());
+//                                    //create notification
+//                                    reminder.setMyType("Person");
+//                                    reminder.setPerson(user);
+//                                    // reminder.setLocationAsString("Person");
+//                                }
+//                            }
+//                            if(reminder.getPerson()==null) {
+//                                //if email doesnt exist :
+//                                Toast.makeText(HomePage.getInstance(), "no User with this Email", Toast.LENGTH_LONG).show();
+//                                cancel_btn.performClick();
+//                                delete = true;
+//                                System.out.println("delete :" + delete);
+//                            }
+//
+//                            HashMap h=new HashMap();
+//                            h.put("status","1");
+//
+//                            System.out.println(snapshot.hasChild("user"));
+//                        }
+//                        @Override
+//                        public void onCancelled(@NonNull DatabaseError error) {}
+//                    });
+//                }
+//                System.out.println("im after snapshot");
+//                if(Category.equals("Other") && lat==null){
+//                    Toast.makeText(HomePage.getInstance(),"No Location Specified! try again",Toast.LENGTH_LONG).show();
+//                    cancel_btn.performClick();
+//                    // cancelNotification(reminder.getKey(),HomePage.getInstance());
+//                    delete =false;
+//                    reminder.setAudios(all_audios_list);
+//                    if(all_audios_list!=null)
+//                        uploadAudios();
+//                    if(title.getText().toString().isEmpty())
+//                        reminder.setMessage("Reminder");
+//                    else
+//                        reminder.setMessage(title.getText().toString());
+//                    reminder.setState(true);
+//                    reminder.setLocation(address);
+//                    reminder.setMyType(checkType());
+//                    if(!edit&& delete) {
+//                        reminder.setKey(keyRef.getKey());
+//                        keyRef.setValue(reminder);
+//                    }
+//                    else if(delete){
+//                        cancelNotification(reminder.getKey(),HomePage.getInstance());
+//                        keyRef=ref.child(reminder.getKey());
+//                        keyRef.setValue(reminder);
+//                    }
+//                }
+//                reminder.setAudios(all_audios_list);
+//                if(all_audios_list!=null)
+//                    uploadAudios();
+//                if(title.getText().toString().isEmpty())
+//                    reminder.setMessage("Reminder");
+//                else
+//                    reminder.setMessage(title.getText().toString());
+//                reminder.setState(true);
+//                reminder.setLocation(address);
+//                reminder.setMyType(checkType());
+//                if(!edit&& delete) {
+//                    reminder.setKey(keyRef.getKey());
+//                    keyRef.setValue(reminder);
+//                }
+//                else if(delete){
+//                    cancelNotification(reminder.getKey(),HomePage.getInstance());
+//                    keyRef=ref.child(reminder.getKey());
+//                    keyRef.setValue(reminder);
+//                }
+//                if(reminder.getRemindDate()==null && delete)
+//                {
+//                    date = new Date();
+//                    reminder.setRemindDate((date));
+////                    keyRef=ref.child(reminder.getKey());
+////                    keyRef.setValue(reminder);
+//                }
+//
+//                if(reminder.getMyType().equals("Location") && reminder.getLocationAsString().equals("Other")&& delete)
+//                {
+//                    System.out.println("GOT IN SETTIG LANG AmD LAT");
+//                    reminder.setLocation(address);
+//                    reminder.setLAT(lat);
+//                    reminder.setLNG(lang);
+//                    keyRef=ref.child(reminder.getKey());
+//                    keyRef.setValue(reminder);
+//
+//                }
+//                System.out.println("the  of the reminder is: "+reminder.getMyType());
+//                if(!reminder.getMyType().equals("Todo List") && delete) {
+//                    System.out.println("im in reminder not a todo lost reminder ");
+//                    sendToAlarmManager(reminder,true);
+//                }
+//                add_reminder_dialog.cancel();
+//                ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(HomePage.getInstance(), R.array.kinds, android.R.layout.simple_spinner_item);
+//                KindsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//                int spinnerPosition = KindsAdapter.getPosition("all");
+//                HomePage.getInstance().getRemindersKindSpinner().setSelection(spinnerPosition);
+//                HomePage.getInstance().get_all_reminders_by_kind("all");
+//                HomePage.getInstance().getmRecyclerView().setHasFixedSize(true);
+//
+//            }
+//
+//        });
 
 
 

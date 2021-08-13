@@ -63,6 +63,8 @@ public class NotifierLocationRemind extends Service {
         intent2.putExtra("address",intent.getStringExtra("address"));
         intent2.putExtra("lat",intent.getDoubleExtra("lat",0));
         intent2.putExtra("lang",intent.getDoubleExtra("lang",0));
+        intent2.putExtra("lat",intent.getDoubleExtra("lat",0));
+        intent2.putExtra("email",intent.getStringExtra("email"));
 //        if(intent.getStringExtra("type").equals("LocationRemind")){
 //            intent2.putExtra("locationType",intent.getStringExtra("locationType"));
 //        }

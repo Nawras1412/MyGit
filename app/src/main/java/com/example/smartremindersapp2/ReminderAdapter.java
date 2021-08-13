@@ -22,6 +22,7 @@ import com.google.firebase.storage.StorageReference;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 import static android.content.Context.*;
@@ -150,12 +151,18 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
                 minutes = "0" + Integer.toString(date2.getMinutes());
             else
                 minutes = Integer.toString(date2.getMinutes());
-            String formattedDate = new SimpleDateFormat("MM yyyy").format(date2);
+            String formattedDate = new SimpleDateFormat("dd MM yyyy").format(date2);
             formattedDate = formattedDate + " - " + hour + ":" + minutes;
             holder.date.setText(formattedDate);
         }
-        if(currentReminer.getLocationAsString()!=null)
-            holder.location.setText(currentReminer.getLocationAsString());
+        if(currentReminer.getLocationAsString()!=null){
+            if(currentReminer.getLocationAsString().equals("Person"))
+                holder.location.setText(currentReminer.getPerson().getEmail());
+            else if(currentReminer.getLocationAsString().equals("Other"))
+                holder.location.setText(currentReminer.getLocation());
+            else
+                holder.location.setText(currentReminer.getLocationAsString());
+        }
 
 
 

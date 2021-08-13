@@ -43,7 +43,8 @@ public class reminders_view {
 
 
     public reminders_view(String Key, String title, String description , String type,Date date,
-                          String location,String address,List<String> audioArr) {
+                          String location,String address,List<String> audioArr
+                    ,User person) {
         this.key = Key;
         this.Title = title;
         this.type=type;
@@ -53,6 +54,7 @@ public class reminders_view {
         this.LocationAsString=location;
 //        this.audios=new ArrayList<>();
         this.audios=audioArr;
+        this.Person=person;
     }
     public reminders_view() {}
     public List<String> getAudios(){return audios;}
