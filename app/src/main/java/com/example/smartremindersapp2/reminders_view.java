@@ -1,11 +1,7 @@
 package com.example.smartremindersapp2;
 
-import android.app.Dialog;
-import android.location.Location;
 import android.widget.ImageView;
 import android.widget.Switch;
-
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -17,34 +13,16 @@ public class reminders_view {
     private String description;
     private String key;
     private User Person;
-    private Switch Switch;
     private String type;
-
-    public User getPerson() {
-        return Person;
-    }
-
-    public void setPerson(User person) {
-        Person = person;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
     private String location;
     private String LocationAsString;
-    private ImageView Delete_Button;
     private List<String> audios;
+
 
 
     public reminders_view(String Key, String title, String description , String type,Date date,
                           String location,String address,List<String> audioArr
-                    ,User person) {
+            ,User person) {
         this.key = Key;
         this.Title = title;
         this.type=type;
@@ -52,65 +30,44 @@ public class reminders_view {
         this.description = description;
         this.date=date;
         this.LocationAsString=location;
-//        this.audios=new ArrayList<>();
         this.audios=audioArr;
         this.Person=person;
     }
     public reminders_view() {}
+
+
+
+    /*
+    getters
+     */
+    public User getPerson() { return Person; }
+    public String getLocation() { return location; }
     public List<String> getAudios(){return audios;}
-    public void setAudios(List<String> audios1){ this.audios=audios1;}
     public String getLocationAsString(){return LocationAsString;}
-    public void setLocationAsString(String Location){
-        this.LocationAsString=Location;
-    }
-    public String getType() {
-        return type;
-    }
-    public void setType(String type) {
-        this.type = type;
-    }
-    public String getTitle() {
-        return Title;
-    }
-    public void setTitle(String title) {
-        this.Title = title;
-    }
-    public Date getDate() {
-        return date;
-    }
-    public void setDate(Date date) {
-        this.date = date;
-    }
-    public String getDescription() {
-        return description;
-    }
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    public void setKey(String key) {
-        this.key = key;
-    }
-    public String getKey() {
-        return key;
-    }
-    //    public boolean getSwitch() {
-//        return Switch.isChecked();
-//    }
-//    public void setSwitch(boolean aSwitch) {
-//        Switch.setChecked(aSwitch);
-//    }
-    public Double getLAT() {
-        return LAT;
-    }
-    public void setLAT(Double LAT) {
-        this.LAT = LAT;
-    }
-    public Double getLNG() {
-        return LNG;
-    }
-    public void setLNG(Double LNG) {
-        this.LNG = LNG;
-    }
+    public String getType() { return type; }
+    public String getTitle() { return Title; }
+    public Date getDate() { return date; }
+    public String getDescription() { return description; }
+    public String getKey() { return key; }
+    public Double getLAT() { return LAT; }
+    public Double getLNG() { return LNG; }
+
+
+
+    /*
+    setters
+     */
+    public void setPerson(User person) { Person = person; }
+    public void setLocation(String location) { this.location = location; }
+    public void setAudios(List<String> audios1){ this.audios=audios1;}
+    public void setLocationAsString(String Location){ this.LocationAsString=Location; }
+    public void setType(String type) { this.type = type; }
+    public void setTitle(String title) { this.Title = title; }
+    public void setDate(Date date) { this.date = date; }
+    public void setDescription(String description) { this.description = description; }
+    public void setKey(String key) { this.key = key; }
+    public void setLAT(Double LAT) { this.LAT = LAT; }
+    public void setLNG(Double LNG) { this.LNG = LNG; }
 }
 
 

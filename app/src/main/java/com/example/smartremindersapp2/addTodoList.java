@@ -1,89 +1,3 @@
-//package com.example.smartremindersapp2;
-//
-//import android.app.Dialog;
-//import android.graphics.Color;
-//import android.graphics.drawable.ColorDrawable;
-//import android.view.View;
-//import android.widget.ArrayAdapter;
-//import android.widget.Button;
-//import android.widget.EditText;
-//import android.widget.ImageButton;
-//import android.widget.TextView;
-//
-//import com.google.firebase.database.DatabaseReference;
-//import com.google.firebase.database.FirebaseDatabase;
-//
-//public class addTodoList {
-//    private String UserName;
-//    private Dialog todoList_dialog;
-//    private EditText AddDescriptionEditText;
-//    private TextView title;
-//    private Button add_btn;
-//    private ImageButton cancel_btn;
-//
-//    public addTodoList(String userName) { UserName=userName; }
-//
-//    public void openDialog(boolean edit,reminders_view oldReminder,int position) {
-//        todoList_dialog=new Dialog(HomePage.getInstance());
-//        todoList_dialog.setContentView(R.layout.todo_list);
-//        add_btn = todoList_dialog.findViewById(R.id.addButton);
-//        cancel_btn = todoList_dialog.findViewById(R.id.cancel_Btn);
-//        title = todoList_dialog.findViewById(R.id.Title);
-//        AddDescriptionEditText=todoList_dialog.findViewById(R.id.descriptionTextView);
-//
-//        if(edit){
-//            title.setText(oldReminder.getTitle());
-//            AddDescriptionEditText.setText(oldReminder.getDescription());
-//        }
-//
-//        cancel_btn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                todoList_dialog.cancel();
-//            }
-//        });
-//
-//        add_btn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if(edit){
-//                    ReminderAdapter.getmRemind_view_list().remove(position);
-//                    DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").
-//                            child(UserName).child("reminder_list").child(oldReminder.getKey());
-//                    ref.removeValue();
-//                }
-//                Reminder reminder=new Reminder();
-//                DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(UserName).child("reminder_list");
-//                DatabaseReference keyRef =ref.push();
-//                reminder.setKey(keyRef.getKey());
-//                reminder.setMyType("Todo List");
-//                reminder.setState(true);
-//                if(title.getText().toString().isEmpty())
-//                    reminder.setMessage("Todo list");
-//                else
-//                    reminder.setMessage(title.getText().toString().trim());
-//                reminder.setDescription(AddDescriptionEditText.getText().toString());
-//                keyRef.setValue(reminder);
-//                ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(HomePage.getInstance(), R.array.kinds, android.R.layout.simple_spinner_item);
-//                KindsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//                int spinnerPosition = KindsAdapter.getPosition("all");
-//                HomePage.getInstance().getRemindersKindSpinner().setSelection(spinnerPosition);
-//                HomePage.getInstance().get_all_reminders_by_kind("all");
-//                HomePage.getInstance().getmRecyclerView().setHasFixedSize(true);
-//                todoList_dialog.cancel();
-//            }
-//        });
-//
-//        todoList_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-//        todoList_dialog.show();
-//
-//    }
-//
-//}
-//
-//
-
-
 package com.example.smartremindersapp2;
 
 import android.Manifest;
@@ -113,12 +27,10 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DatabaseReference;
@@ -126,7 +38,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -151,6 +62,7 @@ public class addTodoList extends AppCompatActivity {
     private String PathName="";
     private StorageReference mStorage= FirebaseStorage.getInstance().getReference();
     private DatabaseReference keyRef;
+    final int REQUEST_PERMISSION_CODE=1000;
 
 
     public addTodoList(String userName) { UserName=userName; }
@@ -212,7 +124,6 @@ public class addTodoList extends AppCompatActivity {
                                 mediaPlayer = new MediaPlayer();
                                 try {
                                     mediaPlayer.setDataSource((String)((View)v.getParent()).getTag());
-//                        mediaPlayer.prepare();
                                     mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                                         @Override
                                         public void onPrepared(MediaPlayer mp) {
@@ -224,19 +135,12 @@ public class addTodoList extends AppCompatActivity {
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
-
                                 seekBar.setMax(mediaPlayer.getDuration());
-//                    mediaPlayer.start();
                                 UpdateSeekBar updateSeekBar = new UpdateSeekBar();
                                 handler.post(updateSeekBar);
                             } else {
-                                System.out.println("play is false");
                                 if (mediaPlayer != null) {
-//                        mediaPlayer.stop();
-//                        mediaPlayer.release();
                                     mediaPlayer.pause();
-//                                    currentPosition = mediaPlayer.getCurrentPosition();
-//                        setupMediaRecorder();
                                 }
                             }
                             mediaPlayer.seekTo(seekBar.getProgress());
@@ -245,9 +149,6 @@ public class addTodoList extends AppCompatActivity {
                 }
             }
         }
-
-
-
         mRecordBtn.setOnTouchListener(new View.OnTouchListener() {
             @RequiresApi(api = Build.VERSION_CODES.P)
             @SuppressLint("ClickableViewAccessibility")
@@ -269,7 +170,6 @@ public class addTodoList extends AppCompatActivity {
                     } else
                         requestPermission();
                 }else if(event.getAction() == MotionEvent.ACTION_UP){
-                    System.out.println("the max amplitude "+mediaRecorder.getMaxAmplitude());
                     simpleChronometer.stop();
                     simpleChronometer.setBase(SystemClock.elapsedRealtime());
                     mediaRecorder.stop();
@@ -301,6 +201,9 @@ public class addTodoList extends AppCompatActivity {
                 reminder.setKey(keyRef.getKey());
                 reminder.setMyType("Todo List");
                 reminder.setState(true);
+                reminder.setAudios(all_audios_list);
+                if (all_audios_list != null)
+                    uploadAudios();
                 if(title.getText().toString().isEmpty())
                     reminder.setMessage("Todo list");
                 else
@@ -338,9 +241,8 @@ public class addTodoList extends AppCompatActivity {
             });
         }
     }
-    final int REQUEST_PERMISSION_CODE=1000;
-    private void addToScrollView(){
 
+    private void addToScrollView(){
         all_audios_list.add(PathName);
         LinearLayout audios=todoList_dialog.findViewById(R.id.kinear_all_audios);
         LayoutInflater inflater=LayoutInflater.from(todoList_dialog.getContext());
@@ -353,10 +255,8 @@ public class addTodoList extends AppCompatActivity {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar2, int progress, boolean fromUser) {
-
                 if(fromUser){
                     mediaPlayer.seekTo(progress);
-                    System.out.println("im in seekbar...");
                 }
             }
             @Override
@@ -384,7 +284,6 @@ public class addTodoList extends AppCompatActivity {
                     mediaPlayer = new MediaPlayer();
                     try {
                         mediaPlayer.setDataSource((String)((View)v.getParent()).getTag());
-//                        mediaPlayer.prepare();
                         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                             @Override
                             public void onPrepared(MediaPlayer mp) {
@@ -392,23 +291,15 @@ public class addTodoList extends AppCompatActivity {
                             }
                         });
                         mediaPlayer.prepare();
-
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                     seekBar.setMax(mediaPlayer.getDuration());
-//                    mediaPlayer.start();
                     UpdateSeekBar updateSeekBar = new UpdateSeekBar();
                     handler.post(updateSeekBar);
                 } else {
-                    System.out.println("play is false");
                     if(mediaPlayer != null) {
-//                        mediaPlayer.stop();
-//                        mediaPlayer.release();
                         mediaPlayer.pause();
-//                        currentPosition = mediaPlayer.getCurrentPosition();
-//                        setupMediaRecorder();
                     }
                 }
                 mediaPlayer.seekTo(seekBar.getProgress());
@@ -422,10 +313,8 @@ public class addTodoList extends AppCompatActivity {
             seekBar2.setProgress(mediaPlayer.getCurrentPosition());
             handler.postDelayed(this,100);
             if(mediaPlayer.getCurrentPosition()==mediaPlayer.getDuration()) {
-                System.out.println("im in run...");
                 seekBar2.setProgress(0);
                 play=true;
-
             }
         }
     }
@@ -434,14 +323,12 @@ public class addTodoList extends AppCompatActivity {
         ActivityCompat.requestPermissions(HomePage.getInstance(),new String[]{
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.RECORD_AUDIO
-
         },REQUEST_PERMISSION_CODE);
     }
 
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode){
             case REQUEST_PERMISSION_CODE:
             {
@@ -466,7 +353,6 @@ public class addTodoList extends AppCompatActivity {
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        System.out.println("the path name of the audio is: "+PathName);
         mediaRecorder.setOutputFile(PathName);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 

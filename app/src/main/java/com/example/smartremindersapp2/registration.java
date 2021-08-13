@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -15,9 +14,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 
@@ -51,14 +48,8 @@ public class registration extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot ds : dataSnapshot.getChildren()) {
                     User user= ds.getValue(User.class);
-//                    HashMap user = ds.getValue(HashMap.class);
-                    System.out.println(user.getUserName());
                     users.add(user.getUserName());
                 }
-//                for (DataSnapshot snapshot:dataSnapshot.getChildren()){
-//                    System.out.println(((String)snapshot.getValue()));
-////                    users.add((String)snapshot.getValue());
-//                }
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {}
@@ -162,10 +153,8 @@ public class registration extends AppCompatActivity {
         if (confirmPassWardText.getText().toString().isEmpty()) {
             errors.add("empty confirm password");
         } else if (!(confirmPassWardText.getText().toString().contentEquals(passWardText.getText().toString()))) {
-            errors.add("inappropriate passward");
+            errors.add("inappropriate password");
         }
-
-        System.out.println(errors);
         if (errors.isEmpty()) {
             errors.add("success");
         }

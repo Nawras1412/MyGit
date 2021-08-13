@@ -2,9 +2,7 @@ package com.example.smartremindersapp2;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
 import java.util.HashMap;
-
 public class SaveInDatabase {
     private static DatabaseReference ref;
     private static SaveInDatabase MySaveInDatabase;

@@ -1,18 +1,5 @@
 package com.example.smartremindersapp2;
 
-//import android.arch.persistence.room.ColumnInfo;
-//import android.arch.persistence.room.Entity;
-//import android.arch.persistence.room.PrimaryKey;
-//import android.support.annotation.NonNull;
-
-import android.app.Dialog;
-import android.location.Location;
-
-import androidx.annotation.NonNull;
-
-import com.google.android.gms.maps.model.LatLng;
-import com.google.firebase.database.DatabaseReference;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,77 +13,14 @@ public class Reminder {
     private Double LAT;
     private Double LNG;
     private boolean state;
-
-    public String getLocation() {
-        return Location;
-    }
-
-    public void setLocation(String location) {
-        Location = location;
-    }
-
     private String LocationAsString;
     private String Location;
     private List<String> audios;
     private String MyType;
     private User Person;
-
-    public User getPerson() {
-        return Person;
-    }
-
-    public void setPerson(User person) {
-        Person = person;
-    }
-
     private boolean DateState;
 
 
-
-    public String getLocationAsString(){return LocationAsString;}
-
-    public void setLocationAsString(String Location){this.LocationAsString=Location;}
-
-    public Double getLAT() {
-        return LAT;
-    }
-
-    public void setLAT(Double LAT) {
-        this.LAT = LAT;
-    }
-
-    public Double getLNG() {
-        return LNG;
-    }
-
-    public void setLNG(Double LNG) {
-        this.LNG = LNG;
-    }
-
-
-    public String getMyType() {
-        return MyType;
-    }
-
-    public void setMyType(String myType) {
-        MyType = myType;
-    }
-
-    public String getKey() {
-        return Key;
-    }
-
-    public void setKey(String key) {
-        Key = key;
-    }
-
-    public String getDescription() {
-        return Description;
-    }
-
-    public void setDescription(String description) {
-        Description = description;
-    }
 
     public Reminder(String message, Date remindDate) {
         Message =message ;
@@ -106,50 +30,89 @@ public class Reminder {
         audios=new ArrayList<>();
         DateState=false;
     }
+    public Reminder() {}
 
+
+    /*
+    getters
+     */
+    public String getLocation() {
+        return Location;
+    }
+    public User getPerson() { return Person; }
+    public String getLocationAsString(){return LocationAsString;}
+    public Double getLAT() {
+        return LAT;
+    }
+    public Double getLNG() {
+        return LNG;
+    }
+    public String getMyType() {
+        return MyType;
+    }
+    public String getKey() {
+        return Key;
+    }
+    public String getDescription() {
+        return Description;
+    }
     public List<String> getAudios() {
         return audios;
     }
-
-    public void setAudios(List<String> audios) {
-        this.audios = audios;
-    }
-
     public boolean isState() {
         return state;
     }
-
-    public void setState(boolean state) {
-        this.state = state;
-    }
-
-    public Reminder() {}
-
     public String getMessage() {
         return Message;
     }
-
     public Date getRemindDate() {
         return RemindDate;
     }
-
     public int getId() {
         return id;
     }
+    public boolean isDateState() {return DateState;}
 
+
+
+    /*
+    setters
+     */
+    public void setLocation(String location) {
+        Location = location;
+    }
+    public void setPerson(User person) { Person = person; }
+    public void setLocationAsString(String Location){this.LocationAsString=Location;}
+    public void setLAT(Double LAT) {
+        this.LAT = LAT;
+    }
+    public void setLNG(Double LNG) {
+        this.LNG = LNG;
+    }
+    public void setMyType(String myType) {
+        MyType = myType;
+    }
+    public void setKey(String key) {
+        Key = key;
+    }
+    public void setDescription(String description) {
+        Description = description;
+    }
+    public void setAudios(List<String> audios) {
+        this.audios = audios;
+    }
+    public void setState(boolean state) {
+        this.state = state;
+    }
     public void setMessage(String message) {
         this.Message = message;
     }
-
     public void setRemindDate(Date remindDate) {
         this.RemindDate = remindDate;
     }
-
     public void setId(int id) {
         this.id = id;
     }
-    public boolean isDateState() {return DateState;}
-
     public void setDateState(boolean dateState) {DateState = dateState;}
 }
 

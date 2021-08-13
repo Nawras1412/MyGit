@@ -1,10 +1,8 @@
 package com.example.smartremindersapp2;
 
-
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.view.View;
-
 public class viewAnimation {
     public static boolean rotateFab(final View v, boolean rotate) {
         v.animate().setDuration(200)
@@ -17,7 +15,6 @@ public class viewAnimation {
                 .rotation(rotate ? 45f : 0f);
         return rotate;
     }
-
     public static void showIn(final View v) {
         v.setVisibility(View.VISIBLE);
         v.setAlpha(0f);
@@ -49,11 +46,5 @@ public class viewAnimation {
                     }
                 }).alpha(0f)
                 .start();
-    }
-
-    public static void init(final View v) {
-        v.setVisibility(View.GONE);
-        v.setTranslationY(v.getHeight());
-        v.setAlpha(0f);
     }
 }

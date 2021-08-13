@@ -2,11 +2,8 @@ package com.example.smartremindersapp2;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
-
 import android.os.Bundle;
-import android.text.Html;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.TextView;
 
 public class AboutUs extends AppCompatActivity {
@@ -31,12 +28,8 @@ public class AboutUs extends AppCompatActivity {
         about_as.setText(about_as_string);
     }
 
-
     public void ClickMenu(View view){
         HomePage.openDrawer(drawerLayout);
-    }
-    public void ClickLogo(View view){
-        HomePage.closeDrawer(drawerLayout);
     }
     public void ClickHome(View view){ HomePage.redirectActivity(this,HomePage.class, getIntent().getStringExtra("User Name")); }
     public void ClickDashboard(View view){ HomePage.redirectActivity(this,all_alarms.class, getIntent().getStringExtra("User Name")); }

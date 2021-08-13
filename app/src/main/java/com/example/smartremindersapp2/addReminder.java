@@ -4,10 +4,10 @@ import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,7 +15,6 @@ import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.location.Location;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -37,24 +36,19 @@ import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -62,14 +56,12 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.drawable.DrawableCompat;
-
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
-
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
@@ -83,30 +75,24 @@ import com.google.firebase.storage.UploadTask;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 public class addReminder extends AppCompatActivity {
     private Dialog add_reminder_dialog, add_description_dialog,add_location_dialog,category_menu_dialog;
     private Button add_btn;
-    private HorizontalScrollView images_scroll;
-    private ImageView image_view;
     public TextView LocationTextView;
-    private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn;//,searchIcon;
+    private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn;
     private ImageButton selectDateImage, addDescriptionImage, locationImage;
     private ImageButton removeDate,removeLocation,removeDescription;
     private FloatingActionButton mRecordBtn;
     private TextView title,DescriptionTextView,TimeTextView;
-    //    public TextView searchLocationbar;
     private EditText AddDescriptionEditText;
     private Button save_description,cancel_desc_dialog,searchLocation;
     private Reminder reminder;
     private ConstraintLayout dialog_layout;
     private RelativeLayout background_layout;
     private Calendar NotificationDate;
-    private RadioGroup LocationMenu;
-    private RadioButton radioButtonOption;
     private String Category="";
     private String UserName;
     private int numberOfAdditions;
@@ -120,9 +106,6 @@ public class addReminder extends AppCompatActivity {
     private static addReminder instance;
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
-    private Uri imageUri;
-    private Uri oneClipImage=null;
-    private ClipData clipimages=null;
     private static final int IMAGE_REQUEST=2;
     private DatabaseReference keyRef;
     public addReminder(String userName) { UserName=userName; }
@@ -138,10 +121,8 @@ public class addReminder extends AppCompatActivity {
     private ScrollView all_audios;
     private ImageView delete_audio;
     private List<String> all_audios_list;
-    //boolean isRotate =false;
     private FloatingActionButton btn_person,btn_food,btn_other,btn_office,btn_car,btn_shop,btn_book,btn_medical,btn_money;
     private ExtendedFloatingActionButton btn_food_res,btn_food_cafe,btn_food_bakery,btn_money_bank,btn_money_atm,btn_medical_hospital,btn_medical_pharmacy,btn_car_wash,btn_car_repair,btn_car_gas,btn_car_parking,btn_shop_supermarket,btn_shop_mall,btn_office_laywer,btn_office_acoounting,btn_office_police,btn_office_post_office,btn_book_library,btn_book_uni,btn_book_book_store;
-    private int currentPosition=0;
     private SeekBar seekBar2;
     private boolean play=false;
     private Handler handler=new Handler();
@@ -150,14 +131,9 @@ public class addReminder extends AppCompatActivity {
     private MediaPlayer mediaPlayer= new MediaPlayer();;
     final int REQUEST_PERMISSION_CODE=1000;
     private boolean delete=true;
-    //    ArrayList<Boolean> isRotate=new ArrayList<Boolean>(Arrays.asList(false,false,false,false,false,false,false));
-//    ArrayList<FloatingActionButton> Main_btns=new ArrayList<FloatingActionButton>(Arrays.asList(btn_food,btn_office,btn_car,btn_shop,btn_book,btn_medical,btn_money,btn_other));
-    ArrayList<Boolean> isRotate=new ArrayList<Boolean>();
-    // ArrayList<FloatingActionButton> Main_btns=new ArrayList<FloatingActionButton>(2);
-    FloatingActionButton Main_btns[] =new FloatingActionButton[7];
-    ArrayList<ArrayList<ExtendedFloatingActionButton>> subList = new ArrayList<ArrayList<ExtendedFloatingActionButton>>();
-
-
+    private ArrayList<Boolean> isRotate=new ArrayList<Boolean>();
+    private FloatingActionButton Main_btns[] =new FloatingActionButton[7];
+    private ArrayList<ArrayList<ExtendedFloatingActionButton>> subList = new ArrayList<ArrayList<ExtendedFloatingActionButton>>();
 
 
     private void ExpandDialogAndSetData2(ImageButton removeIcon, ImageButton image_button, TextView text_view, String string, String type) {
@@ -173,7 +149,6 @@ public class addReminder extends AppCompatActivity {
         ViewGroup.LayoutParams params2 = dialog_layout. getLayoutParams();
         params2.height=WindowHeight;
         dialog_layout.setLayoutParams(params2);
-
         removeIcon.setVisibility(View.VISIBLE);
         removeIcon.setEnabled(true);
         image_button.setVisibility(View.VISIBLE);
@@ -182,16 +157,13 @@ public class addReminder extends AppCompatActivity {
         text_view.setVisibility(View.VISIBLE);
         text_view.setText(string);
         if(numberOfAdditions==1){
-            System.out.println("im in 1");
-            ArrangingTheWindow(50,30,0);//160   140
+            ArrangingTheWindow(50,30,0);
         }
         if(numberOfAdditions==2){
-            System.out.println("im in 2");
-            ArrangingTheWindow(-20,-40,0);  // 120  100
-            ArrangingTheWindow(80,60,1);  // 220  200
+            ArrangingTheWindow(-20,-40,0);
+            ArrangingTheWindow(80,60,1);
         }
         if(numberOfAdditions==3){
-            System.out.println("im in 3");
             ArrangingTheWindow(-80,-100,0);
             ArrangingTheWindow(20,0,1);
             ArrangingTheWindow(120,100,2);
@@ -199,19 +171,13 @@ public class addReminder extends AppCompatActivity {
     }
 
     private void ArrangingTheWindow(int NextTextViewY, int NextImageButtonY,int index){
-        System.out.println("the value of index is: "+index);
-        //     System.out.println("the size of Additions is: "+Additions.size());
-//        if (Additions.get(index).equals("Location")) NextTextViewY+=20;
-//        Additions_Images.get(index).setX((float) 20);  //20
         Additions_Images.get(index).setY(NextImageButtonY);
         remove_icons.get(index).setY(NextImageButtonY);
-        //        Additions_TextView.get(index).setX((float) 150);  //150
         Additions_TextView.get(index).setY(NextTextViewY);
     }
 
     private void ExpandDialogAndSetData(ImageButton removeIcon,ImageButton image_button, TextView text_view, String string,String type) {
         int WindowHeight=440+Additions.size()*110;
-        System.out.println("im in expand and my height is: "+WindowHeight);
         Additions.add(type);
         Additions_Images.add(image_button);
         Additions_TextView.add(text_view);
@@ -222,7 +188,6 @@ public class addReminder extends AppCompatActivity {
         ViewGroup.LayoutParams params2 = dialog_layout. getLayoutParams();
         params2.height=WindowHeight;
         dialog_layout.setLayoutParams(params2);
-
         removeIcon.setVisibility(View.VISIBLE);
         removeIcon.setEnabled(true);
         image_button.setVisibility(View.VISIBLE);
@@ -233,17 +198,13 @@ public class addReminder extends AppCompatActivity {
             text_view.setText(string);
 
         if(numberOfAdditions==1){
-            System.out.println("im in 1");
-//            if(Additions.contains("Description"))
             ArrangingTheWindow(160,140,0);
         }
         if(numberOfAdditions==2){
-            System.out.println("im in 2");
             ArrangingTheWindow(120,100,0);
             ArrangingTheWindow(220,200,1);
         }
         if(numberOfAdditions==3){
-            System.out.println("im in 3");
             ArrangingTheWindow(140,120,0);
             ArrangingTheWindow(240,220,1);
             ArrangingTheWindow(320,300,2);
@@ -256,49 +217,29 @@ public class addReminder extends AppCompatActivity {
         if(numberOfAdditions==0)
             WindowHeight=440;
         ViewGroup.LayoutParams params = background_layout. getLayoutParams();
-        System.out.println("bbbbbbbbbbbbb");
-        System.out.println(params.height);
-        System.out.println(WindowHeight);
-        System.out.println(numberOfAdditions);
-//        int WindowHeight=440+Additions.size()*110;
         Additions.remove(type);
         Additions_Images.remove(image_button);
         Additions_TextView.remove(text_view);
         remove_icons.remove(removeIcon);
-
-
         removeIcon.setVisibility(View.INVISIBLE);
         removeIcon.setEnabled(false);
         image_button.setVisibility(View.INVISIBLE);
         image_button.setEnabled(false);
         text_view.setVisibility(View.INVISIBLE);
         text_view.setEnabled(false);
-
-
         params = background_layout. getLayoutParams();
         params.height=WindowHeight;
         background_layout.setLayoutParams(params);
         ViewGroup.LayoutParams params2 = dialog_layout. getLayoutParams();
         params2.height=WindowHeight;
         dialog_layout.setLayoutParams(params2);
-
-
-
         if(numberOfAdditions==1){
-            System.out.println("im in 1");
             ArrangingTheWindow(200,180,0);
         }
         if(numberOfAdditions==2){
-            System.out.println("im in 2");
             ArrangingTheWindow(210,190,0);
             ArrangingTheWindow(310,290,1);
         }
-//        if(numberOfAdditions==3){
-//            System.out.println("im in 3");
-//            ArrangingTheWindow(140,120,0);
-//            ArrangingTheWindow(240,220,1);
-//            ArrangingTheWindow(320,300,2);
-//        }
     }
 
     private String userName;
@@ -313,7 +254,6 @@ public class addReminder extends AppCompatActivity {
         remove_icons=new ArrayList<>();
         NotificationDate=Calendar.getInstance();
         add_reminder_dialog = new Dialog(HomePage.getInstance());
-
         if(edit){
             reminder.setMessage(oldReminder.getTitle());
             reminder.setKey(oldReminder.getKey());
@@ -328,11 +268,10 @@ public class addReminder extends AppCompatActivity {
     }
 
 
-    public static void cancelNotification(String key ,Context context) {
-        System.out.println("the pending key is:    "+ key.hashCode());
+    public static void cancelNotification(int hashkey ,Context context) {
         AlarmManager alarmManager = (AlarmManager) HomePage.getInstance().getSystemService(HomePage.getInstance().ALARM_SERVICE);
-        Intent intent = new Intent(HomePage.getInstance(), NotifierLocationRemind.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(HomePage.getInstance(), key.hashCode(), intent, 0);
+        Intent intent = new Intent(HomePage.getInstance(), HomePage.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(HomePage.getInstance(), hashkey, intent, 0);
         alarmManager.cancel(pendingIntent);
     }
 
@@ -343,9 +282,7 @@ public class addReminder extends AppCompatActivity {
         context.stopService(ServiceIntent);
         ServiceIntent.putExtra("title","Location Reminder");
         ServiceIntent.putExtra("content","I near the desired location");
-
-        if (check==false)
-        {
+        if(check==false){
             ServiceIntent.putExtra("locationType","Other");
             ServiceIntent.putExtra("type", "Location");
             ServiceIntent.putExtra("key", reminder.getKey());
@@ -355,41 +292,29 @@ public class addReminder extends AppCompatActivity {
             ServiceIntent.putExtra("lang",reminder.getLAT());
         }
         else {
-
             if (Additions.contains("Person") && !Additions.contains("Time")) {
-                System.out.println("Person and not time");
                 ServiceIntent.putExtra("locationType", Category);
                 ServiceIntent.putExtra("type", "Person");
                 Calendar c = Calendar.getInstance();
-//            long currentTime=c.getTimeInMillis();
-//            Date d=new Date(currentTime+60*1000);
-//            d.setSeconds(0);
                 ServiceIntent.putExtra("date", c.getTime().getTime());
             }
             if (Additions.contains("Person") && Additions.contains("Time")) {
                 ServiceIntent.putExtra("locationType", Category);
-                System.out.println("Person and time");
                 ServiceIntent.putExtra("type", "Person");
                 ServiceIntent.putExtra("date", reminder.getRemindDate().getTime());
             }
             if (Additions.contains("Location") && !Additions.contains("Time")) {
-                System.out.println("location and not time");
                 ServiceIntent.putExtra("locationType", Category);
                 ServiceIntent.putExtra("type", "Location");
                 Calendar c = Calendar.getInstance();
-//            long currentTime=c.getTimeInMillis();
-//            Date d=new Date(currentTime+60*1000);
-//            d.setSeconds(0);
                 ServiceIntent.putExtra("date", c.getTime().getTime());
             }
             if (Additions.contains("Location") && Additions.contains("Time")) {
                 ServiceIntent.putExtra("locationType", Category);
-                System.out.println("location and time");
                 ServiceIntent.putExtra("type", "Location");
                 ServiceIntent.putExtra("date", reminder.getRemindDate().getTime());
             }
             if (!Additions.contains("Location") && Additions.contains("Time")) {
-                System.out.println("not location and time");
                 ServiceIntent.putExtra("locationType", "");
                 ServiceIntent.putExtra("type", "Time");
                 ServiceIntent.putExtra("title", "Date Reminder");
@@ -418,10 +343,8 @@ public class addReminder extends AppCompatActivity {
     public void SetFindViewById(){
         add_reminder_dialog.setContentView(R.layout.anna_reminder);
         DescriptionTextView=add_reminder_dialog.findViewById(R.id.DescriptionTextView);
-//        searchIcon=add_reminder_dialog.findViewById(R.id.searchIcon);
         TimeTextView=add_reminder_dialog.findViewById(R.id.TimeTextView);
         LocationTextView=add_reminder_dialog.findViewById(R.id.LocationTextView);
-//        searchLocationbar=add_reminder_dialog.findViewById(R.id.searchLocation);
         background_layout=add_reminder_dialog.findViewById(R.id.background_layout);
         dialog_layout=add_reminder_dialog.findViewById(R.id.dialog_layout);
         selectDate_btn = add_reminder_dialog.findViewById(R.id.selectDate);
@@ -445,7 +368,6 @@ public class addReminder extends AppCompatActivity {
             String content = "";
             if (oldReminder.getDescription() != null) content += " +Description";
             if (oldReminder.getAudios() != null) content += " +Audio";
-
             ExpandDialogAndSetData2(removeDescription, addDescriptionImage, DescriptionTextView, content, "Description");
         }
         if (oldReminder.getDate()!=null){
@@ -468,8 +390,6 @@ public class addReminder extends AppCompatActivity {
         if (oldReminder.getType().equals("Location")) {
             if (oldReminder.getLocationAsString().equals("Other")) {
                 locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_search));
-                System.out.println("oldReminder.getLocation()  " + oldReminder.getLocation());
-                System.out.println("oldReminder.get other()  " + oldReminder.getTitle());
                 ExpandDialogAndSetData2(removeLocation, locationImage, LocationTextView
                         , oldReminder.getLocation(), "Location");
 
@@ -483,9 +403,6 @@ public class addReminder extends AppCompatActivity {
                 });
                 LocationTextView.setEnabled(true);
                 LocationTextView.setVisibility(View.VISIBLE);
-                //LocationTextView.setAutofillHints("tab to search");
-                //LocationTextView.setText(oldReminder.getlocation());
-                //LocationTextView.setAutofillHints("tab to search");
             }else if(oldReminder.getLocationAsString().equals("Person")){
                 locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_baseline_person_24));
                 ExpandDialogAndSetData2(removeLocation, locationImage, LocationTextView
@@ -497,6 +414,7 @@ public class addReminder extends AppCompatActivity {
             }
         }
     }
+
     public void openDialog(boolean edit,reminders_view oldReminder,int position){
         all_audios_list=new ArrayList<>();
         DatabaseReference ref= FirebaseDatabase.getInstance().getReference().child("Users").child(UserName).child("reminder_list");
@@ -505,7 +423,6 @@ public class addReminder extends AppCompatActivity {
         SetFindViewById();
         if(edit)
             InitializeTheDialogIfEdit(oldReminder);
-
         if(edit && oldReminder.getDate()!=null)
             oldDate=oldReminder.getDate();
 
@@ -524,11 +441,8 @@ public class addReminder extends AppCompatActivity {
                 ReduceDialogAndReorder(removeDescription,addDescriptionImage,DescriptionTextView,
                         "Description");
                 all_audios_list=new ArrayList<>();
-                System.out.println("the size of the list after remove description: "
-                        +all_audios_list.size());
             }
         });
-
         removeLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -536,7 +450,6 @@ public class addReminder extends AppCompatActivity {
                 ReduceDialogAndReorder(removeLocation,locationImage,LocationTextView,"Location");
             }
         });
-
 
         cancel_btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -550,29 +463,17 @@ public class addReminder extends AppCompatActivity {
             public void onClick(View v){
                 if(reminder.getLocationAsString()!=null)
                     Category=reminder.getLocationAsString();
-                System.out.println("the category is: "+Category);
                 if(Category.equals("Person")){
-                    //check Email
                     String email =LocationTextView.getText().toString();
-                    System.out.println("the emain from textview is: "+email);
-//                    ArrayList<User> usersList = new ArrayList<>();
                     DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users");
                     ref.addListenerForSingleValueEvent(new ValueEventListener(){
                         @Override
                         public void onDataChange(DataSnapshot snapshot) {
-                            System.out.println("immmmm");
                             for (DataSnapshot ds : snapshot.getChildren()) {
                                 User user = ds.getValue(User.class);
-                                System.out.println("thee email:" + user.getEmail());
-                                System.out.println("clicked mail: "+email);
-                                System.out.println("the name:" + user.getName());
                                 if (email.equals(user.getEmail())) {
-                                    System.out.println("the clicked email is: "+email);
-                                    System.out.println("the desired person is: "+user.getName());
-                                    //create notification
                                     reminder.setMyType("Person");
                                     reminder.setPerson(user);
-                                    // reminder.setLocationAsString("Person");
                                 }
                             }
                             if(reminder.getPerson()==null) {
@@ -580,10 +481,7 @@ public class addReminder extends AppCompatActivity {
                                 Toast.makeText(HomePage.getInstance(), "no User with this Email", Toast.LENGTH_LONG).show();
                                 cancel_btn.performClick();
                                 delete = false;
-                                System.out.println("delete :" + delete);
                             }
-
-                            // here
                             reminder.setAudios(all_audios_list);
                             if (all_audios_list != null)
                                 uploadAudios();
@@ -598,19 +496,16 @@ public class addReminder extends AppCompatActivity {
                                 reminder.setKey(keyRef.getKey());
                                 keyRef.setValue(reminder);
                             } else if (delete) {
-                                cancelNotification(reminder.getKey(), HomePage.getInstance());
+                                cancelNotification(reminder.getKey().hashCode(), HomePage.getInstance());
                                 keyRef = ref.child(reminder.getKey());
                                 keyRef.setValue(reminder);
                             }
                             if (reminder.getRemindDate() == null && delete) {
                                 date = new Date();
                                 reminder.setRemindDate((date));
-//                    keyRef=ref.child(reminder.getKey());
-//                    keyRef.setValue(reminder);
                             }
 
                             if (reminder.getMyType().equals("Location") && reminder.getLocationAsString().equals("Other") && delete) {
-                                System.out.println("GOT IN SETTIG LANG AmD LAT");
                                 reminder.setLocation(address);
                                 reminder.setLAT(lat);
                                 reminder.setLNG(lang);
@@ -618,9 +513,7 @@ public class addReminder extends AppCompatActivity {
                                 keyRef.setValue(reminder);
 
                             }
-                            System.out.println("the  of the reminder is: " + reminder.getMyType());
                             if (!reminder.getMyType().equals("Todo List") && delete) {
-                                System.out.println("im in reminder not a todo lost reminder ");
                                 sendToAlarmManager(reminder, true);
                             }
                             add_reminder_dialog.cancel();
@@ -636,11 +529,9 @@ public class addReminder extends AppCompatActivity {
                         public void onCancelled(@NonNull DatabaseError error) {}
                     });
                 }else {
-                    System.out.println("cattt2222  " + Category + " lattt " + lat);
                     if (Category.equals("Other") && lat == null) {
                         Toast.makeText(HomePage.getInstance(), "No Location Specified! try again", Toast.LENGTH_LONG).show();
                         cancel_btn.performClick();
-                        // cancelNotification(reminder.getKey(),HomePage.getInstance());
                         delete = false;
                     }
                     reminder.setAudios(all_audios_list);
@@ -657,29 +548,23 @@ public class addReminder extends AppCompatActivity {
                         reminder.setKey(keyRef.getKey());
                         keyRef.setValue(reminder);
                     } else if (delete) {
-                        cancelNotification(reminder.getKey(), HomePage.getInstance());
+                        cancelNotification(reminder.getKey().hashCode(), HomePage.getInstance());
                         keyRef = ref.child(reminder.getKey());
                         keyRef.setValue(reminder);
                     }
                     if (reminder.getRemindDate() == null && delete) {
                         date = new Date();
                         reminder.setRemindDate((date));
-//                    keyRef=ref.child(reminder.getKey());
-//                    keyRef.setValue(reminder);
                     }
 
                     if (reminder.getMyType().equals("Location") && reminder.getLocationAsString().equals("Other") && delete) {
-                        System.out.println("GOT IN SETTIG LANG AmD LAT");
                         reminder.setLocation(address);
                         reminder.setLAT(lat);
                         reminder.setLNG(lang);
                         keyRef = ref.child(reminder.getKey());
                         keyRef.setValue(reminder);
-
                     }
-                    System.out.println("the  of the reminder is: " + reminder.getMyType());
                     if (!reminder.getMyType().equals("Todo List") && delete) {
-                        System.out.println("im in reminder not a todo lost reminder ");
                         sendToAlarmManager(reminder, true);
                     }
                     add_reminder_dialog.cancel();
@@ -693,132 +578,6 @@ public class addReminder extends AppCompatActivity {
             }
         });
 
-//        add_btn.setOnClickListener(new View.OnClickListener(){
-//            @Override
-//            public void onClick(View v){
-//                if(Category.equals("Person")){
-//                    //check Email
-//                    String email =LocationTextView.getText().toString();
-//                    System.out.println("the emain from textview is: "+email);
-////                    ArrayList<User> usersList = new ArrayList<>();
-//                    DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users");
-//                    ref.addListenerForSingleValueEvent(new ValueEventListener(){
-//                        @Override
-//                        public void onDataChange(DataSnapshot snapshot) {
-//                            System.out.println("immmmm");
-//                            for (DataSnapshot ds : snapshot.getChildren()) {
-//                                User user = ds.getValue(User.class);
-//                                System.out.println("thee email:" + user.getEmail());
-//                                System.out.println("clicked mail: "+email);
-//                                System.out.println("the name:" + user.getName());
-//                                if (email.equals(user.getEmail())) {
-//                                    System.out.println("the clicked email is: "+email);
-//                                    System.out.println("the desired person is: "+user.getName());
-//                                    //create notification
-//                                    reminder.setMyType("Person");
-//                                    reminder.setPerson(user);
-//                                    // reminder.setLocationAsString("Person");
-//                                }
-//                            }
-//                            if(reminder.getPerson()==null) {
-//                                //if email doesnt exist :
-//                                Toast.makeText(HomePage.getInstance(), "no User with this Email", Toast.LENGTH_LONG).show();
-//                                cancel_btn.performClick();
-//                                delete = true;
-//                                System.out.println("delete :" + delete);
-//                            }
-//
-//                            HashMap h=new HashMap();
-//                            h.put("status","1");
-//
-//                            System.out.println(snapshot.hasChild("user"));
-//                        }
-//                        @Override
-//                        public void onCancelled(@NonNull DatabaseError error) {}
-//                    });
-//                }
-//                System.out.println("im after snapshot");
-//                if(Category.equals("Other") && lat==null){
-//                    Toast.makeText(HomePage.getInstance(),"No Location Specified! try again",Toast.LENGTH_LONG).show();
-//                    cancel_btn.performClick();
-//                    // cancelNotification(reminder.getKey(),HomePage.getInstance());
-//                    delete =false;
-//                    reminder.setAudios(all_audios_list);
-//                    if(all_audios_list!=null)
-//                        uploadAudios();
-//                    if(title.getText().toString().isEmpty())
-//                        reminder.setMessage("Reminder");
-//                    else
-//                        reminder.setMessage(title.getText().toString());
-//                    reminder.setState(true);
-//                    reminder.setLocation(address);
-//                    reminder.setMyType(checkType());
-//                    if(!edit&& delete) {
-//                        reminder.setKey(keyRef.getKey());
-//                        keyRef.setValue(reminder);
-//                    }
-//                    else if(delete){
-//                        cancelNotification(reminder.getKey(),HomePage.getInstance());
-//                        keyRef=ref.child(reminder.getKey());
-//                        keyRef.setValue(reminder);
-//                    }
-//                }
-//                reminder.setAudios(all_audios_list);
-//                if(all_audios_list!=null)
-//                    uploadAudios();
-//                if(title.getText().toString().isEmpty())
-//                    reminder.setMessage("Reminder");
-//                else
-//                    reminder.setMessage(title.getText().toString());
-//                reminder.setState(true);
-//                reminder.setLocation(address);
-//                reminder.setMyType(checkType());
-//                if(!edit&& delete) {
-//                    reminder.setKey(keyRef.getKey());
-//                    keyRef.setValue(reminder);
-//                }
-//                else if(delete){
-//                    cancelNotification(reminder.getKey(),HomePage.getInstance());
-//                    keyRef=ref.child(reminder.getKey());
-//                    keyRef.setValue(reminder);
-//                }
-//                if(reminder.getRemindDate()==null && delete)
-//                {
-//                    date = new Date();
-//                    reminder.setRemindDate((date));
-////                    keyRef=ref.child(reminder.getKey());
-////                    keyRef.setValue(reminder);
-//                }
-//
-//                if(reminder.getMyType().equals("Location") && reminder.getLocationAsString().equals("Other")&& delete)
-//                {
-//                    System.out.println("GOT IN SETTIG LANG AmD LAT");
-//                    reminder.setLocation(address);
-//                    reminder.setLAT(lat);
-//                    reminder.setLNG(lang);
-//                    keyRef=ref.child(reminder.getKey());
-//                    keyRef.setValue(reminder);
-//
-//                }
-//                System.out.println("the  of the reminder is: "+reminder.getMyType());
-//                if(!reminder.getMyType().equals("Todo List") && delete) {
-//                    System.out.println("im in reminder not a todo lost reminder ");
-//                    sendToAlarmManager(reminder,true);
-//                }
-//                add_reminder_dialog.cancel();
-//                ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(HomePage.getInstance(), R.array.kinds, android.R.layout.simple_spinner_item);
-//                KindsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//                int spinnerPosition = KindsAdapter.getPosition("all");
-//                HomePage.getInstance().getRemindersKindSpinner().setSelection(spinnerPosition);
-//                HomePage.getInstance().get_all_reminders_by_kind("all");
-//                HomePage.getInstance().getmRecyclerView().setHasFixedSize(true);
-//
-//            }
-//
-//        });
-
-
-
         location_btn.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("ResourceAsColor")
             @Override
@@ -827,45 +586,35 @@ public class addReminder extends AppCompatActivity {
                 category_menu_dialog.setContentView(R.layout.category_menu);
                 category_menu_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 category_menu_dialog.show();
-
-
                 btn_person = category_menu_dialog.findViewById(R.id.btn_person);
                 btn_other = category_menu_dialog.findViewById(R.id.btn_other);
-
                 btn_food = category_menu_dialog.findViewById(R.id.btn_food);
                 btn_food_res = category_menu_dialog.findViewById(R.id.btn_food_res);
                 btn_food_cafe = category_menu_dialog.findViewById(R.id.btn_food_cafe);
                 btn_food_bakery = category_menu_dialog.findViewById(R.id.btn_food_bakery);
-
                 btn_money = category_menu_dialog.findViewById(R.id.btn_money);
                 btn_money_bank = category_menu_dialog.findViewById(R.id.btn_money_bank);
                 btn_money_atm = category_menu_dialog.findViewById(R.id.btn_money_atm);
-
                 btn_office = category_menu_dialog.findViewById(R.id.btn_office);
                 btn_office_laywer = category_menu_dialog.findViewById(R.id.btn_office_lawyer);
                 btn_office_acoounting = category_menu_dialog.findViewById(R.id.btn_office_accounting);
                 btn_office_post_office = category_menu_dialog.findViewById(R.id.btn_office_postOffice);
                 btn_office_police = category_menu_dialog.findViewById(R.id.btn_office_police);
-
                 btn_car = category_menu_dialog.findViewById(R.id.btn_car);
                 btn_car_wash = category_menu_dialog.findViewById(R.id.btn_car_wash);
                 btn_car_repair = category_menu_dialog.findViewById(R.id.btn_car_repair);
                 btn_car_gas = category_menu_dialog.findViewById(R.id.btn_car_gas);
                 btn_car_parking = category_menu_dialog.findViewById(R.id.btn_car_parking);
-
                 btn_shop = category_menu_dialog.findViewById(R.id.btn_shop);
                 btn_shop_supermarket = category_menu_dialog.findViewById(R.id.btn_shop_supermarket);
                 btn_shop_mall = category_menu_dialog.findViewById(R.id.btn_mall);
-
                 btn_book = category_menu_dialog.findViewById(R.id.btn_book);
                 btn_book_library = category_menu_dialog.findViewById(R.id.btn_book_library);
                 btn_book_uni = category_menu_dialog.findViewById(R.id.btn_book_Uni);
                 btn_book_book_store = category_menu_dialog.findViewById(R.id.btn_book_book_Store);
-
                 btn_medical = category_menu_dialog.findViewById(R.id.btn_medical);
                 btn_medical_pharmacy = category_menu_dialog.findViewById(R.id.btn_medical_pharmacy);
                 btn_medical_hospital = category_menu_dialog.findViewById(R.id.btn_medical_hospital);
-
                 Main_btns[0]=btn_food;
                 Main_btns[1]=btn_money;
                 Main_btns[2]=btn_office;
@@ -897,7 +646,6 @@ public class addReminder extends AppCompatActivity {
                 subList.add(list5);
                 subList.add(list6);
 
-
                 btn_other.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -910,7 +658,6 @@ public class addReminder extends AppCompatActivity {
                 btn_food.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
                         closeAll(0);
                         ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
                         buttons.add(btn_food_cafe);
@@ -928,7 +675,6 @@ public class addReminder extends AppCompatActivity {
                         btn_food_bakery.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "Bakery";
                                 afterchoosing();
                             }
@@ -936,7 +682,6 @@ public class addReminder extends AppCompatActivity {
                         btn_food_cafe.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "Cafe";
                                 afterchoosing();
                             }
@@ -948,12 +693,10 @@ public class addReminder extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         closeAll(1);
-
                         ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
                         buttons.add(btn_money_bank);
                         buttons.add(btn_money_atm);
                         animation(v, btn_money, buttons,1);
-
                         btn_money_bank.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -964,7 +707,6 @@ public class addReminder extends AppCompatActivity {
                         btn_money_atm.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "ATM";
                                 afterchoosing();
                             }
@@ -994,7 +736,6 @@ public class addReminder extends AppCompatActivity {
                         btn_office_police.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "Police";
                                 afterchoosing();
                             }
@@ -1002,7 +743,6 @@ public class addReminder extends AppCompatActivity {
                         btn_office_post_office.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "post_office";
                                 afterchoosing();
                             }
@@ -1010,7 +750,6 @@ public class addReminder extends AppCompatActivity {
                         btn_office_laywer.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "lawyer";
                                 afterchoosing();
                             }
@@ -1022,7 +761,6 @@ public class addReminder extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         closeAll(3);
-
                         ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
                         buttons.add(btn_car_gas);
                         buttons.add(btn_car_parking);
@@ -1040,7 +778,6 @@ public class addReminder extends AppCompatActivity {
                         btn_car_parking.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "parking";
                                 afterchoosing();
                             }
@@ -1048,7 +785,6 @@ public class addReminder extends AppCompatActivity {
                         btn_car_wash.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "car_wash";
                                 afterchoosing();
                             }
@@ -1056,7 +792,6 @@ public class addReminder extends AppCompatActivity {
                         btn_car_repair.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "car_repair";
                                 afterchoosing();
                             }
@@ -1073,7 +808,6 @@ public class addReminder extends AppCompatActivity {
                         buttons.add(btn_shop_supermarket);
                         buttons.add(btn_shop_mall);
                         animation(v, btn_shop, buttons,4);
-
                         btn_shop_supermarket.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -1084,7 +818,6 @@ public class addReminder extends AppCompatActivity {
                         btn_shop_mall.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "shopping_mall";
                                 afterchoosing();
                             }
@@ -1092,13 +825,9 @@ public class addReminder extends AppCompatActivity {
 
                     }
                 });
-
-
-
                 btn_person.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
                         Category="Person";
                         afterchoosing();
                     }
@@ -1107,13 +836,11 @@ public class addReminder extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         closeAll(5);
-
                         ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
                         buttons.add(btn_book_book_store);
                         buttons.add(btn_book_library);
                         buttons.add(btn_book_uni);
                         animation(v, btn_book, buttons,5);
-
                         btn_book_book_store.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -1124,7 +851,6 @@ public class addReminder extends AppCompatActivity {
                         btn_book_library.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "library";
                                 afterchoosing();
                             }
@@ -1132,7 +858,6 @@ public class addReminder extends AppCompatActivity {
                         btn_book_uni.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "university";
                                 afterchoosing();
                             }
@@ -1144,7 +869,6 @@ public class addReminder extends AppCompatActivity {
                     @Override
                     public void onClick(View v) {
                         closeAll(6);
-
                         ArrayList<ExtendedFloatingActionButton> buttons = new ArrayList<>();
                         buttons.add(btn_medical_pharmacy);
                         buttons.add(btn_medical_hospital);
@@ -1160,63 +884,14 @@ public class addReminder extends AppCompatActivity {
                         btn_medical_hospital.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-
                                 Category = "hospital";
                                 afterchoosing();
                             }
                         });
-
                     }
                 });
-
             }
         });
-
-//                searchLocation.setOnClickListener(new View.OnClickListener() {
-//                    @RequiresApi(api = Build.VERSION_CODES.O)
-//                    @Override
-//                    public void onClick(View v) {
-//                        //save the chosen category in the reminder and start search the location
-//                        add_location_dialog.cancel();
-//                        reminder.setLocationAsString(Category);
-//                        if(Category.equals("Other")){
-//                            System.out.println("its other");
-//                            locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_search));
-//                            if(!Additions.contains("Location")) {
-//                                numberOfAdditions+=1;
-//                                ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
-//                            }
-//                            LocationTextView.setText("tab to search");
-//                            LocationTextView.setEnabled(true);
-//                            LocationTextView.setVisibility(View.VISIBLE);
-//                            LocationTextView.setAutofillHints("tab to search");
-//                            LocationTextView.setOnClickListener(new View.OnClickListener() {
-//                                @Override
-//                                public void onClick(View v) {
-//                                    List<Place.Field> fieldList= Arrays.asList(Place.Field.ADDRESS,Place.Field.LAT_LNG,Place.Field.NAME,Place.Field.TYPES);
-//                                    Intent intentL= new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY,fieldList).setCountry("IL").build(HomePage.getInstance());
-//                                    sharedPreferences=HomePage.getInstance().getSharedPreferences("U",MODE_PRIVATE);
-//                                    editor=sharedPreferences.edit();
-//                                    editor.putString("key of other notification",keyRef.getKey());
-//                                    editor.commit();
-//                                    HomePage.getInstance().startActivityForResult(intentL,100);
-//                                }
-//                            });
-//                        }
-//                        else{
-//                            System.out.println("its not other");
-//                            locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_location));
-//                            if(Additions.contains("Location")){
-//                                LocationTextView.setText(Category);
-//                            }
-//                            else{
-//                                numberOfAdditions+=1;
-//                                ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
-//                            }
-//                        }
-//                    }
-//                });
-
 
         selectDate_btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1227,7 +902,6 @@ public class addReminder extends AppCompatActivity {
                     @RequiresApi(api = Build.VERSION_CODES.O)
                     @Override
                     public void onDateSet(DatePicker view, final int year, final int month, final int dayOfMonth) {
-                        System.out.println("im in onDateSet");
                         final Calendar newDate = Calendar.getInstance();
                         Calendar newTime = Calendar.getInstance();
                         NotificationDate = Calendar.getInstance();
@@ -1284,14 +958,12 @@ public class addReminder extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //Initialization of add description dialog
-
                 if(!checkPermissionFromDevice())
                     requestPermission();
 
                 add_description_dialog = new Dialog(add_reminder_dialog.getContext());
                 add_description_dialog.setContentView(R.layout.add_description);
-                Chronometer simpleChronometer = add_description_dialog.findViewById(R.id.simpleChronometer2); // initiate a chronometer
-
+                Chronometer simpleChronometer = add_description_dialog.findViewById(R.id.simpleChronometer2);
                 all_audios=add_description_dialog.findViewById(R.id.all_audios2);
                 delete_audio=add_description_dialog.findViewById(R.id.delete_audio);
                 save_description = add_description_dialog.findViewById(R.id.save_description);
@@ -1303,7 +975,6 @@ public class addReminder extends AppCompatActivity {
                     AddDescriptionEditText.setText(reminder.getDescription());
                     save_description.setEnabled(true);
                 }
-
                 if(reminder.getAudios()!=null){
                     save_description.setEnabled(true);
                     for(int i=0;i<all_audios_list.size();i++){
@@ -1345,7 +1016,6 @@ public class addReminder extends AppCompatActivity {
                                     mediaPlayer = new MediaPlayer();
                                     try {
                                         mediaPlayer.setDataSource((String)((View)v.getParent()).getTag());
-//                        mediaPlayer.prepare();
                                         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                                             @Override
                                             public void onPrepared(MediaPlayer mp) {
@@ -1359,17 +1029,12 @@ public class addReminder extends AppCompatActivity {
                                     }
 
                                     seekBar.setMax(mediaPlayer.getDuration());
-//                    mediaPlayer.start();
                                     UpdateSeekBar updateSeekBar = new UpdateSeekBar();
                                     handler.post(updateSeekBar);
                                 } else {
                                     System.out.println("play is false");
                                     if (mediaPlayer != null) {
-//                        mediaPlayer.stop();
-//                        mediaPlayer.release();
                                         mediaPlayer.pause();
-                                        currentPosition = mediaPlayer.getCurrentPosition();
-//                        setupMediaRecorder();
                                     }
                                 }
                                 mediaPlayer.seekTo(seekBar.getProgress());
@@ -1377,9 +1042,6 @@ public class addReminder extends AppCompatActivity {
                         });
                     }
                 }
-
-
-
                 AddDescriptionEditText.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -1446,7 +1108,6 @@ public class addReminder extends AppCompatActivity {
                             } else
                                 requestPermission();
                         }else if(event.getAction() == MotionEvent.ACTION_UP){
-                            System.out.println("the max amplitude "+mediaRecorder.getMaxAmplitude());
                             simpleChronometer.stop();
                             simpleChronometer.setBase(SystemClock.elapsedRealtime());
                             mediaRecorder.stop();
@@ -1461,7 +1122,6 @@ public class addReminder extends AppCompatActivity {
                 add_description_dialog.show();
             }
         });
-
         add_reminder_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         add_reminder_dialog.show();
     }
@@ -1473,10 +1133,8 @@ public class addReminder extends AppCompatActivity {
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        System.out.println("the path name of the audio is: "+PathName);
         mediaRecorder.setOutputFile(PathName);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-
     }
 
 
@@ -1517,7 +1175,6 @@ public class addReminder extends AppCompatActivity {
 
                 if(fromUser){
                     mediaPlayer.seekTo(progress);
-                    System.out.println("im in seekbar...");
                 }
             }
             @Override
@@ -1545,7 +1202,6 @@ public class addReminder extends AppCompatActivity {
                     mediaPlayer = new MediaPlayer();
                     try {
                         mediaPlayer.setDataSource((String)((View)v.getParent()).getTag());
-//                        mediaPlayer.prepare();
                         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                             @Override
                             public void onPrepared(MediaPlayer mp) {
@@ -1559,17 +1215,11 @@ public class addReminder extends AppCompatActivity {
                     }
 
                     seekBar.setMax(mediaPlayer.getDuration());
-//                    mediaPlayer.start();
                     UpdateSeekBar updateSeekBar = new UpdateSeekBar();
                     handler.post(updateSeekBar);
                 } else {
-                    System.out.println("play is false");
                     if(mediaPlayer != null) {
-//                        mediaPlayer.stop();
-//                        mediaPlayer.release();
                         mediaPlayer.pause();
-                        currentPosition = mediaPlayer.getCurrentPosition();
-//                        setupMediaRecorder();
                     }
                 }
                 mediaPlayer.seekTo(seekBar.getProgress());
@@ -1583,7 +1233,6 @@ public class addReminder extends AppCompatActivity {
             seekBar2.setProgress(mediaPlayer.getCurrentPosition());
             handler.postDelayed(this,100);
             if(mediaPlayer.getCurrentPosition()==mediaPlayer.getDuration()) {
-                System.out.println("im in run...");
                 seekBar2.setProgress(0);
                 play=true;
 
@@ -1595,15 +1244,12 @@ public class addReminder extends AppCompatActivity {
         ActivityCompat.requestPermissions(HomePage.getInstance(),new String[]{
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.RECORD_AUDIO
-
         },REQUEST_PERMISSION_CODE);
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode){
-            case REQUEST_PERMISSION_CODE:
-            {
+            case REQUEST_PERMISSION_CODE: {
                 if(grantResults.length>0 && grantResults[0]==PackageManager.PERMISSION_GRANTED)
                     Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
                 else
@@ -1629,13 +1275,11 @@ public class addReminder extends AppCompatActivity {
         if(Category.equals("Person")){
             LocationTextView.setText("");
             LocationTextView.setHint("Write e-mail");
-            System.out.println("its person");
             locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_baseline_person_24));
             if(!Additions.contains("Location")) {
                 numberOfAdditions+=1;
                 ExpandDialogAndSetData(removeLocation,locationImage,LocationTextView,Category,"Location");
             }
-//            LocationTextView.setText("Write e-mail");
             LocationTextView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -1643,47 +1287,13 @@ public class addReminder extends AppCompatActivity {
                     LocationTextView.setFocusableInTouchMode(true);
                     LocationTextView.setInputType(InputType.TYPE_CLASS_TEXT);
                     LocationTextView.requestFocus(); //to trigger the soft input
-//                    System.out.println("im in vvv");
-//                    LocationTextView.getEditableText();
-//                    LocationTextView.setClickable(true);
-//                    if(LocationTextView.getText().toString().isEmpty())
-//                        LocationTextView.setText("Write e-mail");
-//                    else if(LocationTextView.getText().toString().equals("Write e-mail"))
-//                        LocationTextView.setText("");
                 }
             });
-//            LocationTextView.addTextChangedListener(new TextWatcher() {
-//                @Override
-//                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-//                    LocationTextView.setCursorVisible(true);
-//                    LocationTextView.setFocusableInTouchMode(true);
-//                    LocationTextView.setInputType(InputType.TYPE_CLASS_TEXT);
-//                    LocationTextView.requestFocus(); //to trigger the soft input
-//                    if(LocationTextView.getText().toString().isEmpty())
-//                        LocationTextView.setText("Write e-mail");
-//                    else if(LocationTextView.getText().toString().equals("Write e-mail"))
-//                        LocationTextView.setText("");
-//                }
-//                @Override
-//                public void afterTextChanged(Editable s) {}
-//                @Override
-//                public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                    if(LocationTextView.getText().toString().isEmpty())
-//                        LocationTextView.setText("Write e-mail");
-//                    else if(LocationTextView.getText().toString().equals("Write e-mail"))
-//                        LocationTextView.setText("");
-//
-//                }
-//
-//
-//            });
-
             LocationTextView.setEnabled(true);
             LocationTextView.setVisibility(View.VISIBLE);
         }
         else {
             if (Category.equals("Other")) {
-                System.out.println("its other");
                 locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_search));
                 if (!Additions.contains("Location")) {
                     numberOfAdditions += 1;
@@ -1692,8 +1302,6 @@ public class addReminder extends AppCompatActivity {
                 LocationTextView.setText("tab to search");
                 LocationTextView.setEnabled(true);
                 LocationTextView.setVisibility(View.VISIBLE);
-//            LocationTextView.setClickable(true);
-                //LocationTextView.setAutofillHints("tab to search");
                 LocationTextView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -1703,12 +1311,10 @@ public class addReminder extends AppCompatActivity {
                     }
                 });
             } else {
-//            LocationTextView.setClickable(false);
             LocationTextView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {}
             });
-                System.out.println("its not other");
                 locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_location));
                 if (Additions.contains("Location")) {
                     LocationTextView.setText(Category);
@@ -1725,13 +1331,11 @@ public class addReminder extends AppCompatActivity {
         boolean rotate;
         for (int i=0 ;i<7;i++ ){
             rotate=isRotate.get(i);
-            System.out.println("ROTATE in closeall "+isRotate.get(i)+" for "+i);
             if (rotate & i!=indx) {
                 FloatingActionButton main_btn = Main_btns[i];
                 viewAnimation.rotateFab(main_btn,! isRotate.get(i));
-                DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getDrawable()), ColorStateList.valueOf(Color.BLACK)); // <- icon
-                DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getBackground()), ColorStateList.valueOf(Color.parseColor("#FDC53A"))); // <- background
-
+                DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getDrawable()), ColorStateList.valueOf(Color.BLACK));
+                DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getBackground()), ColorStateList.valueOf(Color.parseColor("#FDC53A")));
                 List<ExtendedFloatingActionButton> buttons = subList.get(i);
                 for (ExtendedFloatingActionButton btn : buttons) {viewAnimation.showOut(btn);
                 }
@@ -1746,47 +1350,37 @@ public class addReminder extends AppCompatActivity {
         if(isRotate.get(i)){
             for (ExtendedFloatingActionButton btn : buttons){viewAnimation.showIn(btn);}
 
-            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getDrawable()), ColorStateList.valueOf(Color.parseColor("#FDC53A"))); // <- icon
-            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getBackground()), ColorStateList.valueOf(Color.BLACK)); // <- background
+            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getDrawable()), ColorStateList.valueOf(Color.parseColor("#FDC53A")));
+            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getBackground()), ColorStateList.valueOf(Color.BLACK));
 
         }else{
             for (ExtendedFloatingActionButton btn : buttons){viewAnimation.showOut(btn);}
 
-            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getDrawable()), ColorStateList.valueOf(Color.BLACK)); // <- icon
-            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getBackground()), ColorStateList.valueOf(Color.parseColor("#FDC53A"))); // <- background
+            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getDrawable()), ColorStateList.valueOf(Color.BLACK));
+            DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getBackground()), ColorStateList.valueOf(Color.parseColor("#FDC53A")));
 
         }
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        System.out.println("INNNNNNNNNNNNNn started 000");
-        if ((requestCode==100)&&(resultCode==RESULT_OK))
-        {
-
-//            AutocompleteFilter filter =
-//                    new AutocompleteFilter.Builder().setCountry("IL").build();
-
-            System.out.println("INNNNNNNNNNNNNn started");
+        if ((requestCode==100)&&(resultCode==RESULT_OK)) {
             Place place = Autocomplete.getPlaceFromIntent(data);
-
             searchLocation.setVisibility(View.INVISIBLE);
             LocationTextView.setVisibility(View.VISIBLE);
             LocationTextView.setText(place.getAddress());
             wantedLocation=place;
-            System.out.println("PLACE !!!!1"+place.getName());
         }
         else if (resultCode== AutocompleteActivity.RESULT_ERROR) {
             Status status =Autocomplete.getStatusFromIntent(data);
             Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
         }
     }
+
     private String checkType() {
         boolean Location=false,Date=false;
-
         if (Additions.contains("Location")) Location=true;
         else if(Additions.contains("Time")) Date=true;
-        //if(Location && Date) return "Location_Date";
         if(Location) return "Location";
         if(Date) return "Date";
         if(Category.equals("Person")){
@@ -1794,6 +1388,4 @@ public class addReminder extends AppCompatActivity {
         }
         return "Todo List";
     }
-
-
 }

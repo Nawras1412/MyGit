@@ -2,6 +2,8 @@ package com.example.smartremindersapp2;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -54,8 +56,9 @@ public class retrieve_password extends AppCompatActivity {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.child(UserName.getText().toString()).exists()) {
                             SaveInDatabase.UpdateUserData(UserName.getText().toString(),"password",Password.getText().toString());
-                            AuxiliaryFunctions openpage=AuxiliaryFunctions.getInstance();
-                            openpage.openNewPage(getApplicationContext(),login.class);
+                            Intent intent=new Intent(getApplicationContext(), login.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
                         }
                         else{
                             AuxiliaryFunctions.SetErrorOnTextView(UserName,"incorrect username");

@@ -1,11 +1,4 @@
-
-
-
-
-
 package com.example.smartremindersapp2;
-
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -18,7 +11,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.HashMap;
 
-
 public class login extends AppCompatActivity implements View.OnClickListener{
     private EditText UserNameText;
     private EditText PasswordText;
@@ -29,8 +21,6 @@ public class login extends AppCompatActivity implements View.OnClickListener{
 
 
     public login(){}
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +44,6 @@ public class login extends AppCompatActivity implements View.OnClickListener{
 
 
     private void editSharedPreferences(String username){
-        // must check if it should be "U" or the user name in getSharedPreferences
-        //sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
         sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
         editor=sharedPreferences.edit();
         editor.putInt("AlarmsNum",0);
@@ -64,7 +52,6 @@ public class login extends AppCompatActivity implements View.OnClickListener{
             editor.putBoolean("saveLogIn",false);
             editor.commit();
         }
-        //editor.putBoolean("saveLogIn",false);
         savelogin=sharedPreferences.getBoolean("saveLogIn",false);
         if (savelogin==true){
             UserNameText.setText(sharedPreferences.getString("username",null));
@@ -77,12 +64,6 @@ public class login extends AppCompatActivity implements View.OnClickListener{
             PasswordText.setText("");
         }
     }
-
-
-
-
-
-
 
 
     public boolean checkLogIn(EditText UserName, EditText Password) {

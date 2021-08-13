@@ -4,34 +4,24 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.app.Activity;
 import android.app.AlarmManager;
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.icu.number.Scale;
-import android.icu.text.CaseMap;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -51,7 +41,6 @@ public class all_alarms extends AppCompatActivity {
     private SharedPreferences.Editor editor;
     private int hour;
     private int minutes;
-    private boolean snooze;
     private static TextView instruction;
 
 
@@ -60,52 +49,45 @@ public class all_alarms extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //snooze=false;
         userName=getSharedPreferences("U",MODE_PRIVATE).
                 getString("username",null);
+        msharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
+        editor=msharedPreferences.edit();
         try{
             if(getIntent().getStringExtra("type").equals("Dismiss")){
-                System.out.println();
                 String key=getIntent().getStringExtra("key");
-//                addReminder add_remind =new addReminder();
                 NotificationManager manager=(NotificationManager) getApplicationContext()
                         .getSystemService(NOTIFICATION_SERVICE);
-                manager.cancel(key.hashCode());
-//                add_remind.cancelNotification(key,HomePage.getInstance());
+                manager.cancelAll();
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
                 ref.removeValue();
             }
             else if(getIntent().getStringExtra("type").equals("SNOOZE")) {
                 editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
                 editor.commit();
-                System.out.println("im in snooze");
                 String key = getIntent().getStringExtra("key");
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().
                         child("Users").child(userName).child("Alarms").child(key);
-                System.out.println("the key is: "+key);
                 HashMap map2 = new HashMap();
                 map2.put("checked", true);
-
-
                 ref.updateChildren(map2);
                 NotificationManager manager=(NotificationManager) getApplicationContext()
                         .getSystemService(NOTIFICATION_SERVICE);
-                manager.cancel(key.hashCode());
+                manager.cancelAll();
                 Calendar date = Calendar.getInstance();
                 long timeInSecs = date.getTimeInMillis();
                 Date afterAdding10Mins = new Date(timeInSecs + ( 60 * 1000));
-                System.out.println("the minutes of the new alarm is: "+afterAdding10Mins.getMinutes());
-                System.out.println("the hours of the new alarm is: "+afterAdding10Mins.getHours());
-
-
                 Intent ServiceIntent=new Intent(this,NotifierAlarm.class);
                 stopService(ServiceIntent);
+                System.out.println("afterAdding10Mins ");
+                System.out.println(afterAdding10Mins);
+                System.out.println(afterAdding10Mins.toString());
                 ServiceIntent.putExtra("date",afterAdding10Mins.getTime());
-                ServiceIntent.putExtra("Pending_key",key.hashCode());
+                ServiceIntent.putExtra("Pending_key",key.hashCode()+1);
                 ServiceIntent.putExtra("title", getIntent().getStringExtra("title"));
                 ServiceIntent.putExtra("key",key);
                 ServiceIntent.putExtra("userName",userName);
-                startService(ServiceIntent);
+                this.startService(ServiceIntent);
             }
 
         }
@@ -113,14 +95,12 @@ public class all_alarms extends AppCompatActivity {
             System.out.println("in catch");
         }
         
-        System.out.println("im in all_alarms onCreate");
         msharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
         editor=msharedPreferences.edit();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_all_alarms);
         drawerLayout=findViewById(R.id.drawer_layout);
         instruction = findViewById(R.id.instructions_A);
-
         addAlarmImage = findViewById(R.id.imageView);
         addAlarmImage.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -134,12 +114,9 @@ public class all_alarms extends AppCompatActivity {
         mLayoutManager = new LinearLayoutManager(this);
         myAuxiliaryFunctions=AuxiliaryFunctions.getInstance();
         if(AlertReceiver.getRingtone()!=null) {
-            System.out.println("AlertReceiver.getRingtone()!=null");
             if (AlertReceiver.getRingtone().isPlaying()){
-                System.out.println("AlertReceiver.getRingtone().isPlaying()");
                 DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(msharedPreferences.getString("Current Ring Key",null));
                 NotifierAlarm.setKillTimer();
-                System.out.println("the current is:"+msharedPreferences.getString("Current Ring Key",null));
                 editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
                 editor.putInt("AlarmsNum",msharedPreferences.getInt("AlarmsNum",0)-1);
                 editor.commit();
@@ -147,14 +124,12 @@ public class all_alarms extends AppCompatActivity {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
                         if(snapshot.getValue()==null) {
-                            System.out.println("im in snapshot.getValue()==null");
                             HashMap map = new HashMap();
                             map.put("checked", false); // must be checked
                             if(!getIntent().getStringExtra("type").equals("SNOOZE"))
                                 ref.updateChildren(map);
                         }
                         else{
-                            System.out.println("im in else ");
                             DatabaseReference ref3=FirebaseDatabase.getInstance().getReference().child("Users")
                                     .child(userName).child("Alarms").
                                             child(msharedPreferences.getString("Current Ring Key",null));
@@ -177,14 +152,8 @@ public class all_alarms extends AppCompatActivity {
                 });
             }
         }
-        else {
-            System.out.println("im in get_all_the_alarms_from_firebase");
+        else
             alarms_list = get_all_the_alarms_from_firebase(userName);
-        }
-
-        // we must update the switch in the fire database and in the application
-        //            String key=NotificationHelper.getKey();
-        // we can get the ket of the alarm by the line above
     }
 
 
@@ -198,27 +167,15 @@ public class all_alarms extends AppCompatActivity {
 
 
     public void setRepeatedAlarm(int i,String key,boolean repeated) {
-        System.out.println(" the i is : "+i);
-        System.out.println(" the key is : "+key);
         Intent intent=new Intent(this,NotifierAlarm.class);
         stopService(intent);
         Calendar c = Calendar.getInstance();
-        int today=c.get(Calendar.DAY_OF_WEEK);
-        System.out.println("the current day is: "+today);
-        Date NextDate;
-        System.out.println("im in else");
         int offset = Calendar.SATURDAY;
         c.add(Calendar.DATE, offset);
-//        NextDate = c.getTime();
-
-
         c.set(Calendar.HOUR_OF_DAY,hour);
         c.set(Calendar.MINUTE,minutes);
         c.set(Calendar.SECOND,0);
         c.set(Calendar.MILLISECOND,0);
-        System.out.println("the date is: " + c.getTime());
-        System.out.println("the hour is:"+hour);
-        System.out.println("the minutes is:"+minutes);
         Date date=c.getTime();
         intent.putExtra("Pending_key",key.hashCode() + i);
         intent.putExtra("date",date.getTime());
@@ -249,10 +206,6 @@ public class all_alarms extends AppCompatActivity {
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     alarm_view alarm = ds.getValue(alarm_view.class);
-                    System.out.println(alarm.getHour());
-                    System.out.println(alarm.getMinutes());
-                    System.out.println(alarm.getKey());
-//                    System.out.println(snapshot.child(alarm.getKey()).child("checked").getValue());
                     alarm.setSwitch((Boolean) ds.child("checked").getValue());
                     alarms.add(alarm);
                 }
@@ -275,16 +228,7 @@ public class all_alarms extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
         mAdapter.setOnItemClickListener(new ExampleAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(int position) {
-                alarm_view currentAlarm=alarms_list.get(position);
-//                Intent intent=new Intent(getApplicationContext(),alarm_clock.class);
-//                intent.putExtra("Key",currentAlarm.getKey());
-//                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                getApplicationContext().startActivity(intent);
-//                DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(currentAlarm.getKey());
-//                ref.removeValue();
-//                myAuxiliaryFunctions.openNewPage(getApplicationContext(),alarm_clock.class);
-            }
+            public void onItemClick(int position) {}
             @Override
             public void onDeleteClick(int position) {}
         });
@@ -321,25 +265,16 @@ public class all_alarms extends AppCompatActivity {
             }
 
         }
-
-//        AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
-//        Intent intent = new Intent(context, AlertReceiver.class);
-//        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, key.hashCode(), intent, 0);
-//        alarmManager.cancel(pendingIntent);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
      void startAlarm(alarm_view alarm,Context context){
-        System.out.println("im in start alarm ");
         //add one for the number of running processes
         SharedPreferences sharedPreferences=context.getSharedPreferences("U",context.MODE_PRIVATE);
         SharedPreferences.Editor editor=sharedPreferences.edit();
 
         //add one alarm to the AlarmManager
         if(alarm.getDate()!=null) {
-            System.out.println("im in alarm.getDate()!=null ");
-//            editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)+1);
-//            editor.commit();
             Intent ServiceIntent=new Intent(context,NotifierAlarm.class);
             ServiceIntent.putExtra("date",alarm.getDate().getTime());
             ServiceIntent.putExtra("Pending_key",alarm.getKey().hashCode());
@@ -362,10 +297,6 @@ public class all_alarms extends AppCompatActivity {
     }
 
     public void setRepeatedAlarm(int i,int day,String key,alarm_view alarm,Context context){
-//        SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
-//        SharedPreferences.Editor editor=sharedPreferences.edit();
-//        editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)+1);
-//        editor.commit();
         Intent intent=new Intent(context,NotifierAlarm.class);
         context.stopService(intent);
         Calendar NotificationDate=Calendar.getInstance();
@@ -382,44 +313,3 @@ public class all_alarms extends AppCompatActivity {
         context.startService(intent);
     }
 }
-
-
-
-
-        // add one to the number of running processes per day
-        // add to the alarm manager
-        // if the alarms with nultiple days so must add alarm per day
-//        AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
-//        Intent intent = new Intent(context, AlertReceiver.class);
-//        intent.putExtra("Key",key);
-//        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, key.hashCode(), intent,0);
-//        if (c.before(Calendar.getInstance())){
-//            c.add(Calendar.DATE, 1);
-//        }
-//        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), pendingIntent);
-//        startService(intent);
-
-
-
-
-
-
-
-//    mLayoutManager=new LinearLayoutManager(this) -->
-//    Adapters are only responsible for creating and managing views for items (called ViewHolder)
-//    , these classes do not decide how these views are arranged when displaying them. Instead,
-//    they rely on a separate class called LayoutManager.
-//
-//    LayoutManager is a class that tells Adapters how to arrange those items. For example, you might
-//    want those items in a single row top to bottom or you may want them arranged in Grids like Gallery.
-//    Instead of writing this logic in your adapter, you write it in LayoutManager and pass that LayoutManager to View (RecyclerView).
-//
-
-
-//    mRecyclerView.setHasFixedSize(true) -->
-//    changing the contents of the adapter does not change it's height or the width.
-
-
-
-
-

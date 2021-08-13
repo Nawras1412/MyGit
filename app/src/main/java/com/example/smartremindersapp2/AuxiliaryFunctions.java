@@ -87,13 +87,6 @@ public class AuxiliaryFunctions extends AppCompatActivity {
                     @Override
                     public void onCancelled(DatabaseError databaseError) {}
                 });
-
-
-
-                //              Intent intent=new Intent(this, login.class);
-//                startActivity(intent);
-
-
             }
         });
         builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
@@ -104,5 +97,4 @@ public class AuxiliaryFunctions extends AppCompatActivity {
         });
         builder.show();
     }
-
 }

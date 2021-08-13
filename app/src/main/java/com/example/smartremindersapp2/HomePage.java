@@ -1,15 +1,9 @@
-// عمرو دياب - معاك قلبي
-
-
-
 package com.example.smartremindersapp2;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -18,9 +12,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
@@ -29,8 +20,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,39 +28,27 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.TimePickerDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.DatePicker;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.ValueEventListener;
@@ -80,12 +57,9 @@ import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
-import org.greenrobot.eventbus.EventBus;
-
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Objects;
 
 public class HomePage extends AppCompatActivity implements AdapterView.OnItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
     boolean mBound = false;
@@ -102,7 +76,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     private boolean location_flag = false, notify_flag = false;
     private static DatabaseReference ref;
     private Dialog dialog;
-//    TextView location;
     private TextView empty,locate_wanted;
     LocationRequest locationRequest;
     int LOCATION_REQUEST_CODE = 1998;
@@ -116,7 +89,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     private static HomePage instance;
     private Calendar NotificationDate;
     public static addReminder addRdialog;
-
     private ConstraintLayout background_layout;
     private ImageView menu_btn,setting_btn;
     public Spinner getRemindersKindSpinner() {
@@ -136,42 +108,35 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try{
-            if(this.getIntent().getStringExtra("type").equals("Dismiss")) {
-                String key=this.getIntent().getStringExtra("key");
-                addReminder add_remind =new addReminder();
+            if(getIntent().getStringExtra("type").equals("Dismiss")) {
+                String key=getIntent().getStringExtra("key");
                 NotificationManager manager=(NotificationManager) getApplicationContext()
                         .getSystemService(NOTIFICATION_SERVICE);
-                manager.cancel(key.hashCode());
-                add_remind.cancelNotification(key,HomePage.getInstance());
+                manager.cancelAll();
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
-                ref.removeValue();
-
-            }  else if(this.getIntent().getStringExtra("type").equals("DELETE")) {
-
-                String key=this.getIntent().getStringExtra("key");
-
-                NotificationManager manager=(NotificationManager) getApplicationContext()
-                        .getSystemService(NOTIFICATION_SERVICE);
-                manager.cancel(key.hashCode());
-                addReminder add_remind =new addReminder();
-                add_remind.cancelNotification(key,HomePage.getInstance());
-
-                DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
-                ref.removeValue();
-
-
+                HashMap map=new HashMap();
+                map.put("state",false);
+                ref.updateChildren(map);
             }
-            else if(this.getIntent().getStringExtra("type").equals("SNOOZE")) {
-                System.out.println("its snooze wohoo");
-                String key = this.getIntent().getStringExtra("key");
-                NotificationManager manager = (NotificationManager) getApplicationContext()
+
+
+
+            else if(getIntent().getStringExtra("type").equals("DELETE")) {
+                String key=getIntent().getStringExtra("key");
+                addReminder add_remind =new addReminder();
+                NotificationManager manager=(NotificationManager) getApplicationContext()
                         .getSystemService(NOTIFICATION_SERVICE);
-                manager.cancel(key.hashCode());
+                manager.cancelAll();HashMap map=new HashMap();
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
+                ref.removeValue();
+            }
+            else if(getIntent().getStringExtra("type").equals("SNOOZE")) {
+                String key = getIntent().getStringExtra("key");
+                NotificationManager manager=(NotificationManager) getApplicationContext()
+                        .getSystemService(NOTIFICATION_SERVICE);
+                manager.cancelAll();
                 addReminder add_remind = new addReminder();
-                add_remind.cancelNotification(key, HomePage.getInstance());
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list");
-
-
                 Calendar date = Calendar.getInstance();
                 long timeInSecs = date.getTimeInMillis();
                 Date afterAdding10Mins = new Date(timeInSecs + (10 * 60 * 100));
@@ -192,52 +157,39 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                         new_reminder.setDescription(oldView.getDescription());
                         add_remind.sendToAlarmManager(new_reminder, false);
 
-
                         HashMap map2 = new HashMap();
                         map2.put("remindDate", afterAdding10Mins);
                         map2.put("state", true);
                         map2.put("dateState", false);
                         ref.child(key).updateChildren(map2);
-
                     }
-
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                     }
                 });
-            }else if(this.getIntent().getStringExtra("type").equals("Another")) {
+            }
+            else if(getIntent().getStringExtra("type").equals("Another")) {
                 String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" + "location=" + "32.7614296" + "," + "35.0195184" + "&" +
                        "rankby=distance" + "&" + "type="+"some type" +"&"+ "key=" + "AIzaSyDMU9eVBmHymFvymjsCO3pUCBwwGMTqV5w";
-                String title=this.getIntent().getStringExtra("title");
-                String content=this.getIntent().getStringExtra("content");
-
-                String category=this.getIntent().getStringExtra("category");
-                String lat1=this.getIntent().getStringExtra("lat1");
-                String lang1=this.getIntent().getStringExtra("lang1");
-
-
-                String key =this.getIntent().getStringExtra("key");
+                String title=getIntent().getStringExtra("title");
+                String content=getIntent().getStringExtra("content");
+                String category=getIntent().getStringExtra("category");
+                String lat1=getIntent().getStringExtra("lat1");
+                String lang1=getIntent().getStringExtra("lang1");
                 NotificationManager manager=(NotificationManager) getApplicationContext()
                         .getSystemService(NOTIFICATION_SERVICE);
                 manager.cancelAll();
-                addReminder add_remind =new addReminder();
-                add_remind.cancelNotification(key,HomePage.getInstance());
-
-                GooglePlacesClient.do1(this.getIntent().getStringExtra("cadHTTP")
+                GooglePlacesClient.do1(getIntent().getStringExtra("cadHTTP")
                         ,lat1,lang1,
                         title,content
-                        ,this.getIntent().getStringExtra("key"),getInstance(),category);
-
+                        ,getIntent().getStringExtra("key"),getInstance(),category);
             }
-
-
         }catch (Exception i){
             System.out.println("im in catch");
         }
         instance = this;
         setContentView(R.layout.home_page);
         drawerLayout = findViewById(R.id.drawer_layout);
-//        LocationTextView = findViewById(R.id.LocationTextView);
         add_button = findViewById(R.id.btn_add);
         pen_button = findViewById(R.id.btn_pen);
         locate_button = findViewById(R.id.btn_locateReminder);
@@ -246,7 +198,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         instruction = findViewById(R.id.instructions);
         TextView hello_txt = findViewById(R.id.Hello);
         pen_button = findViewById(R.id.btn_pen);
-//        empty = findViewById(R.id.instructions);
         Date1 = findViewById(R.id.textView);
         background_layout=findViewById(R.id.background_layout);
         menu_btn=findViewById(R.id.MenuButton);
@@ -257,7 +208,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         int btn_color =R.color.white,texts_color=R.color.white;
         int backgroungImage=0;
         Calendar calendar=Calendar.getInstance();
-        System.out.println("the hour is: "+ calendar.getTime().getHours());
         if(calendar.getTime().getHours()>=6 &&
                 calendar.getTime().getHours()<12) {
             backgroungImage= R.drawable.morning_image;
@@ -288,24 +238,16 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         hello_txt.setTextColor(ContextCompat.getColor(getInstance(), texts_color));
         background_layout.setBackground(ContextCompat.getDrawable(getInstance(), backgroungImage));
         hello_txt.setText(time+ userName+"!");
-
         PreferenceManager.getDefaultSharedPreferences(HomePage.this).registerOnSharedPreferenceChangeListener(this);
-
         Dexter.withActivity(HomePage.this).withPermissions(Arrays.asList(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)).withListener(new MultiplePermissionsListener() {
             @Override
             public void onPermissionsChecked(MultiplePermissionsReport report) {
                 PreferenceManager.getDefaultSharedPreferences(HomePage.this).registerOnSharedPreferenceChangeListener(HomePage.this);
-
             }
-
             @Override
             public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
             }
         }).check();
-
-//        if (location_flag == true) {
-//            updateLocation();
-//        }
         Places.initialize(getApplicationContext(), "AIzaSyCfsrOq62GRNdUvZeMBhimX4RFX9cpm4uU");
         get_all_reminders_by_kind("all");
         mRecyclerView = findViewById(R.id.recycleViewR);
@@ -330,14 +272,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         KindsAdapter.setDropDownViewResource(R.layout.spinner_dropdown_layout);
         RemindersKindSpinner.setAdapter(KindsAdapter);
         RemindersKindSpinner.setOnItemSelectedListener(this);
-
-//        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.days, android.R.layout.simple_spinner_item);
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//        ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(this, R.array.kinds, android.R.layout.simple_spinner_item);
-//        KindsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//        RemindersKindSpinner.setAdapter(KindsAdapter);
-
-
         RemindersKindSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view,
@@ -349,20 +283,15 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {}
         });
-//        spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(this);
         Date currentDate = Calendar.getInstance().getTime();
         String formattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(currentDate);
         String[] splitDate = formattedDate.split(",");
         int index = formattedDate.indexOf(",");
         String day = splitDate[0];
-//        int spinnerPosition = adapter.getPosition(day);
-//        spinner.setSelection(spinnerPosition);
         int spinnerPosition = KindsAdapter.getPosition("all");
         RemindersKindSpinner.setSelection(spinnerPosition);
         Date1.setText(formattedDate.substring(index + 1));
-
-
 
         pen_button.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
@@ -370,7 +299,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             public void onClick(View v) {
                 addTodoList a=new addTodoList(userName);
                 a.openDialog(false,null,0);
-
             }
         });
         locate_button.setOnClickListener(new View.OnClickListener() {
@@ -379,186 +307,29 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                 a=new addReminder(userName);
                 a.openDialog(false,null,0);
                 addRdialog=a;
-
             }
         });
     }
     @Override
     protected void onStop() {
-        if(mBound)
-        {
+        if(mBound) {
             unbindService(mServiceConnection);
             mBound=false;
-
         }
         PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(this);
-        //EventBus.getDefault().unregister(this);
         super.onStop();
     }
 
-
-
-    //
     @Override
     protected void onStart() {
         super.onStart();
         PreferenceManager.getDefaultSharedPreferences(HomePage.this).registerOnSharedPreferenceChangeListener(this);
-        //EventBus.getDefault().register(HomePage.this);
     }
-
-    public void addReminder(String type) {
-        NotificationDate=Calendar.getInstance();
-        dialog = new Dialog(HomePage.this);
-        dialog.setContentView(R.layout.anna_reminder);
-        Button add_btn;
-        ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn;
-        TextView  title;
-        selectDate_btn = dialog.findViewById(R.id.selectDate);
-        cancel_btn = dialog.findViewById(R.id.cancel_Btn);
-        add_btn = dialog.findViewById(R.id.addButton);
-        addDescription_btn = dialog.findViewById(R.id.addDiscription);
-        location_btn = dialog.findViewById(R.id.location);
-        title = dialog.findViewById(R.id.Title);
-
-        cancel_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.cancel();
-            }
-        });
-
-
-//        addDescription_btn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-////                Intent intent=new Intent(this,)
-//            }
-//        });
-
-
-        add_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list");
-//                DatabaseReference keyRef =ref.push();
-//                Reminder reminder = new Reminder();
-//                reminder.setKey(keyRef.getKey());
-//                reminder.setMyType(type);
-//                reminder.setState(true);
-//                reminder.setMessage(title.getText().toString().trim());
-//                if (Objects.equals(type,"Date"))
-//                {
-//                    try{
-////                        if(time_date.getText().toString().isEmpty())
-////                            reminder.setMyType("Todo List");
-////                        System.out.println("the setted date is: "+time_date.getText().toString().charAt(8));
-////                        Date remind = new Date(time_date.getText().toString().charAt(8));
-//                        Date remind=NotificationDate.getTime();
-//                        reminder.setRemindDate(remind);
-////                        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+5:30"));
-//                        sendToAlarmManager(reminder);
-////                        calendar.setTime(remind);
-////                        calendar.set(Calendar.SECOND, 0);
-//                    }
-//                    catch (Exception e){
-//                        Toast.makeText(HomePage.this, "Missing Location", Toast.LENGTH_SHORT).show();
-//                        e.printStackTrace();
-//                    }
-//                }
-//                else{
-//                    try{
-//                        reminder.setLocationAsString(location.getText().toString());
-//                        reminder.setLAT(wantedLocation.getLatLng().latitude);
-//                        reminder.setLNG(wantedLocation.getLatLng().longitude);}
-//                    catch (Exception e) {
-//                        Toast.makeText(HomePage.this, "Missing Location", Toast.LENGTH_SHORT).show();
-//                        e.printStackTrace();
-//                    }
-//                }
-//                reminder.setDescription(discription.getText().toString());
-//                reminders.add(reminder);
-//
-////                DatabaseReference keyRef =ref.push();
-////                reminder.setKey(keyRef.getKey());
-//                keyRef.setValue(reminder);
-//                Log.e("ID chahiye", reminder.getId() + "");
-//                Toast.makeText(HomePage.this, "Inserted Successfully", Toast.LENGTH_SHORT).show();
-//                dialog.dismiss();
-//                ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(getApplicationContext(), R.array.kinds, android.R.layout.simple_spinner_item);
-//                KindsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//                int spinnerPosition = KindsAdapter.getPosition("all");
-//                RemindersKindSpinner.setSelection(spinnerPosition);
-//                get_all_reminders_by_kind("all");
-//                mRecyclerView.setHasFixedSize(true);
-            }
-        });
-
-
-        selectDate_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Calendar newCalender = Calendar.getInstance();
-                DatePickerDialog dialog = new DatePickerDialog(HomePage.this, new DatePickerDialog.OnDateSetListener() {
-                    @Override
-                    public void onDateSet(DatePicker view, final int year, final int month, final int dayOfMonth) {
-                        final Calendar newDate = Calendar.getInstance();
-                        Calendar newTime = Calendar.getInstance();
-                        NotificationDate = Calendar.getInstance();
-                        NotificationDate.set(Calendar.MONTH, month);
-                        NotificationDate.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                        NotificationDate.set(Calendar.YEAR, year);
-//                            date=NotificationDate.getTime();
-                        TimePickerDialog time = new TimePickerDialog(HomePage.this, new TimePickerDialog.OnTimeSetListener() {
-                            @Override
-                            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-//                                    hour=hourOfDay;
-//                                    minutes=minute;
-                                NotificationDate.set(Calendar.HOUR_OF_DAY,hourOfDay);
-                                NotificationDate.set(Calendar.MINUTE,minute);
-                                NotificationDate.set(Calendar.SECOND,0);
-                                newDate.set(year, month, dayOfMonth, hourOfDay, minute, 0);
-                                Calendar tem = Calendar.getInstance();
-                                Log.w("TIME", System.currentTimeMillis() + "");
-                                if (newDate.getTimeInMillis() - tem.getTimeInMillis() > 0) {
-//                                        time_date.setText(newDate.getTime().toString());
-//                                        time_date.setVisibility(View.VISIBLE);
-                                } else
-                                    Toast.makeText(HomePage.this, "Invalid time", Toast.LENGTH_SHORT).show();
-
-                            }
-                        }, newTime.get(Calendar.HOUR_OF_DAY), newTime.get(Calendar.MINUTE), true);
-                        time.show();
-                    }
-                }, newCalender.get(Calendar.YEAR), newCalender.get(Calendar.MONTH), newCalender.get(Calendar.DAY_OF_MONTH));
-
-                dialog.getDatePicker().setMinDate(System.currentTimeMillis());
-                dialog.show();
-            }
-        });
-
-
-
-
-        if (notify_flag == false) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(HomePage.this);
-            builder.setTitle("Required Permission !");
-            builder.setMessage("In order to get a notification pop-up ,go to Setting->App Notification and allow Floating Notifications and Sound for this App ");
-            builder.setPositiveButton("OK", null);
-            builder.show();
-        }
-        notify_flag = true;
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.show();
-    }
-
 
 
     public void backgroundLocation(Location location) {
-        System.out.println("CALEED NOTI");
         double lat_current_d = location.getLatitude();
         double lang_current_d = location.getLongitude();
-        System.out.println("lat cuurent11 " + lat_current_d);
-        System.out.println("lang cuurent " + lang_current_d);
         String lat_current = String.valueOf(lat_current_d);
         String lang_current = String.valueOf(lang_current_d);
         DatabaseReference ref11 = FirebaseDatabase.getInstance().getReference().child("Users")
@@ -567,11 +338,7 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         hashmap.put("lat", lat_current_d);
         hashmap.put("lang", lang_current_d);
         ref11.updateChildren(hashmap);
-
-        // lang_current= String.valueOf(event.getLocation().getLongitude());
-
         ArrayList<Reminder> reminders_locationList = new ArrayList<>();
-
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users")
                 .child(userName).child("reminder_list");
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -583,100 +350,50 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                         reminders_locationList.add(reminder);
                     }
                 }
-
                 for (Reminder reminder : reminders_locationList) {
                     String message = reminder.getMessage();
                     String type = reminder.getLocationAsString();
                     String description = reminder.getDescription();
                     String key = reminder.getKey();
-                    System.out.println("type == " + type);
                     DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
                     HashMap map = new HashMap();
                     map.put("state",false);
                     if (type.equals("Person")) {
-                        if(reminder.getPerson()==null)
-                            System.out.println("the person is null");
                         String name1=reminder.getPerson().getName();
                         DatabaseReference ref1 = FirebaseDatabase.getInstance().getReference().child("Users").child(name1);
                         ref1.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot snapshot) {
-//                                Long x=(Long)(snapshot.child("lat").getValue());
-//                                Double lat_reminder = x.doubleValue();
-//                                x=(Long)snapshot.child("lang").getValue();
-//                                Double lang_reminder = x.doubleValue();
                                 double lat_reminder =(double)(snapshot.child("lat").getValue());
                                 double lang_reminder =(double)snapshot.child("lang").getValue();
                                 float[] distance = new float[1];
                                 Location.distanceBetween(lat_reminder, lang_reminder, lat_current_d, lang_current_d, distance);
-                                System.out.println("distance  " + distance[0]);
-
                                 if (distance[0] < 500) {
-
-
-                                    //DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
                                     ref.updateChildren(map);
                                     NotificationHelper notificationHelper = new NotificationHelper(HomePage.this);
                                     Notification nb = notificationHelper.getChannelNotification(key
                                             , HomePage.class, message+" : You are close to "+ name1, description, "","","","","","");
                                     notificationHelper.getManager().notify(key.hashCode(), nb);
-
-
                                 }
                             }
-
                             @Override
-                            public void onCancelled(DatabaseError error) {
-
-                            }
+                            public void onCancelled(DatabaseError error) {}
                         });
-//                        double lat_reminder = reminder.getPerson().getLat();
-//                        double lang_reminder = reminder.getPerson().getLang();
-//                        float[] distance = new float[1];
-//                        Location.distanceBetween(lat_reminder, lang_reminder, lat_current_d, lang_current_d, distance);
-//                        System.out.println("distance  " + distance[0]);
-//
-//                        if (distance[0] < 500) {
-//
-//
-//                            //DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
-//                            ref.updateChildren(map);
-//                            NotificationHelper notificationHelper = new NotificationHelper(HomePage.this);
-//                            Notification nb = notificationHelper.getChannelNotification(key
-//                                    , HomePage.class, message+" : You are close to "+ name1, description, "","","","","","");
-//                            notificationHelper.getManager().notify(key.hashCode(), nb);
-//
-//
-//                        }
                     }
                     else if (type.equals("Other")) {
                         double lat_reminder = reminder.getLAT();
                         double lang_reminder = reminder.getLNG();
-
-
-                        System.out.println("lat location " + lat_reminder);
-
-                        System.out.println("lang location " + lang_reminder);
                         float[] distance = new float[1];
                         Location.distanceBetween(lat_reminder, lang_reminder, lat_current_d, lang_current_d, distance);
-                        System.out.println("distance  " + distance[0]);
 
                         if (distance[0] < 500) {
-
-
-                            //DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
                             ref.updateChildren(map);
                             NotificationHelper notificationHelper = new NotificationHelper(HomePage.this);
                             Notification nb = notificationHelper.getChannelNotification(key
                                     , HomePage.class, message+" : you are close to wanted location", description, "","","","","","");
                             notificationHelper.getManager().notify(key.hashCode(), nb);
-
-
                         }
-
-
                     } else {
-
                         ref.updateChildren(map);
                         type=type.toLowerCase();
                         String url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" + "location=" + lat_current + "," + lang_current + "&" +
@@ -685,23 +402,17 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                         new GooglePlacesClient().getResponseThread(url,
                                 lat_current, lang_current, message,
                                 description, key, HomePage.this,type);
-
-
                     }
                 }
             }
-
             @Override
-            public void onCancelled(DatabaseError error) {
-            }
+            public void onCancelled(DatabaseError error) {}
         });
 
 
     }
 
-
     public void get_all_reminders_by_kind(String ReminderType) {
-        System.out.println("the type is: "+ReminderType);
         ArrayList<Reminder> reminders_locationList = new ArrayList<>();
         ArrayList<reminders_view> reminders_views_list = new ArrayList<>();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users")
@@ -711,8 +422,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot ds : snapshot.getChildren()) {
                     Reminder reminder = ds.getValue(Reminder.class);
-                    System.out.println("the type of the reminder is:"+reminder.getMyType());
-                    System.out.println("the ReminderType is:"+ReminderType);
                     if(ReminderType.equals("all")){
                         reminders_locationList.add(reminder);
                     }
@@ -720,18 +429,14 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
                         if (reminder.getMyType().contains(ReminderType))
                             reminders_locationList.add(reminder);
                     }
-//                    reminders_locationList.add(reminder);
-                    System.out.println(reminder.getKey()+reminder.isDateState());
                     Dexter.withActivity(HomePage.this).withPermissions(Arrays.asList(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)).withListener(new MultiplePermissionsListener() {
                         @Override
                         public void onPermissionsChecked(MultiplePermissionsReport report) {
 
                             bindService(new Intent(HomePage.this, MyBackgroundService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
                         }
-
                         @Override
-                        public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
-                        }
+                        public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {}
                     }).check();
                 }
 
@@ -754,7 +459,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
 
                     reminders_views_list.add(remindView);
                 }
-                System.out.println("the size of the list is: "+reminders_views_list.size());
                 c(reminders_views_list);
                 setInstruction(reminders_views_list.size());
             }
@@ -790,23 +494,9 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
 
-        if (mRecyclerView.getAdapter().getItemCount()==0)
-        {
-//            if (mBound) {
-//                unbindService(mServiceConnection);
-//                mBound = false;
-//            }
-//            PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener((SharedPreferences.OnSharedPreferenceChangeListener) this);
-//            EventBus.getDefault().unregister(this);
-        }
         mAdapter.setOnItemClickListener(new ReminderAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(int position) {
-//                reminders_view currentReminder=reminderss.get(position);
-//                DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(currentReminder.getKey());
-//                ref.removeValue();
-//                addReminder(currentReminder.getType());
-            }
+            public void onItemClick(int position) { }
             @Override
             public void onDeleteClick(int position) {
                 removeItem(position);
@@ -827,10 +517,6 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         else
             instruction.setVisibility(View.INVISIBLE);
     }
-
-
-
-
 
     private void setVisibility(Boolean clicked) {
         if (!clicked) {
@@ -934,12 +620,8 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
         return instance;
     }
 
-
-    //private Button searchLocation=findViewById(R.id.searchButton);
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-//        LocationTextView = findViewById(R.id.LocationTextView);
         super.onActivityResult(requestCode, resultCode, data);
         if ((requestCode==100)&&(resultCode==RESULT_OK))
         {
@@ -951,19 +633,15 @@ public class HomePage extends AppCompatActivity implements AdapterView.OnItemSel
             editor.putString("location",  place.getName());
             editor.commit();
             addReminder.wantedLocation=place;
-            System.out.println("PLACE !!!!1"+place.getName());
-
             a.LocationTextView.setVisibility(View.VISIBLE);
             a.LocationTextView.setText(place.getAddress());
             a.address=place.getAddress();
             a.lat=place.getLatLng().latitude;
             a.lang=place.getLatLng().longitude;
         }
-        else if (resultCode== AutocompleteActivity.RESULT_ERROR)
-        {
+        else if (resultCode== AutocompleteActivity.RESULT_ERROR) {
             Status status =Autocomplete.getStatusFromIntent(data);
             Toast.makeText(getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();;
         }
-        
     }
 }
