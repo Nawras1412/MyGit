@@ -17,8 +17,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import static android.content.Context.*;
 
+//class that handle the views of the reminders in the recycleview in the homepage
 public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramindViewHolder>{
-    private static ArrayList<reminders_view> mRemind_view_list;
+    private static ArrayList<Reminder> mRemind_view_list;
     private String username;
     private Context mcontext;
     private OnItemClickListener mlistener;
@@ -28,11 +29,11 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
         void onDeleteClick(int position);
     }
 
-    public static ArrayList<reminders_view> getmRemind_view_list() {
+    public static ArrayList<Reminder> getmRemind_view_list() {
         return mRemind_view_list;
     }
 
-    public static void setmRemind_view_list(ArrayList<reminders_view> mRemind_view_list) {
+    public static void setmRemind_view_list(ArrayList<Reminder> mRemind_view_list) {
         ReminderAdapter.mRemind_view_list = mRemind_view_list;
     }
 
@@ -40,7 +41,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
         mlistener = listener;
     }
 
-
+    // class that refers to each reminder
     public class ramindViewHolder extends RecyclerView.ViewHolder {
         public TextView mtitle;
         public ImageView DeleteB;
@@ -59,9 +60,9 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
                         int position = getAdapterPosition();
                         if (position != RecyclerView.NO_POSITION) {
                             listener.onItemClick(position);
-                            reminders_view currentReminder=mRemind_view_list.get(position);
+                            Reminder currentReminder=mRemind_view_list.get(position);
 
-                            if(currentReminder.getType().equals("Todo List")) {
+                            if(currentReminder.getMyType().equals("Todo List")) {
                                 addTodoList a=new addTodoList(username);
                                 a.openDialog(true,currentReminder,position);
                             }
@@ -88,7 +89,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
     }
 
 
-    public ReminderAdapter(Context context, ArrayList<reminders_view> alarm_view_list, String username) {
+    public ReminderAdapter(Context context, ArrayList<Reminder> alarm_view_list, String username) {
         mRemind_view_list = alarm_view_list;
         this.username = username;
         mcontext = context;
@@ -104,11 +105,11 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
 
     @Override
     public void onBindViewHolder(ramindViewHolder holder, int position) {
-        reminders_view currentReminer = mRemind_view_list.get(position);
+        Reminder currentReminer = mRemind_view_list.get(position);
         holder.mtitle.setText((currentReminer.getTitle()));
-        if(currentReminer.getDate()!=null) {
+        if(currentReminer.getRemindDate()!=null) {
             String hour,minutes;
-            Date date2=currentReminer.getDate();
+            Date date2=currentReminer.getRemindDate();
             if (Integer.toString(date2.getHours()).length() == 1)
                 hour = "0" + Integer.toString(date2.getHours());
             else
@@ -122,6 +123,9 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
             formattedDate = formattedDate + " - " + hour + ":" + minutes;
             holder.date.setText(formattedDate);
         }
+
+        //if its a location reminder then set the text in the location textview according to the
+        // category. (person, specific location, category)
         if(currentReminer.getLocationAsString()!=null){
             if(currentReminer.getLocationAsString().equals("Person"))
                 holder.location.setText(currentReminer.getPerson().getEmail());
@@ -131,11 +135,13 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ramind
                 holder.location.setText(currentReminer.getLocationAsString());
         }
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("reminder_list").child(currentReminer.getKey());
+
+        //delete the reminder and cancel notification
         holder.DeleteB.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
-                if(currentReminer.getDate()!=null){
+                if(currentReminer.getRemindDate()!=null){
                     addReminder cancelR=new addReminder();
                     cancelR.cancelNotification(currentReminer.getKey().hashCode(),mcontext);
                 }

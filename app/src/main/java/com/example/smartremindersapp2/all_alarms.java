@@ -49,11 +49,27 @@ public class all_alarms extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_all_alarms);
         userName=getSharedPreferences("U",MODE_PRIVATE).
                 getString("username",null);
         msharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
         editor=msharedPreferences.edit();
+        mRecyclerView = findViewById(R.id.recycleView);
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager(this);
+        myAuxiliaryFunctions=AuxiliaryFunctions.getInstance();
+        drawerLayout=findViewById(R.id.drawer_layout);
+        instruction = findViewById(R.id.instructions_A);
+        addAlarmImage = findViewById(R.id.imageView);
+
+        // the try will succeed if the intent started by notification click
+        // and it will be one of 2 option according to reminder's kind and
+        // the clicked button
         try{
+
+            // if dismiss button clicked, cancel the notification and
+            // update the reminder's switch to unchecked
             if(getIntent().getStringExtra("type").equals("Dismiss")){
                 String key=getIntent().getStringExtra("key");
                 NotificationManager manager=(NotificationManager) getApplicationContext()
@@ -62,31 +78,28 @@ public class all_alarms extends AppCompatActivity {
                 DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("reminder_list").child(key);
                 ref.removeValue();
             }
+
+            // if snooze button clicked, cancel the notification and
+            // started new notification to ring after 1 minute,
+            // and keep the switch check
             else if(getIntent().getStringExtra("type").equals("SNOOZE")) {
                 editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
                 editor.commit();
                 String key = getIntent().getStringExtra("key");
-                DatabaseReference ref = FirebaseDatabase.getInstance().getReference().
-                        child("Users").child(userName).child("Alarms").child(key);
-                HashMap map2 = new HashMap();
-                map2.put("checked", true);
-                ref.updateChildren(map2);
+                SaveInDatabase.UpdateAlarmData(userName,key,"checked",true);
+
                 NotificationManager manager=(NotificationManager) getApplicationContext()
                         .getSystemService(NOTIFICATION_SERVICE);
                 manager.cancelAll();
                 Calendar date = Calendar.getInstance();
                 long timeInSecs = date.getTimeInMillis();
-                Date afterAdding10Mins = new Date(timeInSecs + ( 60 * 1000));
+                Date afterAdding1Mins = new Date(timeInSecs + ( 60 * 1000));
                 Intent ServiceIntent=new Intent(this,NotifierAlarm.class);
                 stopService(ServiceIntent);
-                System.out.println("afterAdding10Mins ");
-                System.out.println(afterAdding10Mins);
-                System.out.println(afterAdding10Mins.toString());
-                ServiceIntent.putExtra("date",afterAdding10Mins.getTime());
+                ServiceIntent.putExtra("date",afterAdding1Mins.getTime());
                 ServiceIntent.putExtra("Pending_key",key.hashCode()+1);
                 ServiceIntent.putExtra("title", getIntent().getStringExtra("title"));
                 ServiceIntent.putExtra("key",key);
-                ServiceIntent.putExtra("userName",userName);
                 this.startService(ServiceIntent);
             }
 
@@ -94,41 +107,36 @@ public class all_alarms extends AppCompatActivity {
         catch(Exception ex){
             System.out.println("in catch");
         }
-        
-        msharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
-        editor=msharedPreferences.edit();
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_all_alarms);
-        drawerLayout=findViewById(R.id.drawer_layout);
-        instruction = findViewById(R.id.instructions_A);
-        addAlarmImage = findViewById(R.id.imageView);
+
+        // click on the add alarm button
         addAlarmImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
-
                 myAuxiliaryFunctions.openNewPage(getApplicationContext(),alarm_clock.class);
             }
         });
-        mRecyclerView = findViewById(R.id.recycleView);
-        mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new LinearLayoutManager(this);
-        myAuxiliaryFunctions=AuxiliaryFunctions.getInstance();
+
+        // AlertReceiver.getRingtone() will not be null if we have arrive
+        // to all_alarms page from click on a notification
         if(AlertReceiver.getRingtone()!=null) {
             if (AlertReceiver.getRingtone().isPlaying()){
                 DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(msharedPreferences.getString("Current Ring Key",null));
                 NotifierAlarm.setKillTimer();
+
+                // update this alarm to ring=false in order to stop the ringing
                 editor.putBoolean("ring "+msharedPreferences.getString("Current Ring Key",null),false);
-                editor.putInt("AlarmsNum",msharedPreferences.getInt("AlarmsNum",0)-1);
                 editor.commit();
                 ref.child("days_date").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot snapshot) {
+
+                        // if its not a repeated alarm then turn off the switch
                         if(snapshot.getValue()==null) {
-                            HashMap map = new HashMap();
-                            map.put("checked", false); // must be checked
                             if(!getIntent().getStringExtra("type").equals("SNOOZE"))
-                                ref.updateChildren(map);
+                                SaveInDatabase.UpdateAlarmData(userName,msharedPreferences.getString("Current Ring Key",null),
+                                        "checked",false);
                         }
+                        // else, its a repeated alarm then set the alarm to this day next week
                         else{
                             DatabaseReference ref3=FirebaseDatabase.getInstance().getReference().child("Users")
                                     .child(userName).child("Alarms").
@@ -157,7 +165,8 @@ public class all_alarms extends AppCompatActivity {
     }
 
 
-
+    //if there is at least one alarm then the instruction must be invisible
+    // else visible
     public static void setInstruction(int v) {
         if(v==0)
             instruction.setVisibility(View.VISIBLE);
@@ -166,29 +175,10 @@ public class all_alarms extends AppCompatActivity {
     }
 
 
-    public void setRepeatedAlarm(int i,String key,boolean repeated) {
-        Intent intent=new Intent(this,NotifierAlarm.class);
-        stopService(intent);
-        Calendar c = Calendar.getInstance();
-        int offset = Calendar.SATURDAY;
-        c.add(Calendar.DATE, offset);
-        c.set(Calendar.HOUR_OF_DAY,hour);
-        c.set(Calendar.MINUTE,minutes);
-        c.set(Calendar.SECOND,0);
-        c.set(Calendar.MILLISECOND,0);
-        Date date=c.getTime();
-        intent.putExtra("Pending_key",key.hashCode() + i);
-        intent.putExtra("date",date.getTime());
-        intent.putExtra("key",key);
-        intent.putExtra("userName",userName);
-        startService(intent);
-    }
-
 
 
 
     public void ClickMenu(View view){ myAuxiliaryFunctions.openDrawer(drawerLayout);}
-    public void ClickLogo(View view){ myAuxiliaryFunctions.closeDrawer(drawerLayout);}
     public void ClickHome(View view){ myAuxiliaryFunctions.openNewPage(getApplicationContext(),HomePage.class);}
     public void ClickDashboard(View view){ myAuxiliaryFunctions.closeDrawer(drawerLayout);}
     public void ClickAboutUs(View view){ myAuxiliaryFunctions.openNewPage(getApplicationContext(),AboutUs.class);}
@@ -197,7 +187,8 @@ public class all_alarms extends AppCompatActivity {
 
 
 
-
+    // function that get all the alarms from the database in order to display
+    //then in the all_alarms page
     public ArrayList<alarm_view> get_all_the_alarms_from_firebase(String userName){
         ArrayList<alarm_view> alarms = new ArrayList<>();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms");
@@ -234,7 +225,7 @@ public class all_alarms extends AppCompatActivity {
         });
     }
 
-
+    // cancel the notificaion from the alarm manager
     void cancelAlarm(alarm_view alarm,Context context) {
         //subtract one from the number of running processes
         SharedPreferences sharedPreferences=context.getSharedPreferences("U",context.MODE_PRIVATE);
@@ -247,41 +238,31 @@ public class all_alarms extends AppCompatActivity {
             Intent intent = new Intent(context, AlertReceiver.class);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, alarm.getKey().hashCode(), intent, 0);
             alarmManager.cancel(pendingIntent);
-            editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)-1);
-            editor.commit();
         }
         else{
             List<String> days=alarm.getDays_date();
             int i=0;
-            String key=alarm.getKey();
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
+            Intent intent = new Intent(context, AlertReceiver.class);
             for (String day:days){
-                AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
-                Intent intent = new Intent(context, AlertReceiver.class);
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(context, alarm.getKey().hashCode()+i, intent, 0);
                 alarmManager.cancel(pendingIntent);
-                editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)-1);
-                editor.commit();
                 i++;
             }
-
         }
     }
 
+    // we call to this function by the on clicking  of the switch.
+    // if this alarm setted to specific date then we call to
+    // startNotifierAlarmIntent function to send the notification to the alarm
+    // manager. else if this alarm setted to repeated every specific days
+    // then we call to startNotifierAlarmIntent function for every selected day
     @RequiresApi(api = Build.VERSION_CODES.M)
      void startAlarm(alarm_view alarm,Context context){
-        //add one for the number of running processes
-        SharedPreferences sharedPreferences=context.getSharedPreferences("U",context.MODE_PRIVATE);
-        SharedPreferences.Editor editor=sharedPreferences.edit();
-
         //add one alarm to the AlarmManager
-        if(alarm.getDate()!=null) {
-            Intent ServiceIntent=new Intent(context,NotifierAlarm.class);
-            ServiceIntent.putExtra("date",alarm.getDate().getTime());
-            ServiceIntent.putExtra("Pending_key",alarm.getKey().hashCode());
-            ServiceIntent.putExtra("key",alarm.getKey());
-            ServiceIntent.putExtra("Repeating",false);
-            context.startService(ServiceIntent);
-        }
+        if(alarm.getDate()!=null)
+            startNotifierAlarmIntent(context,alarm.getDate().getTime()
+                    ,alarm.getKey(),false);
         else{
             int i=0;
             String key=alarm.getKey();
@@ -296,9 +277,8 @@ public class all_alarms extends AppCompatActivity {
         }
     }
 
+
     public void setRepeatedAlarm(int i,int day,String key,alarm_view alarm,Context context){
-        Intent intent=new Intent(context,NotifierAlarm.class);
-        context.stopService(intent);
         Calendar NotificationDate=Calendar.getInstance();
         NotificationDate.set(Calendar.HOUR_OF_DAY, alarm.getHour());
         NotificationDate.set(Calendar.MINUTE, alarm.getMinutes());
@@ -306,10 +286,37 @@ public class all_alarms extends AppCompatActivity {
         NotificationDate.set(Calendar.MILLISECOND, 0);
         NotificationDate.set(Calendar.DAY_OF_WEEK, day);
         Date date=NotificationDate.getTime();
+        startNotifierAlarmIntent(context,date.getTime(),key,true);
+    }
+
+    // send a notification intent to the alarm manager by call to
+    // NotifierAlarm intent
+    public void startNotifierAlarmIntent(Context context,long date,
+                                         String key,boolean repeat){
+        Intent ServiceIntent=new Intent(context,NotifierAlarm.class);
+        context.stopService(ServiceIntent);
+        ServiceIntent.putExtra("date",date);
+        ServiceIntent.putExtra("Pending_key",key.hashCode());
+        ServiceIntent.putExtra("key",key);
+        ServiceIntent.putExtra("Repeating",repeat);
+        context.startService(ServiceIntent);
+    }
+
+    // send notification to alarm manager
+    public void setRepeatedAlarm(int i,String key,boolean repeated) {
+        Intent intent=new Intent(this,NotifierAlarm.class);
+        stopService(intent);
+        Calendar c = Calendar.getInstance();
+        int offset = Calendar.SATURDAY;
+        c.add(Calendar.DATE, offset);
+        c.set(Calendar.HOUR_OF_DAY,hour);
+        c.set(Calendar.MINUTE,minutes);
+        c.set(Calendar.SECOND,0);
+        c.set(Calendar.MILLISECOND,0);
+        Date date=c.getTime();
         intent.putExtra("Pending_key",key.hashCode() + i);
         intent.putExtra("date",date.getTime());
         intent.putExtra("key",key);
-        intent.putExtra("Repeating",true);
-        context.startService(intent);
+        startService(intent);
     }
 }

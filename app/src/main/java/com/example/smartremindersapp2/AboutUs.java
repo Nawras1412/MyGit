@@ -6,16 +6,20 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+//display the text in the About Us page
 public class AboutUs extends AppCompatActivity {
-    private TextView about_as;
-    DrawerLayout drawerLayout;
+    private TextView about_us;
+    private DrawerLayout drawerLayout;
+    String userName;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about_us);
-        about_as=findViewById(R.id.AboutAs);
+        about_us=findViewById(R.id.AboutAs);
         drawerLayout=findViewById(R.id.drawer_layout);
-        String about_as_string= "We are two young women with a flaming passion torward technology and programming," +
+        userName = getSharedPreferences("U", MODE_PRIVATE).getString("username", null);
+        String about_us_string= "We are two young women with a flaming passion torward technology and programming," +
                 " and we are at the end of our studies in the wonderful Haifa University .\n" +
                 "We love productivity and organization, it is part of our daily life" +
                 " , we were inspired to create the perfect app that will help you remember" +
@@ -25,19 +29,20 @@ public class AboutUs extends AppCompatActivity {
                 "of the burden of constently thinking about them , and what better place to" +
                 " save them than in our phones! \n" +
                 "With this app never again feel overwhelmed or miss a task !";
-        about_as.setText(about_as_string);
+        about_us.setText(about_us_string);
     }
 
     public void ClickMenu(View view){
-        HomePage.openDrawer(drawerLayout);
+        AuxiliaryFunctions.openDrawer(drawerLayout);
     }
-    public void ClickHome(View view){ HomePage.redirectActivity(this,HomePage.class, getIntent().getStringExtra("User Name")); }
-    public void ClickDashboard(View view){ HomePage.redirectActivity(this,all_alarms.class, getIntent().getStringExtra("User Name")); }
+    public void ClickHome(View view){ AuxiliaryFunctions.redirectActivity(this,HomePage.class,userName);  }
+    public void ClickDashboard(View view){ AuxiliaryFunctions.redirectActivity(this,all_alarms.class,userName); }
     public void ClickAboutUs(View view){ recreate(); }
-    public void ClickLogout(View view){ HomePage.logout(this); }
+    public void ClickLogout(View view){ AuxiliaryFunctions.logout(this,userName); }
+
     @Override
     protected void onPause(){
         super.onPause();
-        HomePage.closeDrawer(drawerLayout);
+        AuxiliaryFunctions.closeDrawer(drawerLayout);
     }
 }

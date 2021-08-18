@@ -23,10 +23,8 @@ public class NotifierAlarm extends Service {
     private Timer t = new Timer();
     private static final String CHANNEL_ID = "MyNotificationChannelID";
     private String key,title;
-    private static boolean stopring;
     private static boolean killTimer;
     private int k;
-
 
     public static void setKillTimer() {
         killTimer = true;
@@ -39,28 +37,27 @@ public class NotifierAlarm extends Service {
     }
 
 
-
     public static Ringtone getRingtone() {
         return ringtone;
     }
 
-    public static void stopRingtone() {
-        stopring=false;
-    }
-
+    // save the alarm in the alarm manager and save this alarm in the
+    //sharedpreferences to cause to the alarm ring when the notification recieved
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
+        SharedPreferences.Editor editor=sharedPreferences.edit();
         k=0;
-        stopring=true;
+        Context context=getApplicationContext();
         killTimer=false;
         key=intent.getStringExtra("key");
         title=intent.getStringExtra("title");
         date = new Date(intent.getExtras().getLong("date", -1));
         Integer pendingKey=intent.getIntExtra("Pending_key",0);
-        Intent notificationIntent = new Intent(this, all_alarms.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, pendingKey , notificationIntent, 0);
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+        Intent notificationIntent = new Intent(context, all_alarms.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, pendingKey , notificationIntent, 0);
+        Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .addAction(R.drawable.ic_cancel,"remove",pendingIntent)
                 .setContentTitle("My Alarm clock")
                 .setContentText("Alarm time - " + date)
@@ -69,32 +66,15 @@ public class NotifierAlarm extends Service {
                 .build();
         notification.flags = Notification.FLAG_AUTO_CANCEL;
         startForeground(0,notification);
-
-        SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
-        SharedPreferences.Editor editor=sharedPreferences.edit();
-        editor.putInt("AlarmsNum",sharedPreferences.getInt("AlarmsNum",0)+1);
         editor.putBoolean("ring "+key,true);
         editor.commit();
-        Intent intent2 = new Intent(this, AlertReceiver.class);
-        t.scheduleAtFixedRate(new TimerTask() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
-            @Override
-            public void run(){
-                if(sharedPreferences.getInt("AlarmsNum",0)==0){
-                    cancel();
-                }
-                k++;
-                if(k==2) {
-                    intent2.putExtra("key", key);
-                    intent2.putExtra("title", title);
-                    intent2.putExtra("userName",intent.getStringExtra("userName"));
-                    AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-                    PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext()
-                            , pendingKey, intent2, 0);
-                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent2);
-                }
-            }
-        }, 0, 500);
+        Intent intent2 = new Intent(context, AlertReceiver.class);
+        intent2.putExtra("key", key);
+        intent2.putExtra("title", title);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext()
+                , pendingKey, intent2, 0);
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, date.getTime(), pendingIntent2);
         return super.onStartCommand(intent, flags, startId);
     }
 }

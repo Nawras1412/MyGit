@@ -48,21 +48,14 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
     private int minutes;
     private String userName;
     private DatabaseReference ref;
-    private AuxiliaryFunctions mAuxiliaryFunctions;
     private TimePicker alarmTimePicker;
     private String daysList="Every ";
     private Calendar NotificationDate;
     private Date date;
 
-
+    //initialize the fields in the alarm clock page and get the current time
     @RequiresApi(api = Build.VERSION_CODES.M)
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.FOREGROUND_SERVICE}, PackageManager.PERMISSION_GRANTED);
-        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECEIVE_BOOT_COMPLETED}, PackageManager.PERMISSION_GRANTED);
-        setContentView(R.layout.activity_alarm_clock);
-        // findViewById
+    private void InitializeData(){
         SundayBox=findViewById(R.id.Sunday_checkBox);
         MondayBox=findViewById(R.id.Monday_CheckBox);
         TuesdayBox=findViewById(R.id.Tuesday_Check_Box);
@@ -78,12 +71,21 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         scheduleButton = findViewById(R.id.schedule_button);
         //initial a few variables
         userName=getSharedPreferences("U",MODE_PRIVATE).getString("username",null);
-        mAuxiliaryFunctions=AuxiliaryFunctions.getInstance();
         NotificationDate=Calendar.getInstance();
         hour=alarmTimePicker.getHour();
         minutes=alarmTimePicker.getMinute();
         updateHourAndMinutesInCalendar();
         date=NotificationDate.getTime();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.FOREGROUND_SERVICE}, PackageManager.PERMISSION_GRANTED);
+        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECEIVE_BOOT_COMPLETED}, PackageManager.PERMISSION_GRANTED);
+        setContentView(R.layout.activity_alarm_clock);
+        InitializeData();
 
         //check if this is an alarm to edit, if yes must initial the alarm_clock page
         if(getIntent().getStringExtra("Key")!=null){
@@ -120,6 +122,9 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                 cal.set(Calendar.MINUTE, minutes);
                 cal.set(Calendar.SECOND, 0);
                 cal.set(Calendar.MILLISECOND, 0);
+
+                // if the selected time has elapsed then set the alarm for
+                // tomorrow
                 if (cal.before(Calendar.getInstance())){
                     cal.add(Calendar.DATE,1);
                     text="Tomorrow-"+getDateAsString(cal.getTime());
@@ -134,6 +139,8 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                 }
             }
         });
+
+
 
         SundayBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener(){
             @Override
@@ -164,7 +171,9 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked){UpdateTextViewDays();}
         });
 
-
+        // if the user select specific day by the calendat then
+        // we save the chased date and unchecked all the boxes
+        // and save the date on the textview
         CalendarButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -188,10 +197,17 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
             }
         });
 
+
+        // save alarm button
         scheduleButton.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View v){
+
+                // if this is the state of edit alarm, then we remove the old one
+                // and cancel the notification belongs to this alarm
+                // and save the new one and send the new notication to the
+                // alarm manager
                 if(getIntent().getStringExtra("Key")!=null){
                     String old_key=getIntent().getStringExtra("Key");
                     //push the new alarm
@@ -217,9 +233,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                             if(AlarmDate.getText().toString().split(" ")[0].equals("Every"))status=false;
                             else status=true;
                             startAlarm(new_key,status,AlarmName.getText().toString());
-                            System.out.println("im before open new all_alarms page");
-                            Intent intent=new Intent(getApplicationContext(), all_alarms.class);
-                            getApplicationContext().startActivity(intent);
+                            AuxiliaryFunctions.getInstance().openNewPage(getApplicationContext(),all_alarms.class);
                             HomePage.getmRecyclerView().setHasFixedSize(true);
                         }
 
@@ -235,9 +249,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
                     alarm_view alarm=new alarm_view(key,AlarmName.getText().toString(),hour
                             ,minutes,checkedBoxes,true,date);
                     keyRef.setValue(alarm);
-                    Intent intent=new Intent(getApplicationContext(), all_alarms.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    getApplicationContext().startActivity(intent);
+                    AuxiliaryFunctions.getInstance().openNewPage(getApplicationContext(),all_alarms.class);
                     boolean status;
                     if(AlarmDate.getText().toString().split(" ")[0].equals("Every"))status=false;
                     else status=true;
@@ -248,7 +260,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
     }
 
 
-
+    // return all the check boxes to be unchecked
     private void UnCheckTheCheckBoxes(){
         SundayBox.setChecked(false);
         MondayBox.setChecked(false);
@@ -259,6 +271,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         SaturdayBox.setChecked(false);
     }
 
+    //update the time to the new time setted on the alarm picker
     private void updateHourAndMinutesInCalendar() {
         NotificationDate=Calendar.getInstance();
         NotificationDate.set(Calendar.HOUR_OF_DAY, hour);
@@ -267,6 +280,8 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         NotificationDate.set(Calendar.MILLISECOND, 0);
     }
 
+    // if we want to edit the larm, this function inialize the page with the
+    // old data
     public void StartAlarmClockActivity(String key){
         DatabaseReference ref=FirebaseDatabase.getInstance().getReference().child("Users").child(userName).child("Alarms").child(key);
         ref.addListenerForSingleValueEvent(new ValueEventListener(){
@@ -322,6 +337,8 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         });
     }
 
+    // with all check/uncheck of day/box we call this function to update the
+    // selected days text view
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void UpdateTextViewDays(){
         date=null;
@@ -359,19 +376,27 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         }
         else AlarmDate.setText(daysList.substring(0,daysList.length()-2));
     }
+
+
+
+    //when the user save the alarm we call to this function in order
+    // to send the notification to the alarmManager
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void startAlarm(String key,boolean status,String title) {
         int i = 0;
         Intent ServiceIntent=new Intent(this,NotifierAlarm.class);
+        // the situation that we choose specific date
         if (status){
             stopService(ServiceIntent);
             ServiceIntent.putExtra("date",date.getTime());
             ServiceIntent.putExtra("Pending_key",key.hashCode());
             ServiceIntent.putExtra("title",title);
             ServiceIntent.putExtra("key",key);
-            ServiceIntent.putExtra("userName",userName);
             startService(ServiceIntent);
-        }else {
+        }
+        // the situation that the user choose repeated alarm every
+        // specific day, and for every selected day we save a notification
+        else {
             if (daysList.contains("Sun"))  setRepeatedAlarm(i++,Calendar.SUNDAY,key,title);
             if (daysList.contains("Mon"))  setRepeatedAlarm(i++,Calendar.MONDAY,key,title);
             if (daysList.contains("Tue"))  setRepeatedAlarm(i++,Calendar.TUESDAY,key,title);
@@ -382,6 +407,9 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         }
     }
 
+
+    // we call to this function for every selected checkbox/day
+    //
     public void setRepeatedAlarm(int i,int day,String key,String title) {
         Intent intent=new Intent(this,NotifierAlarm.class);
         stopService(intent);
@@ -392,21 +420,32 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         c.set(Calendar.MILLISECOND,0);
         int today=c.get(Calendar.DAY_OF_WEEK);
         Date NextDate;
+
+        // if the selected day box is the same as today
         if(day==today){
+
+            // if the time has elapsed then set the notification to the same
+            //day next week by adding offset 6 to the calendar
             if (c.before(Calendar.getInstance())){
                 int offset = Calendar.SATURDAY;
                 c.add(Calendar.DATE, offset);
                 NextDate = c.getTime();
             }
+            // else it notify today at the chased time
             else{
                 c.set(Calendar.DAY_OF_WEEK, day);
                 NextDate = c.getTime();
             }
         }
+
+        // if the selected day at this week not yet passed then it notify at
+        // the chased time as usual
         else if (day > today) {
             c.set(Calendar.DAY_OF_WEEK, day);
             NextDate = c.getTime();
-        } else {
+        }
+        //else we set the notification to notify at date of this day next week
+        else {
             int offset = Calendar.SATURDAY - today + day;
             c.add(Calendar.DATE, offset);
             NextDate = c.getTime();
@@ -416,7 +455,6 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         intent.putExtra("date",date.getTime());
         intent.putExtra("title",title);
         intent.putExtra("key",key);
-        intent.putExtra("userName",userName);
         startService(intent);
     }
 
@@ -425,7 +463,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {}
 
 
-
+    // get Date object and return it as string
     public String getDateAsString(Date date){
         String formattedDate = DateFormat.getDateInstance(DateFormat.FULL).format(date);
         String[] splitDate = formattedDate.split(",");
@@ -433,7 +471,7 @@ public class alarm_clock extends AppCompatActivity implements TimePickerDialog.O
         return date2;
     }
 
-
+    //check which days was selected
     public static List<String> check_boxes(CheckBox sundayBox, CheckBox mondayBox, CheckBox tuesdayBox, CheckBox wednesdayBox, CheckBox thursdayBox, CheckBox fridayBox, CheckBox saturdayBox) {
         List<String> checkedBoxes=new ArrayList<>();
         if (sundayBox.isChecked()){ checkedBoxes.add("0");}

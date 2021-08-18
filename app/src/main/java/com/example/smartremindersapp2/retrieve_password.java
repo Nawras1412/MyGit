@@ -2,8 +2,6 @@ package com.example.smartremindersapp2;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -29,7 +27,8 @@ public class retrieve_password extends AppCompatActivity {
         ConfirmPassword=findViewById(R.id.ConfirmPassword);
     }
 
-
+    // call to check data function, and we display error message accordingly
+    // if the data is legal then we update the password in the database
     public void retrievePasswordFunc(View view) {
         List<String> errors = CheckIfLegal(UserName.getText().toString(), Password.getText().toString(), ConfirmPassword.getText().toString());
         for (String message :errors){
@@ -56,9 +55,7 @@ public class retrieve_password extends AppCompatActivity {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.child(UserName.getText().toString()).exists()) {
                             SaveInDatabase.UpdateUserData(UserName.getText().toString(),"password",Password.getText().toString());
-                            Intent intent=new Intent(getApplicationContext(), login.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
+                            AuxiliaryFunctions.getInstance().openNewPage(getApplicationContext(),login.class);
                         }
                         else{
                             AuxiliaryFunctions.SetErrorOnTextView(UserName,"incorrect username");
@@ -71,7 +68,7 @@ public class retrieve_password extends AppCompatActivity {
         }
     }
 
-
+    //check if the inserted data is legal and exist in the data base
     public List<String> CheckIfLegal(String UserName, String Password, String ConfirmPassword){
         List<String> errors=new ArrayList<>();
         if (UserName.isEmpty()) errors.add("user name empty");

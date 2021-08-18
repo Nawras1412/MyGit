@@ -24,6 +24,7 @@ public class NotificationHelper extends ContextWrapper {
         this.key = key;
     }
 
+    //create channel
     public NotificationHelper(Context base) {
         super(base);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -45,6 +46,8 @@ public class NotificationHelper extends ContextWrapper {
             getManager().createNotificationChannel(channel);
         }
     }
+
+    //return a manager
     public NotificationManager getManager() {
         if (mManager == null) {
             mManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -52,19 +55,25 @@ public class NotificationHelper extends ContextWrapper {
         return mManager;
     }
 
-
+    //build the notification of the reminder/alarm
+    // and build the two button of each notification (snooze,dismiss,delete,another)
     public Notification getChannelNotification(String key,Class returnedPage
             ,String Title,String Content,String cadHTTP,String name,String address,String category,String lat1,String lang1) {
+        Notification notification;
         setKey(key);
-        Intent notificationIntent1 = new Intent(this, returnedPage);
-        Intent notificationIntent2 = new Intent(this, returnedPage);
-        Intent notificationIntent3 = new Intent(this, returnedPage);
-        Intent notificationIntent4 = new Intent(this, returnedPage);
+        Context context=getApplicationContext();
+        Intent notificationIntent1 = new Intent(context, returnedPage);
+        Intent notificationIntent2 = new Intent(context, returnedPage);
+        Intent notificationIntent3 = new Intent(context, returnedPage);
+        Intent notificationIntent4 = new Intent(context, returnedPage);
 
+        //Initialize the dismiss option
         notificationIntent1.putExtra("type","Dismiss");
         notificationIntent1.putExtra("key",key);
+        PendingIntent pendingIntent1=PendingIntent.getActivity(context,key.hashCode()
+                ,notificationIntent1,PendingIntent.FLAG_UPDATE_CURRENT);
 
-
+        //Initialize the Another option
         notificationIntent2.putExtra("type","Another");
         notificationIntent2.putExtra("cadHTTP",cadHTTP);
         notificationIntent2.putExtra("title",Title);
@@ -73,31 +82,29 @@ public class NotificationHelper extends ContextWrapper {
         notificationIntent2.putExtra("category",category);
         notificationIntent2.putExtra("lat1",lat1);
         notificationIntent2.putExtra("lang1",lang1);
+        PendingIntent pendingIntent2=PendingIntent.getActivity(context,key.hashCode()+1
+                ,notificationIntent2,PendingIntent.FLAG_UPDATE_CURRENT);
 
+
+
+        //Initialize the Delete option
         notificationIntent3.putExtra("key",key);
         notificationIntent3.putExtra("type","DELETE");
+        PendingIntent pendingIntent3=PendingIntent.getActivity(context,key.hashCode()+2
+                ,notificationIntent3,PendingIntent.FLAG_UPDATE_CURRENT);
 
+
+        //Initialize the Snooze option
         notificationIntent4.putExtra("key",key);
         notificationIntent4.putExtra("type","SNOOZE");
         notificationIntent4.putExtra("title",Title);
-
-        //dismiss
-        PendingIntent pendingIntent1=PendingIntent.getActivity(this,key.hashCode()
-                ,notificationIntent1,PendingIntent.FLAG_UPDATE_CURRENT);
-        //another
-        PendingIntent pendingIntent2=PendingIntent.getActivity(this,key.hashCode()+1
-                ,notificationIntent2,PendingIntent.FLAG_UPDATE_CURRENT);
-        //delete
-        PendingIntent pendingIntent3=PendingIntent.getActivity(this,key.hashCode()+2
-                ,notificationIntent3,PendingIntent.FLAG_UPDATE_CURRENT);
-        //snooze
-        PendingIntent pendingIntent4=PendingIntent.getActivity(this,key.hashCode()+3
+        PendingIntent pendingIntent4=PendingIntent.getActivity(context,key.hashCode()+3
                 ,notificationIntent4,PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification;
+
+
 
         if(cadHTTP!=""){
-            System.out.println("im in if");
-            notification = new NotificationCompat.Builder(this, channelID)
+            notification = new NotificationCompat.Builder(context, channelID)
                 .setContentTitle(Title+": "+ category +" found nearby ")
                 .setAutoCancel(true)
                 .setContentText(name +" at "+address)
@@ -110,8 +117,7 @@ public class NotificationHelper extends ContextWrapper {
         }
 
         else if (name.equals("alarm")){
-            System.out.println("im in else if");
-            notification = new NotificationCompat.Builder(this, channelID)
+            notification = new NotificationCompat.Builder(context, channelID)
                     .setContentTitle(Title)
                     .setContentText(Content)
                     .setAutoCancel(true)
@@ -124,8 +130,7 @@ public class NotificationHelper extends ContextWrapper {
 
         }
         else{
-            System.out.println("im in else");
-            notification = new NotificationCompat.Builder(this, channelID)
+            notification = new NotificationCompat.Builder(context, channelID)
                     .setContentTitle(Title)
                     .setContentText(Content)
                     .setAutoCancel(true)
@@ -135,7 +140,6 @@ public class NotificationHelper extends ContextWrapper {
                     .addAction(R.drawable.ic_cancel, "SNOOZE", pendingIntent4)
                     .addAction(R.drawable.ic_cancel, "DELETE", pendingIntent3).build();
         }
-
 
         notification.flags = Notification.FLAG_AUTO_CANCEL;
         return notification;

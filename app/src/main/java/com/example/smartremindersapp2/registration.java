@@ -2,7 +2,6 @@ package com.example.smartremindersapp2;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -54,6 +53,8 @@ public class registration extends AppCompatActivity {
             @Override
             public void onCancelled(DatabaseError databaseError) {}
         });
+
+        //show error if the inserted username exist
         UserNameText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -66,29 +67,24 @@ public class registration extends AppCompatActivity {
                 else
                     UserNameText.setError(null);
             }
-
-
         });
     }
 
+    // registration button
     public void Registration(View view) {
         List<String> TheError=checkRegistrationData(NameText,UserNameText,EmailText,PassWardText,ConfirmPassWardText);
         boolean legal=Exeptions(TheError);
         if (legal==true && UserNameText.getError()==null){
             User user = new User(NameText.getText().toString(), UserNameText.getText().toString(), EmailText.getText().toString(),
                     PassWardText.getText().toString(),0.,0.);
-            SaveInDatabase.saveUser(user);
-            AuxiliaryFunctions opendialog=AuxiliaryFunctions.getInstance();
-            opendialog.openDialogD(getSupportFragmentManager());
-            SharedPreferences sharedPreferences=getSharedPreferences("U",MODE_PRIVATE);
-            SharedPreferences.Editor editor=sharedPreferences.edit();;
-            editor.putInt("AlarmsNum",0);
-            editor.commit();
+            SaveInDatabase.
+                    saveUser(user);
+            new openDialog().show(getSupportFragmentManager(),"example");
         }
     }
 
 
-
+    //  pass over all the textviews and show error if necessary
     public boolean Exeptions(List<String> TheError) {
         for (String message : TheError) {
             if (message.contentEquals("success")) {
@@ -124,20 +120,29 @@ public class registration extends AppCompatActivity {
         return false;
     }
 
-
+    //check if the inserted data is legal
     public List<String> checkRegistrationData(EditText nameText, EditText userNameText, EditText emailText, EditText passWardText, EditText confirmPassWardText)  {
         List<String> errors = new ArrayList<>();
+
+        //if user name empty
         if (userNameText.getText().toString().isEmpty()) {
             errors.add("empty user name");
         }
+
+        //if name empty
         if (nameText.getText().toString().isEmpty()) {
             errors.add("empty first name");
+
+        //if name is legal
         } else if (!Pattern.matches("[a-zA-Z]+", nameText.getText().toString())) {
             errors.add("first name must contain only letters");
         }
+        //if e-mail empty
         if (emailText.getText().toString().isEmpty()) {
             errors.add("empty email");
-        } else {
+        }
+        // if email not empty so check if it legal
+        else {
             String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\." +
                     "[a-zA-Z0-9_+&*-]+)*@" +
                     "(?:[a-zA-Z0-9-]+\\.)+[a-z" +
@@ -147,14 +152,19 @@ public class registration extends AppCompatActivity {
                 errors.add("invalid email");
             }
         }
+
+        //check if password empty
         if (passWardText.getText().toString().isEmpty()) {
             errors.add("empty password");
         }
+
+        //check if confirmPassWardText empty
         if (confirmPassWardText.getText().toString().isEmpty()) {
             errors.add("empty confirm password");
         } else if (!(confirmPassWardText.getText().toString().contentEquals(passWardText.getText().toString()))) {
             errors.add("inappropriate password");
         }
+
         if (errors.isEmpty()) {
             errors.add("success");
         }

@@ -67,7 +67,7 @@ public class addTodoList extends AppCompatActivity {
 
     public addTodoList(String userName) { UserName=userName; }
 
-    public void openDialog(boolean edit,reminders_view oldReminder,int position) {
+    public void openDialog(boolean edit,Reminder oldReminder,int position) {
         all_audios_list=new ArrayList<>();
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(UserName).child("reminder_list");
         keyRef =ref.push();
@@ -149,11 +149,15 @@ public class addTodoList extends AppCompatActivity {
                 }
             }
         }
+
+        // long click on the recording button
         mRecordBtn.setOnTouchListener(new View.OnTouchListener() {
             @RequiresApi(api = Build.VERSION_CODES.P)
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+
+                //start recording
                 if(event.getAction() == MotionEvent.ACTION_DOWN){
                     if (checkPermissionFromDevice()) {
                         PathName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" +
@@ -169,7 +173,9 @@ public class addTodoList extends AppCompatActivity {
                         Toast.makeText(HomePage.getInstance(), "Recording ...", Toast.LENGTH_SHORT).show();
                     } else
                         requestPermission();
-                }else if(event.getAction() == MotionEvent.ACTION_UP){
+                }
+                //stop recording
+                else if(event.getAction() == MotionEvent.ACTION_UP){
                     simpleChronometer.stop();
                     simpleChronometer.setBase(SystemClock.elapsedRealtime());
                     mediaRecorder.stop();
@@ -188,6 +194,8 @@ public class addTodoList extends AppCompatActivity {
             }
         });
 
+        // initialize the reminder object by set all the fielda and save in the database
+        // and update the recycleview in the homepage
         add_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -205,9 +213,9 @@ public class addTodoList extends AppCompatActivity {
                 if (all_audios_list != null)
                     uploadAudios();
                 if(title.getText().toString().isEmpty())
-                    reminder.setMessage("Todo list");
+                    reminder.setTitle("Todo list");
                 else
-                    reminder.setMessage(title.getText().toString().trim());
+                    reminder.setTitle(title.getText().toString().trim());
                 reminder.setDescription(AddDescriptionEditText.getText().toString());
                 keyRef.setValue(reminder);
                 ArrayAdapter<CharSequence> KindsAdapter = ArrayAdapter.createFromResource(HomePage.getInstance(), R.array.kinds, android.R.layout.simple_spinner_item);
@@ -224,6 +232,7 @@ public class addTodoList extends AppCompatActivity {
         todoList_dialog.show();
     }
 
+    // each audio saved in specific url
     private void uploadAudios(){
         for(int i=0;i<all_audios_list.size();i++) {
             final ProgressDialog pd = new ProgressDialog(HomePage.getInstance());
@@ -242,6 +251,7 @@ public class addTodoList extends AppCompatActivity {
         }
     }
 
+    //add the audio to the list and declare his items and add it to the scrollview
     private void addToScrollView(){
         all_audios_list.add(PathName);
         LinearLayout audios=todoList_dialog.findViewById(R.id.kinear_all_audios);
@@ -264,6 +274,8 @@ public class addTodoList extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {/*mediaPlayer.seekTo(seekBar.getProgress());*/}
         });
+
+        // remove audio causes to remove it from the list and from the scrollview
         deleteAudio.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -272,6 +284,8 @@ public class addTodoList extends AppCompatActivity {
                 all_audios_list.remove((String)((View)v.getParent()).getTag());
             }
         });
+
+        // button clicked in order to play/pause the recorded audio
         playAudio.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
@@ -307,6 +321,7 @@ public class addTodoList extends AppCompatActivity {
         });
     }
 
+    // update the position of the seekbar as it progresses
     public class UpdateSeekBar implements Runnable{
         @Override
         public void run() {
@@ -319,6 +334,7 @@ public class addTodoList extends AppCompatActivity {
         }
     }
 
+    // request permission to allow record if this has not been approved until now
     private void requestPermission() {
         ActivityCompat.requestPermissions(HomePage.getInstance(),new String[]{
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -340,6 +356,8 @@ public class addTodoList extends AppCompatActivity {
             break;
         }
     }
+
+    //check if the user get the permission to recoding audio
     private boolean checkPermissionFromDevice() {
         int write_external_storage_result= ContextCompat.checkSelfPermission
                 (HomePage.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -349,6 +367,7 @@ public class addTodoList extends AppCompatActivity {
                 && record_audio_result==PackageManager.PERMISSION_GRANTED;
     }
 
+    // initialize the media recorder and its attributes
     private void setupMediaRecorder() {
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -359,3 +378,5 @@ public class addTodoList extends AppCompatActivity {
     }
 
 }
+
+

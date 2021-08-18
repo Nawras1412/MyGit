@@ -30,15 +30,14 @@ import java.util.HashMap;
 import java.util.List;
 import static android.content.Context.NOTIFICATION_SERVICE;
 
+
+// class that handle the views of the alarms in the RecycleView
 public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmViewHolder> {
     private static ArrayList<alarm_view> mAlram_view_list;
     private String username;
     private Context mcontext;
     private OnItemClickListener mlistener;
 
-    public static void setmAlram_view_list(ArrayList<alarm_view> mAlram_view_list) {
-        mAlram_view_list = mAlram_view_list;
-    }
 
     public interface OnItemClickListener {
         void onItemClick(int position);
@@ -50,6 +49,7 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
         mlistener = listener;
     }
 
+    // class that refers to each alarm view
     public class alarmViewHolder extends RecyclerView.ViewHolder {
         public TextView mhour;
         public TextView mminutes;
@@ -187,6 +187,10 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("Alarms").child(currentAlarm.getKey());
         DatabaseReference ref1 = FirebaseDatabase.getInstance().getReference().child("Users").child(username).child("Alarms").child(currentAlarm.getKey()).child("checked");
+
+        // if we remove the alarm then if the switch is on then cancel the
+        // notification from the alarm manager
+        // and remove the alarm from the database
         holder.DeleteB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -215,6 +219,9 @@ public class ExampleAdapter extends RecyclerView.Adapter<ExampleAdapter.alarmVie
             }
         });
 
+        //when the user change the switch then cancel the notification if
+        //the switch has been checked and start a new notification if he switch
+        //has been unchecked
         holder.mSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

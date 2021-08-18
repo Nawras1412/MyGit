@@ -3,6 +3,9 @@ package com.example.smartremindersapp2;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.view.View;
+
+
+// class that responsible for animation of the minor buttons in the category_menu
 public class viewAnimation {
     public static boolean rotateFab(final View v, boolean rotate) {
         v.animate().setDuration(200)

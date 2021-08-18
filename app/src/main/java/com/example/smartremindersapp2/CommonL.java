@@ -3,8 +3,7 @@ package com.example.smartremindersapp2;
 import android.content.Context;
 import android.location.Location;
 import android.preference.PreferenceManager;
-import java.text.DateFormat;
-import java.util.Date;
+
 
 public class CommonL {
     public static final String KEY_REQUESTING_lOCATION_UPDATES="LocationUpdateEnable";
@@ -12,9 +11,6 @@ public class CommonL {
         return mLocation == null ? "Unkown Location" : mLocation.getLatitude() + "/" + mLocation.getLongitude();
     }
 
-    public static CharSequence getLocationTitle(MyBackgroundService myBackgroundService) {
-        return String.format("Location Updated: %1$s", DateFormat.getDateInstance().format(new Date()));
-    }
 
     public static void setRequestingLocationUpdates(Context context, boolean value) {
         PreferenceManager.getDefaultSharedPreferences(context)

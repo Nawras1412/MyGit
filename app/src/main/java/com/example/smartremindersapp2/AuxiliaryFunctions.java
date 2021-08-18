@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.firebase.database.DataSnapshot;
@@ -22,7 +23,9 @@ public class AuxiliaryFunctions extends AppCompatActivity {
     private static AuxiliaryFunctions MyAuxiliaryFunctions;
     private static DatabaseReference ref;
 
-    private AuxiliaryFunctions(){}
+
+
+    AuxiliaryFunctions(){}
 
     public static AuxiliaryFunctions getInstance(){
         if (MyAuxiliaryFunctions==null)
@@ -30,37 +33,39 @@ public class AuxiliaryFunctions extends AppCompatActivity {
         return MyAuxiliaryFunctions;
     }
 
+    // move to another intent/page
     public void openNewPage(Context context, Class classX){
         Intent intent=new Intent(context, classX);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
     }
 
-    public void openDialogD( androidx.fragment.app.FragmentManager SF){
-        openDialog dialog=new openDialog();
-        dialog.show(SF,"example");
-    }
-
+    // show error in text view
     public static void SetErrorOnTextView(TextView textView,String error){
         textView.setError(error);
         textView.requestFocus();
     }
 
-    public static void MakeToast(Context context,String text){
-        Toast.makeText(context, "inside", Toast.LENGTH_LONG).show();
-    }
 
 
-
-    public void openDrawer(DrawerLayout drawerLayout) {
+    public static void openDrawer(DrawerLayout drawerLayout) {
         drawerLayout.openDrawer(GravityCompat.START);
     }
 
-    public void closeDrawer(DrawerLayout drawerLayout) {
+    public static void redirectActivity(Activity activity, Class aClass, String sessionId) {
+        Intent intent = new Intent(activity, aClass);
+        intent.putExtra("User Name", sessionId);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        activity.startActivity(intent);
+    }
+
+
+    public static void closeDrawer(DrawerLayout drawerLayout) {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)){
         drawerLayout.closeDrawer(GravityCompat.START);
         }
     }
+
 
 
     public static void logout(Activity activity,String userName) {

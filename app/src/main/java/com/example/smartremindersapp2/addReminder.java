@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
@@ -79,7 +78,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class addReminder extends AppCompatActivity {
-    private Dialog add_reminder_dialog, add_description_dialog,add_location_dialog,category_menu_dialog;
+    private Dialog add_reminder_dialog, add_description_dialog,category_menu_dialog;
     private Button add_btn;
     public TextView LocationTextView;
     private ImageButton cancel_btn, selectDate_btn, addDescription_btn, location_btn;
@@ -103,23 +102,13 @@ public class addReminder extends AppCompatActivity {
     private Date oldDate=new Date();
     private Date date=new Date();
     public static Place wantedLocation;
-    private static addReminder instance;
-    private SharedPreferences sharedPreferences;
-    private SharedPreferences.Editor editor;
-    private static final int IMAGE_REQUEST=2;
     private DatabaseReference keyRef;
     public addReminder(String userName) { UserName=userName; }
     public String address;
     public Double lat=null;
     public Double lang=null;
     public addReminder() {}
-    private TextView mRecordLabel;
-    private MediaRecorder mRecorder;
-    private static final String LOG_TAG="Record_log";
     private StorageReference mStorage=FirebaseStorage.getInstance().getReference();
-    public static final int RECORD_AUDIO = 0;
-    private ScrollView all_audios;
-    private ImageView delete_audio;
     private List<String> all_audios_list;
     private FloatingActionButton btn_person,btn_food,btn_other,btn_office,btn_car,btn_shop,btn_book,btn_medical,btn_money;
     private ExtendedFloatingActionButton btn_food_res,btn_food_cafe,btn_food_bakery,btn_money_bank,btn_money_atm,btn_medical_hospital,btn_medical_pharmacy,btn_car_wash,btn_car_repair,btn_car_gas,btn_car_parking,btn_shop_supermarket,btn_shop_mall,btn_office_laywer,btn_office_acoounting,btn_office_police,btn_office_post_office,btn_book_library,btn_book_uni,btn_book_book_store;
@@ -135,7 +124,9 @@ public class addReminder extends AppCompatActivity {
     private FloatingActionButton Main_btns[] =new FloatingActionButton[7];
     private ArrayList<ArrayList<ExtendedFloatingActionButton>> subList = new ArrayList<ArrayList<ExtendedFloatingActionButton>>();
 
-
+    // called when its an edit option
+    // expanding the dialog according to the number of the additions in the alams,
+    // and initialize the appropriate fields
     private void ExpandDialogAndSetData2(ImageButton removeIcon, ImageButton image_button, TextView text_view, String string, String type) {
         numberOfAdditions+=1;
         int WindowHeight=440+Additions.size()*110;
@@ -176,6 +167,8 @@ public class addReminder extends AppCompatActivity {
         Additions_TextView.get(index).setY(NextTextViewY);
     }
 
+    // expanding the dialog according to the number of the additions in the alams,
+    // and initialize the appropriate fields
     private void ExpandDialogAndSetData(ImageButton removeIcon,ImageButton image_button, TextView text_view, String string,String type) {
         int WindowHeight=440+Additions.size()*110;
         Additions.add(type);
@@ -211,6 +204,8 @@ public class addReminder extends AppCompatActivity {
         }
     }
 
+    // reducing the size of the dialog when the user remove specific addition
+    // and change the appropriate fields to be invisible
     private void ReduceDialogAndReorder(ImageButton removeIcon,ImageButton image_button, TextView text_view,String type) {
         numberOfAdditions-=1;
         int WindowHeight=440+110*(numberOfAdditions-1);
@@ -242,10 +237,8 @@ public class addReminder extends AppCompatActivity {
         }
     }
 
-    private String userName;
-    public void Initialization(boolean edit,reminders_view oldReminder){
-        userName=HomePage.getInstance().getSharedPreferences("U",MODE_PRIVATE).
-                getString("username",null);
+
+    public void Initialization(boolean edit,Reminder oldReminder){
         numberOfAdditions=0;
         reminder=new Reminder();
         Additions=new ArrayList<>();
@@ -254,20 +247,11 @@ public class addReminder extends AppCompatActivity {
         remove_icons=new ArrayList<>();
         NotificationDate=Calendar.getInstance();
         add_reminder_dialog = new Dialog(HomePage.getInstance());
-        if(edit){
-            reminder.setMessage(oldReminder.getTitle());
-            reminder.setKey(oldReminder.getKey());
-            reminder.setLocationAsString(oldReminder.getLocationAsString());
-            reminder.setRemindDate(oldReminder.getDate());
-            reminder.setDescription(oldReminder.getDescription());
-            reminder.setMyType(oldReminder.getType());
-            reminder.setLAT(oldReminder.getLAT());
-            reminder.setLNG(oldReminder.getLNG());
-            reminder.setAudios(oldReminder.getAudios());
-        }
+        if(edit)
+            reminder=oldReminder;
     }
 
-
+    // cancel notofcation
     public static void cancelNotification(int hashkey ,Context context) {
         AlarmManager alarmManager = (AlarmManager) HomePage.getInstance().getSystemService(HomePage.getInstance().ALARM_SERVICE);
         Intent intent = new Intent(HomePage.getInstance(), HomePage.class);
@@ -275,7 +259,7 @@ public class addReminder extends AppCompatActivity {
         alarmManager.cancel(pendingIntent);
     }
 
-
+    //send notification to alarm manager and declare extras according to her type
     public void sendToAlarmManager(Reminder reminder,boolean check)  {
         Context context=HomePage.getInstance();
         Intent ServiceIntent=new Intent(context,NotifierLocationRemind.class);
@@ -361,7 +345,9 @@ public class addReminder extends AppCompatActivity {
         removeDescription=add_reminder_dialog.findViewById(R.id.RemoveLocation);
     }
 
-    public void InitializeTheDialogIfEdit(reminders_view oldReminder) {
+    //if the user wants to edit a reminder then open the add reminder dialog and initialize the
+    // fields accordingly
+    public void InitializeTheDialogIfEdit(Reminder oldReminder) {
         all_audios_list = oldReminder.getAudios();
         title.setText(oldReminder.getTitle());
         if (oldReminder.getDescription() != null || oldReminder.getAudios() != null) {
@@ -370,9 +356,9 @@ public class addReminder extends AppCompatActivity {
             if (oldReminder.getAudios() != null) content += " +Audio";
             ExpandDialogAndSetData2(removeDescription, addDescriptionImage, DescriptionTextView, content, "Description");
         }
-        if (oldReminder.getDate()!=null){
+        if (oldReminder.getRemindDate()!=null){
             String hour, minutes;
-            Date date = oldReminder.getDate();
+            Date date = oldReminder.getRemindDate();
             if (Integer.toString(date.getHours()).length() == 1)
                 hour = "0" + Integer.toString(date.getHours());
             else
@@ -387,7 +373,7 @@ public class addReminder extends AppCompatActivity {
             ExpandDialogAndSetData2(removeDate, selectDateImage, TimeTextView, formattedDate, "Time");
         }
 
-        if (oldReminder.getType().equals("Location")) {
+        if (oldReminder.getMyType().equals("Location")) {
             if (oldReminder.getLocationAsString().equals("Other")) {
                 locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_search));
                 ExpandDialogAndSetData2(removeLocation, locationImage, LocationTextView
@@ -415,7 +401,7 @@ public class addReminder extends AppCompatActivity {
         }
     }
 
-    public void openDialog(boolean edit,reminders_view oldReminder,int position){
+    public void openDialog(boolean edit,Reminder oldReminder,int position){
         all_audios_list=new ArrayList<>();
         DatabaseReference ref= FirebaseDatabase.getInstance().getReference().child("Users").child(UserName).child("reminder_list");
         keyRef =ref.push();
@@ -423,8 +409,8 @@ public class addReminder extends AppCompatActivity {
         SetFindViewById();
         if(edit)
             InitializeTheDialogIfEdit(oldReminder);
-        if(edit && oldReminder.getDate()!=null)
-            oldDate=oldReminder.getDate();
+        if(edit && oldReminder.getRemindDate()!=null)
+            oldDate=oldReminder.getRemindDate();
 
         removeDate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -458,11 +444,16 @@ public class addReminder extends AppCompatActivity {
             }
         });
 
+        // save reminder button
         add_btn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
                 if(reminder.getLocationAsString()!=null)
                     Category=reminder.getLocationAsString();
+
+                // if its a location of type person' then we check if the inserted e-mail exist in
+                // the firebase, if no then the reminder not saved and show an appropriate message.
+                // else, we build the reminder and save it in the database
                 if(Category.equals("Person")){
                     String email =LocationTextView.getText().toString();
                     DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users");
@@ -486,9 +477,9 @@ public class addReminder extends AppCompatActivity {
                             if (all_audios_list != null)
                                 uploadAudios();
                             if (title.getText().toString().isEmpty())
-                                reminder.setMessage("Reminder");
+                                reminder.setTitle("Reminder");
                             else
-                                reminder.setMessage(title.getText().toString());
+                                reminder.setTitle(title.getText().toString());
                             reminder.setState(true);
                             reminder.setLocation(address);
                             reminder.setMyType(checkType());
@@ -529,6 +520,10 @@ public class addReminder extends AppCompatActivity {
                         public void onCancelled(@NonNull DatabaseError error) {}
                     });
                 }else {
+
+                    // if its a specific location reminder type and no location specified
+                    // then the reminder not saved and show an appropriate message
+                    // else. build a reminder and save in the database
                     if (Category.equals("Other") && lat == null) {
                         Toast.makeText(HomePage.getInstance(), "No Location Specified! try again", Toast.LENGTH_LONG).show();
                         cancel_btn.performClick();
@@ -538,29 +533,26 @@ public class addReminder extends AppCompatActivity {
                     if (all_audios_list != null)
                         uploadAudios();
                     if (title.getText().toString().isEmpty())
-                        reminder.setMessage("Reminder");
+                        reminder.setTitle("Reminder");
                     else
-                        reminder.setMessage(title.getText().toString());
+                        reminder.setTitle(title.getText().toString());
                     reminder.setState(true);
                     reminder.setLocation(address);
                     reminder.setMyType(checkType());
-                    if (!edit && delete) {
-                        reminder.setKey(keyRef.getKey());
-                        keyRef.setValue(reminder);
-                    } else if (delete) {
-                        cancelNotification(reminder.getKey().hashCode(), HomePage.getInstance());
-                        keyRef = ref.child(reminder.getKey());
-                        keyRef.setValue(reminder);
+                    if (reminder.getMyType().equals("Location") && reminder.getLocationAsString().equals("Other") && delete) {
+                        reminder.setLocation(address);
+                        reminder.setLAT(lat);
+                        reminder.setLNG(lang);
                     }
                     if (reminder.getRemindDate() == null && delete) {
                         date = new Date();
                         reminder.setRemindDate((date));
                     }
-
-                    if (reminder.getMyType().equals("Location") && reminder.getLocationAsString().equals("Other") && delete) {
-                        reminder.setLocation(address);
-                        reminder.setLAT(lat);
-                        reminder.setLNG(lang);
+                    if (!edit && delete) {
+                        reminder.setKey(keyRef.getKey());
+                        keyRef.setValue(reminder);
+                    } else if (delete) {
+                        cancelNotification(reminder.getKey().hashCode(), HomePage.getInstance());
                         keyRef = ref.child(reminder.getKey());
                         keyRef.setValue(reminder);
                     }
@@ -578,10 +570,14 @@ public class addReminder extends AppCompatActivity {
             }
         });
 
+
+        // open the categories page
         location_btn.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("ResourceAsColor")
             @Override
             public void onClick(View v) {
+
+                // initialize the fields and the parameters
                 category_menu_dialog = new Dialog(add_reminder_dialog.getContext());
                 category_menu_dialog.setContentView(R.layout.category_menu);
                 category_menu_dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -646,6 +642,7 @@ public class addReminder extends AppCompatActivity {
                 subList.add(list5);
                 subList.add(list6);
 
+
                 btn_other.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -655,6 +652,10 @@ public class addReminder extends AppCompatActivity {
                     }
                 });
 
+                // with clicking on one from the main buttons in the categories page it close
+                // the opened main button and rotate it back
+                // choosing specific category from the miner buttons cause to calling to
+                // the function afterchoosing() that explained before the declaration
                 btn_food.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -893,6 +894,7 @@ public class addReminder extends AppCompatActivity {
             }
         });
 
+        //choose date and time from calendar and update the dialog accordingly
         selectDate_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -953,6 +955,8 @@ public class addReminder extends AppCompatActivity {
             }
         });
 
+
+        //open the add description dialog
         addDescription_btn.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
@@ -964,17 +968,19 @@ public class addReminder extends AppCompatActivity {
                 add_description_dialog = new Dialog(add_reminder_dialog.getContext());
                 add_description_dialog.setContentView(R.layout.add_description);
                 Chronometer simpleChronometer = add_description_dialog.findViewById(R.id.simpleChronometer2);
-                all_audios=add_description_dialog.findViewById(R.id.all_audios2);
-                delete_audio=add_description_dialog.findViewById(R.id.delete_audio);
                 save_description = add_description_dialog.findViewById(R.id.save_description);
                 cancel_desc_dialog = add_description_dialog.findViewById(R.id.cancel_desc_dialog);
                 mRecordBtn = add_description_dialog.findViewById(R.id.recordBtn2);
                 AddDescriptionEditText = add_description_dialog.findViewById(R.id.AddDescriptionEditText);
                 AddDescriptionEditText.setFocusedByDefault(true);
+
+                //if the user wants to edit the description and audios then we initialize
+                // the dialog with the old audios and the old desxription
                 if (reminder.getDescription() != null) {
                     AddDescriptionEditText.setText(reminder.getDescription());
                     save_description.setEnabled(true);
                 }
+
                 if(reminder.getAudios()!=null){
                     save_description.setEnabled(true);
                     for(int i=0;i<all_audios_list.size();i++){
@@ -1042,6 +1048,8 @@ public class addReminder extends AppCompatActivity {
                         });
                     }
                 }
+
+                //if there are no description and audios then the  save button is disable
                 AddDescriptionEditText.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -1064,6 +1072,7 @@ public class addReminder extends AppCompatActivity {
                     }
                 });
 
+                //expand the dialog and initialize the appropriate fields
                 save_description.setOnClickListener(new View.OnClickListener() {
                     @RequiresApi(api = Build.VERSION_CODES.Q)
                     @Override
@@ -1087,12 +1096,15 @@ public class addReminder extends AppCompatActivity {
                     }
                 });
 
+                // long click on the recording button
                 mRecordBtn.setOnTouchListener(new View.OnTouchListener() {
                     @RequiresApi(api = Build.VERSION_CODES.P)
                     @SuppressLint("ClickableViewAccessibility")
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
-                        if(event.getAction() == MotionEvent.ACTION_DOWN){
+
+                        //start recording
+                        if(event.getAction() == MotionEvent.ACTION_DOWN) {
                             if (checkPermissionFromDevice()) {
                                 PathName = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" +
                                         UUID.randomUUID().toString() + "audio_record.3gp";
@@ -1101,13 +1113,15 @@ public class addReminder extends AppCompatActivity {
                                     mediaRecorder.prepare();
                                     mediaRecorder.start();
                                     simpleChronometer.start();
-                                }catch (IOException e) {
+                                } catch (IOException e) {
                                     e.printStackTrace();
                                 }
                                 Toast.makeText(HomePage.getInstance(), "Recording ...", Toast.LENGTH_SHORT).show();
                             } else
                                 requestPermission();
-                        }else if(event.getAction() == MotionEvent.ACTION_UP){
+                        }
+                        //stop recording
+                        else if(event.getAction() == MotionEvent.ACTION_UP){
                             simpleChronometer.stop();
                             simpleChronometer.setBase(SystemClock.elapsedRealtime());
                             mediaRecorder.stop();
@@ -1128,7 +1142,7 @@ public class addReminder extends AppCompatActivity {
 
 
 
-
+    // initialize the media recorder and its attributes
     private void setupMediaRecorder() {
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -1138,7 +1152,7 @@ public class addReminder extends AppCompatActivity {
     }
 
 
-
+    // each audio saved in specific url
     private void uploadAudios(){
         for(int i=0;i<all_audios_list.size();i++) {
             final ProgressDialog pd = new ProgressDialog(HomePage.getInstance());
@@ -1157,6 +1171,9 @@ public class addReminder extends AppCompatActivity {
         }
     }
 
+
+
+    //add the audio to the list and declare his items and add it to the scrollview
     private void addToScrollView(){
         all_audios_list.add(PathName);
         if(all_audios_list.size()==1)
@@ -1182,6 +1199,8 @@ public class addReminder extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {/*mediaPlayer.seekTo(seekBar.getProgress());*/}
         });
+
+        // remove audio causes to remove it from the list and from the scrollview
         deleteAudio.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -1190,6 +1209,8 @@ public class addReminder extends AppCompatActivity {
                 all_audios_list.remove((String)((View)v.getParent()).getTag());
             }
         });
+
+        // button clicked in order to play/pause the recorded audio
         playAudio.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
@@ -1227,6 +1248,8 @@ public class addReminder extends AppCompatActivity {
         });
     }
 
+
+    // update the position of the seekbar as it progresses
     public class UpdateSeekBar implements Runnable{
         @Override
         public void run() {
@@ -1240,6 +1263,9 @@ public class addReminder extends AppCompatActivity {
         }
     }
 
+
+
+    // request permission to allow record if this has not been approved until now
     private void requestPermission() {
         ActivityCompat.requestPermissions(HomePage.getInstance(),new String[]{
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -1258,6 +1284,9 @@ public class addReminder extends AppCompatActivity {
             break;
         }
     }
+
+
+    //check if the user get the permission to recoding audio
     private boolean checkPermissionFromDevice() {
         int write_external_storage_result= ContextCompat.checkSelfPermission
                 (HomePage.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -1266,6 +1295,9 @@ public class addReminder extends AppCompatActivity {
         return write_external_storage_result== PackageManager.PERMISSION_GRANTED
                 && record_audio_result==PackageManager.PERMISSION_GRANTED;
     }
+
+
+
     private void afterchoosing(){
         //save the chosen category in the reminder and start search the location
         category_menu_dialog.cancel();
@@ -1311,10 +1343,10 @@ public class addReminder extends AppCompatActivity {
                     }
                 });
             } else {
-            LocationTextView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {}
-            });
+                LocationTextView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {}
+                });
                 locationImage.setImageDrawable(ContextCompat.getDrawable(HomePage.getInstance(), R.drawable.ic_location));
                 if (Additions.contains("Location")) {
                     LocationTextView.setText(Category);
@@ -1324,9 +1356,12 @@ public class addReminder extends AppCompatActivity {
                 }
             }
         }
-
         closeAll(8);
     }
+
+
+    // when chooses another category in the category_menu page then this function
+    // close all the
     private void closeAll (int indx) {
         boolean rotate;
         for (int i=0 ;i<7;i++ ){
@@ -1344,23 +1379,24 @@ public class addReminder extends AppCompatActivity {
             }}
 
     }
+
+
+
     private void animation(View v,FloatingActionButton main_btn, List<ExtendedFloatingActionButton> buttons,int i ){
         isRotate.set(i,viewAnimation.rotateFab(main_btn,! isRotate.get(i)));
-        System.out.println("ROTATE+"+isRotate.get(i));
         if(isRotate.get(i)){
             for (ExtendedFloatingActionButton btn : buttons){viewAnimation.showIn(btn);}
-
             DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getDrawable()), ColorStateList.valueOf(Color.parseColor("#FDC53A")));
             DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getBackground()), ColorStateList.valueOf(Color.BLACK));
-
         }else{
             for (ExtendedFloatingActionButton btn : buttons){viewAnimation.showOut(btn);}
-
             DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getDrawable()), ColorStateList.valueOf(Color.BLACK));
             DrawableCompat.setTintList(DrawableCompat.wrap(main_btn.getBackground()), ColorStateList.valueOf(Color.parseColor("#FDC53A")));
-
         }
     }
+
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -1377,6 +1413,7 @@ public class addReminder extends AppCompatActivity {
         }
     }
 
+    //check type of notification (location,date,todo list)
     private String checkType() {
         boolean Location=false,Date=false;
         if (Additions.contains("Location")) Location=true;

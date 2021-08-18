@@ -20,6 +20,8 @@ public class AlertReceiver extends BroadcastReceiver {
         return ringtone;
     }
 
+    //update the current alarm that rings
+    // and play a ring until the status of the current reminder change to false
     @Override
     public void onReceive(Context context, Intent intent){
         SharedPreferences sharedPreferences=context

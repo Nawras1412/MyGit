@@ -23,6 +23,10 @@ public class NotifierLocationRemind extends Service {
         return null;
     }
 
+
+    // we need class that extend from service in order to keep the application work
+    // in background and be able to send notification
+    // by using setExact we save in the manager the date to notify
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -55,11 +59,6 @@ public class NotifierLocationRemind extends Service {
         intent2.putExtra("title",ContentTitle);
         intent2.putExtra("content",ContentText);
         intent2.putExtra("locationType",intent.getStringExtra("locationType"));
-        intent2.putExtra("address",intent.getStringExtra("address"));
-        intent2.putExtra("lat",intent.getDoubleExtra("lat",0));
-        intent2.putExtra("lang",intent.getDoubleExtra("lang",0));
-        intent2.putExtra("lat",intent.getDoubleExtra("lat",0));
-        intent2.putExtra("email",intent.getStringExtra("email"));
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         PendingIntent pendingIntent2 = PendingIntent.getBroadcast(getApplicationContext()
                 , pendingKey, intent2, 0);

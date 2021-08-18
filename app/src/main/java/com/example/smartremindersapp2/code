@@ -39,3 +39,14 @@ remove MyLocationService class
 
 
 
+
+addReminder
+MyBackgroundService
+ReminderAdapter
+
+
+
+
+
+
+

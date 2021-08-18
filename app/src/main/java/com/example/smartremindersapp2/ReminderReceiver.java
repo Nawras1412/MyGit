@@ -16,52 +16,22 @@ import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
 import cz.msebera.android.httpclient.util.EntityUtils;
 
 public class ReminderReceiver extends BroadcastReceiver  {
-    String url = "";
-    String type,radius="500",Google_api_key="AIzaSyCfsrOq62GRNdUvZeMBhimX4RFX9cpm4uU";
-    String key,lat,lang;
-    Intent recievedIntent;
-    Context recievedContext;
 
     @Override
     public IBinder peekService(Context myContext, Intent service) {
         return super.peekService(myContext, service);
     }
 
-    public  String getResponse(String url) {
-        HttpClient httpClient = new DefaultHttpClient();
-        HttpGet del = new HttpGet(url);
-        del.setHeader("content-type", "application/json");
 
-        String respStr;
-        try {
-            HttpResponse resp = httpClient.execute(del);
-            respStr = EntityUtils.toString(resp.getEntity());
-        } catch(Exception ex) {
-            Log.e("RestService","Error!", ex);
-            respStr = "";
-        }
-
-        Log.e("getResponse",respStr);
-        return respStr;
-    }
-
-
-
-
-
-
+    // if this is a date notification only then we save the notification in the alarm manager
+    // else if this a location reminder then we only update the state of the reminder to true,
+    // because the location in the background handle only reminders with true state
     @Override
     public void onReceive(Context context, Intent intent){
-        recievedIntent=intent;
-        recievedContext=context;
-        url = "";
-        type= intent.getStringExtra("locationType").toLowerCase();
-        radius = "500";
-        Google_api_key="AIzaSyCfsrOq62GRNdUvZeMBhimX4RFX9cpm4uU";
-        key=intent.getStringExtra("key");
+        String key=intent.getStringExtra("key");
         if (intent.getStringExtra("title").equals("Date Reminder")){
             NotificationHelper notificationHelper = new NotificationHelper(context);
-            Notification nb = notificationHelper.getChannelNotification(intent.getStringExtra("key")
+            Notification nb = notificationHelper.getChannelNotification(key
                     , HomePage.class, intent.getStringExtra("title"), intent.getStringExtra("content"),"","","","","","");
             notificationHelper.getManager().notify(0, nb);
         }else{

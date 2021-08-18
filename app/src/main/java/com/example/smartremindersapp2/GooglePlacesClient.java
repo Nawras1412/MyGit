@@ -10,17 +10,16 @@ import cz.msebera.android.httpclient.impl.client.DefaultHttpClient;
 import cz.msebera.android.httpclient.util.*;
 import cz.msebera.android.httpclient.client.HttpClient;
 
+//class that responsible to get to the user the desired location according to
+// his choice
 public class GooglePlacesClient {
     public void getResponseThread(final String url, String lat1 , String lang1, String title,
                                   String content,String key, Context context,String type) {
         new Thread(new Runnable() {
             public void run() {
                 String cadHTTP = getResponse(url);
-                System.out.println(cadHTTP);
                 do1(cadHTTP,lat1, lang1,  title,
                         content, key,  context,type);
-
-
             }
         }).start();
     }
@@ -41,7 +40,6 @@ public class GooglePlacesClient {
         cadHTTP = cadHTTP.substring(end_indx_place);
         float[] distance = new float[1];
         Location.distanceBetween(Double.parseDouble( lat ), Double.parseDouble( lng), Double.parseDouble( lat1), Double.parseDouble( lang1), distance);
-        System.out.println("in do distance :"+distance[0]);
         if (distance[0] < 2000) {
             NotificationHelper notificationHelper = new NotificationHelper(context);
             Notification nb = notificationHelper.getChannelNotification(key
@@ -60,7 +58,7 @@ public class GooglePlacesClient {
     }
 
 
-    public  String getResponse(String url) {
+    public String getResponse(String url) {
         HttpClient httpClient = new DefaultHttpClient();
         HttpGet del = new HttpGet(url);
         del.setHeader("content-type", "application/json");
